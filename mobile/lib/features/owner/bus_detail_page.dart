@@ -17,76 +17,433 @@ class BusDetailPage extends StatefulWidget {
 }
 
 class _BusDetailPageState extends State<BusDetailPage> {
-  late String _routeName;
-  late String _startTime;
-  late String _endTime;
+  late String _busName;
+  late String _category;
+  late String _startPoint;
+  late String _destPoint;
+  late List<BusStopSchedule> _stops;
+  late int _seats;
+  late String _driver;
+  late String _cleaner;
+  late String _conductor;
+  late bool _isActive;
 
   @override
   void initState() {
     super.initState();
-    _routeName = widget.bus.routeName;
-    _startTime = widget.bus.startTime;
-    _endTime = widget.bus.endTime;
+    _syncFromBus();
   }
 
-  void _showEditRouteDialog() {
-    final routeCtrl = TextEditingController(text: _routeName);
-    final startCtrl = TextEditingController(text: _startTime);
-    final endCtrl = TextEditingController(text: _endTime);
+  void _syncFromBus() {
+    _busName = widget.bus.busName;
+    _category = widget.bus.category;
+    _startPoint = widget.bus.startPoint;
+    _destPoint = widget.bus.destPoint;
+    _stops = List.from(widget.bus.stops);
+    _seats = widget.bus.seatingCapacity;
+    _driver = widget.bus.driverName;
+    _cleaner = widget.bus.cleanerName;
+    _conductor = widget.bus.conductorName;
+    _isActive = widget.bus.isActive;
+  }
 
-    showDialog(
+  Color _getCategoryColor(String category) {
+    if (category.contains('Red') || category.contains('Limited')) {
+      return const Color(0xFFC62828);
+    } else if (category.contains('Blue') || category.contains('Ordinary')) {
+      return const Color(0xFF1565C0);
+    } else {
+      return const Color(0xFF2E7D32);
+    }
+  }
+
+  void _toggleActiveStatus(bool active) {
+    setState(() {
+      _isActive = active;
+      widget.bus.isActive = active;
+      widget.bus.status = active ? 'RUNNING_NOW' : 'IN_DEPOT';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Bus status set to ${active ? "ACTIVE (Running on Route)" : "INACTIVE (In Depot)"}'),
+        backgroundColor: active ? AppTheme.primaryGreen : Colors.orange.shade800,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showEditBusModal() {
+    final nameCtrl = TextEditingController(text: _busName);
+    String selectedCat = _category;
+    final startCtrl = TextEditingController(text: _startPoint);
+    final destCtrl = TextEditingController(text: _destPoint);
+    final seatsCtrl = TextEditingController(text: '$_seats');
+    final driverCtrl = TextEditingController(text: _driver);
+    final cleanerCtrl = TextEditingController(text: _cleaner);
+    String selectedCond = _conductor;
+    bool editIsActive = _isActive;
+
+    // Editable copy of stops
+    List<Map<String, String>> editStops = _stops.map((s) {
+      return {'stop': s.stopName, 'time': s.time};
+    }).toList();
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Manage Bus Route & Timings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: routeCtrl,
-                decoration: const InputDecoration(labelText: 'Route Name & Suffix', border: OutlineInputBorder()),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: startCtrl,
-                      decoration: const InputDecoration(labelText: 'Start Time', border: OutlineInputBorder()),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.edit_note, color: AppTheme.primaryGreen),
+                            SizedBox(width: 8),
+                            Text('Edit Bus Configuration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(sheetCtx)),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: endCtrl,
-                      decoration: const InputDecoration(labelText: 'End Time', border: OutlineInputBorder()),
+                    const Text(
+                      'Owners can modify any vehicle parameters except the permanent RTO Registration Number.',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+
+                    // Immutable Reg Number Display
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.lock, color: Colors.grey, size: 20),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('REGISTRATION NUMBER (LOCKED)', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                              Text(widget.bus.regNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text('IMMUTABLE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Active / Inactive Switch
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Bus Operational Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      subtitle: Text(editIsActive ? 'ACTIVE (Operating on Route)' : 'INACTIVE (Off Route / In Depot)',
+                          style: TextStyle(color: editIsActive ? Colors.green : Colors.grey, fontSize: 12)),
+                      value: editIsActive,
+                      activeThumbColor: AppTheme.primaryGreen,
+                      onChanged: (val) {
+                        setModalState(() => editIsActive = val);
+                      },
+                    ),
+                    const Divider(height: 16),
+
+                    // Bus Name
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Bus Display Name',
+                        prefixIcon: const Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Category Dropdown
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Kerala Bus Category & Livery',
+                        prefixIcon: const Icon(Icons.palette, color: AppTheme.primaryGreen),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      initialValue: selectedCat,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Limited Stop Bus (Red-Whiteline)',
+                          child: Row(
+                            children: [
+                              Icon(Icons.circle, color: Color(0xFFC62828), size: 14),
+                              SizedBox(width: 8),
+                              Text('Limited Stop Bus (Red-Whiteline)', style: TextStyle(fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Ordinary Bus (Blue-Whiteline)',
+                          child: Row(
+                            children: [
+                              Icon(Icons.circle, color: Color(0xFF1565C0), size: 14),
+                              SizedBox(width: 8),
+                              Text('Ordinary Bus (Blue-Whiteline)', style: TextStyle(fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'City Bus (Green-Whiteline)',
+                          child: Row(
+                            children: [
+                              Icon(Icons.circle, color: Color(0xFF2E7D32), size: 14),
+                              SizedBox(width: 8),
+                              Text('City Bus (Green-Whiteline)', style: TextStyle(fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedCat = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Route: Start Point - Destination Point
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: startCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'Start Point',
+                              prefixIcon: const Icon(Icons.trip_origin, color: AppTheme.primaryGreen, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: destCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'Destination Point',
+                              prefixIcon: const Icon(Icons.location_on, color: Colors.red, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Intermediate Stops & Timings
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Intermediate Stops & Timetable', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        TextButton.icon(
+                          onPressed: () {
+                            setModalState(() {
+                              editStops.add({'stop': 'New Stop', 'time': '08:00 AM'});
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 14),
+                          label: const Text('Add Stop', style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ...editStops.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final item = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: TextFormField(
+                                initialValue: item['stop'],
+                                decoration: InputDecoration(
+                                  labelText: 'Stop #${idx + 1}',
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onChanged: (val) => editStops[idx]['stop'] = val,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                initialValue: item['time'],
+                                decoration: InputDecoration(
+                                  labelText: 'Departure',
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onChanged: (val) => editStops[idx]['time'] = val,
+                              ),
+                            ),
+                            if (editStops.length > 1)
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle, color: Colors.red, size: 18),
+                                onPressed: () {
+                                  setModalState(() {
+                                    editStops.removeAt(idx);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 10),
+
+                    // Seats
+                    TextField(
+                      controller: seatsCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Passenger Seating Capacity',
+                        prefixIcon: const Icon(Icons.event_seat, color: AppTheme.primaryGreen),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Workers: Driver & Cleaner
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: driverCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'Driver Name',
+                              prefixIcon: const Icon(Icons.airline_seat_recline_normal, color: AppTheme.primaryGreen, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: cleanerCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'Cleaner Name',
+                              prefixIcon: const Icon(Icons.cleaning_services, color: AppTheme.primaryGreen, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Workers: Conductor
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Assigned Conductor',
+                        prefixIcon: const Icon(Icons.badge, color: AppTheme.primaryGreen),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      initialValue: selectedCond,
+                      items: [
+                        const DropdownMenuItem(value: 'Unassigned', child: Text('Unassigned')),
+                        ...FleetState.instance.conductors.map((c) {
+                          return DropdownMenuItem(value: c.name, child: Text('${c.name} (${c.userId})'));
+                        }),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedCond = val);
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () {
+                        final updatedStops = editStops.map((s) {
+                          return BusStopSchedule(stopName: s['stop'] ?? 'Stop', time: s['time'] ?? '08:00 AM');
+                        }).toList();
+
+                        FleetState.instance.updateBus(
+                          regNumber: widget.bus.regNumber,
+                          busName: nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : _busName,
+                          category: selectedCat,
+                          startPoint: startCtrl.text.trim().isNotEmpty ? startCtrl.text.trim() : _startPoint,
+                          destPoint: destCtrl.text.trim().isNotEmpty ? destCtrl.text.trim() : _destPoint,
+                          seats: int.tryParse(seatsCtrl.text.trim()) ?? _seats,
+                          driver: driverCtrl.text.trim().isNotEmpty ? driverCtrl.text.trim() : _driver,
+                          cleaner: cleanerCtrl.text.trim().isNotEmpty ? cleanerCtrl.text.trim() : _cleaner,
+                          conductor: selectedCond,
+                          isActive: editIsActive,
+                          stops: updatedStops,
+                        );
+
+                        // If conductor was selected, update their assigned bus
+                        if (selectedCond != 'Unassigned') {
+                          final cIdx = FleetState.instance.conductors.indexWhere((c) => c.name == selectedCond);
+                          if (cIdx != -1) {
+                            FleetState.instance.conductors[cIdx].assignedBusReg = widget.bus.regNumber;
+                            FleetState.instance.conductors[cIdx].assignedBusName = widget.bus.busName;
+                          }
+                        }
+
+                        setState(() {
+                          _syncFromBus();
+                        });
+
+                        Navigator.pop(sheetCtx);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${widget.bus.busName} updated successfully! (Reg Num ${widget.bus.regNumber} preserved)'),
+                            backgroundColor: AppTheme.primaryGreen,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      child: const Text('Save & Apply Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _routeName = routeCtrl.text;
-                  _startTime = startCtrl.text;
-                  _endTime = endCtrl.text;
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Bus Route & Timetable updated successfully!')),
-                );
-              },
-              child: const Text('Save Changes'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -94,22 +451,31 @@ class _BusDetailPageState extends State<BusDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final catColor = _getCategoryColor(_category);
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${widget.bus.busName} Details', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('$_busName Details', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             Text(widget.bus.regNumber, style: const TextStyle(fontSize: 11, color: Colors.white70)),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit Bus Configuration',
+            onPressed: _showEditBusModal,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Live Operational Status & Collection Card
+            // 1. Live Operational Status & Collection Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -125,27 +491,53 @@ class _BusDetailPageState extends State<BusDetailPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Active/Inactive toggle chip
+                      GestureDetector(
+                        onTap: () => _toggleActiveStatus(!_isActive),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: _isActive ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _isActive ? Colors.greenAccent : Colors.redAccent,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isActive ? Icons.sensors : Icons.power_settings_new,
+                                color: _isActive ? Colors.greenAccent : Colors.redAccent,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _isActive ? 'ACTIVE ON ROUTE' : 'INACTIVE / DEPOT',
+                                style: TextStyle(
+                                  color: _isActive ? Colors.greenAccent : Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Immutable Reg Plate
                       Row(
                         children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
-                          ),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.lock, color: AppTheme.accentAmber, size: 13),
+                          const SizedBox(width: 4),
                           Text(
-                            widget.bus.status,
-                            style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                            widget.bus.regNumber,
+                            style: const TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ],
                       ),
-                      Text(
-                        widget.bus.regNumber,
-                        style: const TextStyle(color: AppTheme.accentAmber, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -163,7 +555,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('TICKETS SOLD', style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.1)),
+                          const Text('TICKETS ISSUED', style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.1)),
                           const SizedBox(height: 4),
                           Text(
                             '${widget.bus.ticketsCount} tickets',
@@ -185,9 +577,62 @@ class _BusDetailPageState extends State<BusDetailPage> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            // Route Management Card
+            // 2. Kerala Livery & Category Card
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                            SizedBox(width: 8),
+                            Text('Bus Classification & Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ],
+                        ),
+                        TextButton.icon(
+                          onPressed: _showEditBusModal,
+                          icon: const Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
+                          label: const Text('Edit', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: catColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: catColor.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.palette, color: catColor, size: 18),
+                          const SizedBox(width: 8),
+                          Text(_category, style: TextStyle(color: catColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _infoRow('Bus Name', _busName),
+                    _infoRow('Registration No.', '${widget.bus.regNumber} (Immutable)'),
+                    _infoRow('Seating Capacity', '$_seats Passenger Seats'),
+                    _infoRow('Owner Company', widget.bus.companyName),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            // 3. Route & Stops Timetable Card
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
@@ -202,30 +647,72 @@ class _BusDetailPageState extends State<BusDetailPage> {
                           children: [
                             Icon(Icons.alt_route, color: AppTheme.primaryGreen),
                             SizedBox(width: 8),
-                            Text('Route Management', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('Route & Timetable', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                         TextButton.icon(
-                          onPressed: _showEditRouteDialog,
+                          onPressed: _showEditBusModal,
                           icon: const Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
-                          label: const Text('Edit', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                          label: const Text('Modify', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
                     const Divider(),
-                    _infoRow('Assigned Route', _routeName),
-                    _infoRow('Daily Timings', '$_startTime to $_endTime'),
-                    _infoRow('Bus Type', widget.bus.busType),
-                    _infoRow('Seating Capacity', '${widget.bus.seatingCapacity} Passenger Seats'),
-                    _infoRow('Owner Company', widget.bus.companyName),
+                    _infoRow('Route Corridor', '$_startPoint ➔ $_destPoint'),
+                    _infoRow('Service Timings', '${widget.bus.startTime} to ${widget.bus.endTime}'),
+                    const SizedBox(height: 12),
+                    const Text('Stops & Timing Schedule:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    if (_stops.isEmpty)
+                      const Text('No intermediate stops scheduled yet. Assigned conductor can add stops.', style: TextStyle(color: Colors.grey, fontSize: 12))
+                    else
+                      Column(
+                        children: _stops.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final stop = entry.value;
+                          final isFirst = idx == 0;
+                          final isLast = idx == _stops.length - 1;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isFirst ? Icons.trip_origin : (isLast ? Icons.location_on : Icons.circle),
+                                  size: 14,
+                                  color: isFirst ? AppTheme.primaryGreen : (isLast ? Colors.red : Colors.grey),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    stop.stopName,
+                                    style: TextStyle(
+                                      fontWeight: (isFirst || isLast) ? FontWeight.bold : FontWeight.normal,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(stop.time, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            // Workers / Crew Assigned Section
+            // 4. Workers / Crew Assigned Section
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
@@ -233,24 +720,34 @@ class _BusDetailPageState extends State<BusDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.badge, color: AppTheme.primaryGreen),
-                        SizedBox(width: 8),
-                        Text('Assigned Bus Crew & Workers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Row(
+                          children: [
+                            Icon(Icons.badge, color: AppTheme.primaryGreen),
+                            SizedBox(width: 8),
+                            Text('Assigned Bus Crew & Workers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ],
+                        ),
+                        TextButton.icon(
+                          onPressed: _showEditBusModal,
+                          icon: const Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
+                          label: const Text('Reassign', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                        ),
                       ],
                     ),
                     const Divider(height: 20),
 
-                    // Conductor Button
+                    // Conductor Item
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
                         backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
                         child: const Icon(Icons.qr_code_scanner, color: AppTheme.primaryGreen),
                       ),
-                      title: Text(widget.bus.conductorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Conductor • Tap to view conductor profile & credentials'),
+                      title: Text(_conductor, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Conductor • App Login ID assigned by Owner'),
                       trailing: const Icon(Icons.chevron_right, color: AppTheme.primaryGreen),
                       onTap: () {
                         Navigator.pop(context);
@@ -267,8 +764,8 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         backgroundColor: Colors.blue.withValues(alpha: 0.15),
                         child: const Icon(Icons.airline_seat_recline_normal, color: Colors.blue),
                       ),
-                      title: Text(widget.bus.driverName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Primary Driver • Heavy Vehicle Permit Valid'),
+                      title: Text(_driver, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Primary Driver • Heavy Vehicle License'),
                     ),
 
                     const Divider(height: 16),
@@ -280,8 +777,8 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         backgroundColor: Colors.orange.withValues(alpha: 0.15),
                         child: const Icon(Icons.cleaning_services, color: Colors.orange),
                       ),
-                      title: Text(widget.bus.cleanerName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Cleaner / Bus Attendant'),
+                      title: Text(_cleaner, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Cleaner / Vehicle Attendant'),
                     ),
                   ],
                 ),
@@ -300,7 +797,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 130,
             child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ),
           Expanded(

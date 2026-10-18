@@ -4,13 +4,28 @@ import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 import '../bus_detail_page.dart';
 
-class OwnerDashboardTab extends StatelessWidget {
+class OwnerDashboardTab extends StatefulWidget {
   final VoidCallback onNavigateToConductorTab;
 
   const OwnerDashboardTab({
     super.key,
     required this.onNavigateToConductorTab,
   });
+
+  @override
+  State<OwnerDashboardTab> createState() => _OwnerDashboardTabState();
+}
+
+class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
+  Color _getCategoryColor(String category) {
+    if (category.contains('Red') || category.contains('Limited')) {
+      return const Color(0xFFC62828);
+    } else if (category.contains('Blue') || category.contains('Ordinary')) {
+      return const Color(0xFF1565C0);
+    } else {
+      return const Color(0xFF2E7D32);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,32 +97,53 @@ class OwnerDashboardTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Active Operating Fleet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('${fleet.buses.length} buses registered', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              const Text('Operating Fleet Overview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 4),
+                  Text('${fleet.activeBusesCount} Active', style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  Text('(${fleet.buses.length} total)', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 4),
-          const Text('Tap any bus button below to inspect live operations & route details',
+          const Text('Tap any bus below to inspect live operations, edit routes or toggle active status',
               style: TextStyle(color: Colors.grey, fontSize: 12)),
           const SizedBox(height: 14),
 
           // 3. List of Bus Buttons
           ...fleet.buses.map((bus) {
+            final catColor = _getCategoryColor(bus.category);
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: BorderSide(
+                  color: bus.isActive ? Colors.green.withValues(alpha: 0.3) : Colors.grey.shade300,
+                  width: bus.isActive ? 1.5 : 1,
+                ),
+              ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(18),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => BusDetailPage(
                         bus: bus,
-                        onNavigateToConductors: onNavigateToConductorTab,
+                        onNavigateToConductors: widget.onNavigateToConductorTab,
                       ),
                     ),
                   );
+                  setState(() {});
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -119,22 +155,86 @@ class OwnerDashboardTab extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                              Stack(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: bus.isActive
+                                          ? AppTheme.primaryGreen.withValues(alpha: 0.1)
+                                          : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.directions_bus,
+                                      color: bus.isActive ? AppTheme.primaryGreen : Colors.grey.shade600,
+                                      size: 26,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        bus.isActive ? Icons.check_circle : Icons.cancel,
+                                        color: bus.isActive ? Colors.green : Colors.red,
+                                        size: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(width: 12),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    bus.busName,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        bus.busName,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Active / Inactive Badge with Icon
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: bus.isActive ? Colors.green.shade50 : Colors.red.shade50,
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: bus.isActive ? Colors.green.shade300 : Colors.red.shade300,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              bus.isActive ? Icons.sensors : Icons.power_settings_new,
+                                              size: 11,
+                                              color: bus.isActive ? Colors.green.shade700 : Colors.red.shade700,
+                                            ),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              bus.isActive ? 'ACTIVE' : 'INACTIVE',
+                                              style: TextStyle(
+                                                color: bus.isActive ? Colors.green.shade800 : Colors.red.shade800,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.4,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  const SizedBox(height: 2),
                                   Text(
                                     bus.regNumber,
                                     style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
@@ -154,6 +254,31 @@ class OwnerDashboardTab extends StatelessWidget {
                             ],
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Livery / Category tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: catColor.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: catColor.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(color: catColor, shape: BoxShape.circle),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              bus.category,
+                              style: TextStyle(color: catColor, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
                       const Divider(height: 20),
                       Row(

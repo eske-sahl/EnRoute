@@ -1,69 +1,89 @@
+class BusStopSchedule {
+  String stopName;
+  String time;
+
+  BusStopSchedule({required this.stopName, required this.time});
+}
+
 class BusModel {
   final String id;
-  final String regNumber;
-  final String busName;
-  final String busType;
-  final String routeName;
-  final String startTime;
-  final String endTime;
-  final String conductorName;
-  final String driverName;
-  final String cleanerName;
-  final String companyName;
-  final int seatingCapacity;
+  final String regNumber; // Immutable after registration
+  String busName;
+  String category; // 'Limited Stop Bus (Red-Whiteline)', 'Ordinary Bus (Blue-Whiteline)', 'City Bus (Green-Whiteline)'
+  String startPoint;
+  String destPoint;
+  String routeName;
+  List<BusStopSchedule> stops;
+  int seatingCapacity;
+  String driverName;
+  String cleanerName;
+  String conductorName;
+  String companyName;
   double todayCollection;
   int ticketsCount;
-  final String status; // 'RUNNING_NOW', 'PENDING_ADMIN', 'SCHEDULED'
-  final bool isApprovedByAdmin;
-  final String currentStop;
-  final String nextStop;
-  final String eta;
+  bool isActive; // Active or Inactive
+  String status; // 'RUNNING_NOW', 'IN_DEPOT', 'MAINTENANCE'
+  bool isApprovedByAdmin;
+  String currentStop;
+  String nextStop;
+  String eta;
 
   BusModel({
     required this.id,
     required this.regNumber,
     required this.busName,
-    required this.busType,
+    required this.category,
+    this.startPoint = 'Aluva Stand',
+    this.destPoint = 'Perumbavoor Stand',
     required this.routeName,
-    required this.startTime,
-    required this.endTime,
-    required this.conductorName,
-    required this.driverName,
-    required this.cleanerName,
-    required this.companyName,
-    required this.seatingCapacity,
+    required this.stops,
+    this.seatingCapacity = 48,
+    this.driverName = 'Unassigned',
+    this.cleanerName = 'Unassigned',
+    this.conductorName = 'Unassigned',
+    this.companyName = 'St. George Motors Ernakulam',
     this.todayCollection = 0.0,
     this.ticketsCount = 0,
+    this.isActive = true,
     this.status = 'RUNNING_NOW',
     this.isApprovedByAdmin = true,
     this.currentStop = 'Pump Junction',
     this.nextStop = 'Kizhakkambalam (~4 mins)',
     this.eta = '4 mins',
   });
+
+  String get busType => category;
+  String get startTime => stops.isNotEmpty ? stops.first.time : '06:30 AM';
+  String get endTime => stops.isNotEmpty ? stops.last.time : '08:00 PM';
 }
 
 class ConductorModel {
   final String id;
-  final String loginId;
-  final String password;
-  final String name;
-  final String phone;
-  final String badgeNumber;
-  final String assignedBusReg;
-  final String assignedBusName;
+  String name;
+  String email;
+  String userId; // App Login ID
+  String password; // App Login Password
+  String phone;
+  String licenseNumber; // MVD Conductor Badge/License
+  String assignedBusReg;
+  String assignedBusName;
   double todayCollection;
 
   ConductorModel({
     required this.id,
-    required this.loginId,
-    required this.password,
     required this.name,
+    required this.email,
+    required this.userId,
+    required this.password,
     required this.phone,
-    required this.badgeNumber,
+    required this.licenseNumber,
     required this.assignedBusReg,
     required this.assignedBusName,
     this.todayCollection = 0.0,
   });
+
+  String get loginId => userId;
+  String get badgeNumber => licenseNumber;
 }
 
 class FleetState {
@@ -75,38 +95,54 @@ class FleetState {
       id: 'BUS-1',
       regNumber: 'KL 07 CD 4589',
       busName: 'SpeedWings',
-      busType: 'Ordinary Line Service',
-      routeName: 'Aluva - Perumbavoor (via Kizhakkambalam, R-14)',
-      startTime: '06:00 AM',
-      endTime: '08:30 PM',
-      conductorName: 'Suresh Kumar',
+      category: 'Ordinary Bus (Blue-Whiteline)',
+      startPoint: 'Aluva Stand',
+      destPoint: 'Perumbavoor Stand',
+      routeName: 'Aluva Stand - Perumbavoor Stand (via Kizhakkambalam)',
+      stops: [
+        BusStopSchedule(stopName: 'Aluva Stand', time: '10:00 AM'),
+        BusStopSchedule(stopName: 'Bank Junction', time: '10:08 AM'),
+        BusStopSchedule(stopName: 'Pump Junction', time: '10:15 AM'),
+        BusStopSchedule(stopName: 'Kizhakkambalam', time: '10:24 AM'),
+        BusStopSchedule(stopName: 'Pattimattom', time: '10:35 AM'),
+        BusStopSchedule(stopName: 'Perumbavoor Stand', time: '10:48 AM'),
+      ],
+      seatingCapacity: 48,
       driverName: 'Venu Pillai (Badge #KL4201)',
       cleanerName: 'Mani K.',
+      conductorName: 'Suresh Kumar',
       companyName: 'St. George Motors Ernakulam',
-      seatingCapacity: 48,
       todayCollection: 6420.0,
       ticketsCount: 168,
+      isActive: true,
       status: 'RUNNING_NOW',
       isApprovedByAdmin: true,
       currentStop: 'Pump Junction (Stage 3)',
-      nextStop: 'Kizhakkambalam (Stage 4)',
+      nextStop: 'Kizhakkambalam (~4 mins)',
       eta: '4 mins',
     ),
     BusModel(
       id: 'BUS-2',
       regNumber: 'KL 07 CE 1204',
       busName: 'GreenCity Express',
-      busType: 'Fast Passenger (FP)',
-      routeName: 'Ernakulam Kaloor - Thoppumpady (R-08)',
-      startTime: '06:30 AM',
-      endTime: '09:00 PM',
-      conductorName: 'Biju Varghese',
+      category: 'Limited Stop Bus (Red-Whiteline)',
+      startPoint: 'Ernakulam Kaloor',
+      destPoint: 'Thoppumpady',
+      routeName: 'Ernakulam Kaloor - Thoppumpady (via Menaka)',
+      stops: [
+        BusStopSchedule(stopName: 'Kaloor Stand', time: '10:30 AM'),
+        BusStopSchedule(stopName: 'Menaka Junction', time: '10:42 AM'),
+        BusStopSchedule(stopName: 'Thevara Ferry', time: '10:55 AM'),
+        BusStopSchedule(stopName: 'Thoppumpady', time: '11:15 AM'),
+      ],
+      seatingCapacity: 52,
       driverName: 'Antony Joseph',
       cleanerName: 'Saji T.',
+      conductorName: 'Biju Varghese',
       companyName: 'St. George Motors Ernakulam',
-      seatingCapacity: 52,
       todayCollection: 7840.0,
       ticketsCount: 202,
+      isActive: true,
       status: 'RUNNING_NOW',
       isApprovedByAdmin: true,
       currentStop: 'Menaka Junction',
@@ -116,66 +152,76 @@ class FleetState {
     BusModel(
       id: 'BUS-3',
       regNumber: 'KL 07 BQ 9981',
-      busName: 'St. Marys Line',
-      busType: 'Ordinary Line Service',
-      routeName: 'Vytilla - Kakkanad InfoPark (R-22)',
-      startTime: '07:00 AM',
-      endTime: '08:00 PM',
-      conductorName: 'Rajesh M.',
+      busName: 'City Rider',
+      category: 'City Bus (Green-Whiteline)',
+      startPoint: 'Vytilla Hub',
+      destPoint: 'Kakkanad InfoPark',
+      routeName: 'Vytilla Hub - Kakkanad InfoPark (via Palarivattom)',
+      stops: [
+        BusStopSchedule(stopName: 'Vytilla Hub', time: '11:00 AM'),
+        BusStopSchedule(stopName: 'Palarivattom Bypass', time: '11:15 AM'),
+        BusStopSchedule(stopName: 'Kakkanad Stand', time: '11:30 AM'),
+        BusStopSchedule(stopName: 'InfoPark Express', time: '11:45 AM'),
+      ],
+      seatingCapacity: 48,
       driverName: 'Pradeep Kumar',
       cleanerName: 'Babu N.',
+      conductorName: 'Rajesh M.',
       companyName: 'St. George Motors Ernakulam',
-      seatingCapacity: 48,
       todayCollection: 4220.0,
       ticketsCount: 116,
-      status: 'RUNNING_NOW',
+      isActive: false, // Inactive / In Depot
+      status: 'IN_DEPOT',
       isApprovedByAdmin: true,
-      currentStop: 'Palarivattom Bypass',
-      nextStop: 'Kakkanad Stand (~8 mins)',
-      eta: '8 mins',
+      currentStop: 'Vytilla Mobility Hub',
+      nextStop: 'Scheduled at 02:00 PM',
+      eta: 'Resting',
     ),
   ];
 
   final List<ConductorModel> conductors = [
     ConductorModel(
       id: 'COND-1',
-      loginId: 'suresh.conductor',
-      password: 'password123',
       name: 'Suresh Kumar',
+      email: 'suresh@stgeorge.com',
+      userId: 'suresh.conductor',
+      password: 'password123',
       phone: '+91 98470 11001',
-      badgeNumber: 'KL-MVD-8941',
+      licenseNumber: 'KL-MVD-COND-8941',
       assignedBusReg: 'KL 07 CD 4589',
       assignedBusName: 'SpeedWings',
       todayCollection: 6420.0,
     ),
     ConductorModel(
       id: 'COND-2',
-      loginId: 'biju.conductor',
-      password: 'password123',
       name: 'Biju Varghese',
+      email: 'biju@stgeorge.com',
+      userId: 'biju.conductor',
+      password: 'password123',
       phone: '+91 98470 11002',
-      badgeNumber: 'KL-MVD-9214',
+      licenseNumber: 'KL-MVD-COND-9214',
       assignedBusReg: 'KL 07 CE 1204',
       assignedBusName: 'GreenCity Express',
       todayCollection: 7840.0,
     ),
     ConductorModel(
       id: 'COND-3',
-      loginId: 'rajesh.conductor',
-      password: 'password123',
       name: 'Rajesh M.',
+      email: 'rajesh@stgeorge.com',
+      userId: 'rajesh.conductor',
+      password: 'password123',
       phone: '+91 98470 11003',
-      badgeNumber: 'KL-MVD-7731',
+      licenseNumber: 'KL-MVD-COND-7731',
       assignedBusReg: 'KL 07 BQ 9981',
-      assignedBusName: 'St. Marys Line',
+      assignedBusName: 'City Rider',
       todayCollection: 4220.0,
     ),
   ];
 
-  // Aggregated Stats
+  // Aggregated Stats for Owner Dashboard
   double get totalCollection => buses.fold(0.0, (sum, b) => sum + b.todayCollection);
   int get totalTicketsSold => buses.fold(0, (sum, b) => sum + b.ticketsCount);
-  int get activeBusesCount => buses.where((b) => b.isApprovedByAdmin).length;
+  int get activeBusesCount => buses.where((b) => b.isActive).length;
   double get walletCollection => totalCollection * 0.65; // 65% digital wallet
   double get cashInHand => totalCollection * 0.35; // 35% cash
 
@@ -185,5 +231,50 @@ class FleetState {
 
   void addConductor(ConductorModel conductor) {
     conductors.add(conductor);
+  }
+
+  // Edit bus details (regNumber is immutable)
+  void updateBus({
+    required String regNumber,
+    required String busName,
+    required String category,
+    required String startPoint,
+    required String destPoint,
+    required int seats,
+    required String driver,
+    required String cleaner,
+    required String conductor,
+    required bool isActive,
+    List<BusStopSchedule>? stops,
+  }) {
+    final index = buses.indexWhere((b) => b.regNumber == regNumber);
+    if (index != -1) {
+      final b = buses[index];
+      b.busName = busName;
+      b.category = category;
+      b.startPoint = startPoint;
+      b.destPoint = destPoint;
+      b.routeName = '$startPoint - $destPoint';
+      b.seatingCapacity = seats;
+      b.driverName = driver;
+      b.cleanerName = cleaner;
+      b.conductorName = conductor;
+      b.isActive = isActive;
+      b.status = isActive ? 'RUNNING_NOW' : 'IN_DEPOT';
+      if (stops != null) {
+        b.stops = stops;
+      }
+    }
+  }
+
+  // Check if credentials match an owner-provisioned conductor
+  ConductorModel? authenticateConductor(String userId, String password) {
+    try {
+      return conductors.firstWhere(
+        (c) => c.userId.trim().toLowerCase() == userId.trim().toLowerCase() && c.password == password,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/fleet_state.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function(String role, String email, String name) onLoginSuccess;
@@ -23,23 +24,52 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _selectedRole = role;
       if (role == 'PASSENGER') {
-        _emailController.text = 'passenger@gmail.com';
+        _emailController.text = '9847000004';
         _nameController.text = 'Anjali Nair';
+        _passwordController.text = 'password123';
       } else if (role == 'CONDUCTOR') {
-        _emailController.text = 'conductor@smartbus.kerala';
+        // Owner-provisioned credentials
+        _emailController.text = 'suresh.conductor';
         _nameController.text = 'Suresh Kumar (Conductor)';
+        _passwordController.text = 'password123';
       } else {
         _emailController.text = 'owner@stgeorge.com';
         _nameController.text = 'George Varghese (Owner)';
+        _passwordController.text = 'password123';
       }
     });
   }
 
   void _handleAuth() {
+    final identifier = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // 1. Check if user is logging in with Owner-provisioned Conductor credentials
+    final conductor = FleetState.instance.authenticateConductor(identifier, password);
+    if (conductor != null) {
+      widget.onLoginSuccess(
+        'CONDUCTOR',
+        conductor.email,
+        conductor.name,
+      );
+      return;
+    }
+
+    // 2. Check if user is logging in as Bus Owner
+    if (_selectedRole == 'OWNER' || identifier.toLowerCase().contains('owner')) {
+      widget.onLoginSuccess(
+        'OWNER',
+        identifier,
+        _nameController.text.isNotEmpty ? _nameController.text : 'George Varghese (Owner)',
+      );
+      return;
+    }
+
+    // 3. Otherwise (self-created account with phone number, passenger email, or personal password) -> Passenger Portal!
     widget.onLoginSuccess(
-      _selectedRole,
-      _emailController.text,
-      _nameController.text,
+      'PASSENGER',
+      identifier,
+      _nameController.text.isNotEmpty ? _nameController.text : 'Passenger ($identifier)',
     );
   }
 
@@ -205,11 +235,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       TextField(
                         controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
+                        keyboardType: _selectedRole == 'PASSENGER' ? TextInputType.text : TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          labelText: 'Email Address',
-                          prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.primaryGreen),
+                          labelText: _selectedRole == 'CONDUCTOR'
+                              ? 'Owner-Assigned Conductor User ID'
+                              : (_selectedRole == 'OWNER' ? 'Owner Email / Username' : 'Mobile Number or Email'),
+                          hintText: _selectedRole == 'CONDUCTOR'
+                              ? 'e.g. suresh.conductor'
+                              : (_selectedRole == 'OWNER' ? 'owner@stgeorge.com' : 'e.g. 9847000004'),
+                          prefixIcon: Icon(
+                            _selectedRole == 'CONDUCTOR'
+                                ? Icons.badge_outlined
+                                : (_selectedRole == 'OWNER' ? Icons.business_outlined : Icons.person_outline),
+                            color: AppTheme.primaryGreen,
+                          ),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          helperText: _selectedRole == 'CONDUCTOR'
+                              ? 'Conductor credentials are created by the Bus Owner'
+                              : (_selectedRole == 'PASSENGER' ? 'Personal phone/account accesses Passenger Portal' : null),
                         ),
                       ),
                       const SizedBox(height: 16),

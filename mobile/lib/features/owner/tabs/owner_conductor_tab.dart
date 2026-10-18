@@ -12,11 +12,18 @@ class OwnerConductorTab extends StatefulWidget {
 class _OwnerConductorTabState extends State<OwnerConductorTab> {
   void _showAddConductorModal() {
     final nameCtrl = TextEditingController(text: 'Anil Varghese');
-    final loginIdCtrl = TextEditingController(text: 'anil.conductor');
-    final passCtrl = TextEditingController(text: 'pass123');
+    final emailCtrl = TextEditingController(text: 'anil.conductor@stgeorge.com');
+    final userIdCtrl = TextEditingController(text: 'anil.conductor');
+    final passwordCtrl = TextEditingController(text: 'password123');
     final phoneCtrl = TextEditingController(text: '+91 98470 55009');
-    final badgeCtrl = TextEditingController(text: 'KL-MVD-6621');
-    String assignedBus = FleetState.instance.buses.first.busName;
+    final licenseCtrl = TextEditingController(text: 'KL-MVD-COND-6621');
+    
+    // Default assigned bus
+    String assignedBusReg = FleetState.instance.buses.isNotEmpty 
+        ? FleetState.instance.buses.first.regNumber 
+        : 'KL 07 CD 4589';
+
+    final formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
       context: context,
@@ -24,124 +31,241 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Provision Conductor Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-                  ],
-                ),
-                const Text(
-                  'Conductors cannot self-register. You create their credentials here. They will sign into the app using this Login ID and Password.',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Conductor Full Name',
-                    prefixIcon: const Icon(Icons.person, color: AppTheme.primaryGreen),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: loginIdCtrl,
-                        decoration: InputDecoration(
-                          labelText: 'Login ID / Username',
-                          prefixIcon: const Icon(Icons.badge, color: AppTheme.primaryGreen),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      builder: (modalCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.person_add_alt_1, color: AppTheme.primaryGreen),
+                              SizedBox(width: 8),
+                              Text('Add Conductor', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(modalCtx)),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.2)),
+                        ),
+                        child: const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.info_outline, color: AppTheme.primaryGreen, size: 16),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Conductor access is provisioned by the Bus Owner. Logging in with this User ID & Owner-assigned Password grants entry to Conductor Portal. (If logging in with a personal phone/password, the app opens the Passenger Portal).',
+                                style: TextStyle(fontSize: 11, color: Colors.black87),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: passCtrl,
+                      const SizedBox(height: 16),
+
+                      // 1. Name
+                      TextFormField(
+                        controller: nameCtrl,
                         decoration: InputDecoration(
-                          labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock, color: AppTheme.primaryGreen),
+                          labelText: 'Conductor Full Name *',
+                          prefixIcon: const Icon(Icons.person, color: AppTheme.primaryGreen),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                         ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: phoneCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: 'Mobile Phone Number',
-                    prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      const SizedBox(height: 12),
+
+                      // 2. Email
+                      TextFormField(
+                        controller: emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'Email Address *',
+                          prefixIcon: const Icon(Icons.email, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Email is required' : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 3. User ID & Password (App Login Credentials)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade50,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.amber.shade300),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.key, color: Colors.brown, size: 16),
+                                SizedBox(width: 6),
+                                Text(
+                                  'CONDUCTOR APP LOGIN CREDENTIALS',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.brown),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: userIdCtrl,
+                                    decoration: InputDecoration(
+                                      labelText: 'User ID (Login ID) *',
+                                      hintText: 'e.g. anil.conductor',
+                                      prefixIcon: const Icon(Icons.badge, color: AppTheme.primaryGreen, size: 18),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'User ID is required' : null,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: passwordCtrl,
+                                    decoration: InputDecoration(
+                                      labelText: 'Password *',
+                                      hintText: 'e.g. password123',
+                                      prefixIcon: const Icon(Icons.lock, color: AppTheme.primaryGreen, size: 18),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Password is required' : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 4. Phone
+                      TextFormField(
+                        controller: phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number *',
+                          prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Phone number is required' : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 5. License Number (MVD Conductor Badge)
+                      TextFormField(
+                        controller: licenseCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'License / MVD Badge Number *',
+                          hintText: 'e.g. KL-MVD-COND-6621',
+                          prefixIcon: const Icon(Icons.verified, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'License number is required' : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 6. Assigned Bus [Bus Name and Bus Number]
+                      DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          labelText: 'Assigned Bus [Bus Name and Bus Num] *',
+                          prefixIcon: const Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        initialValue: assignedBusReg,
+                        items: FleetState.instance.buses.map((b) {
+                          return DropdownMenuItem(
+                            value: b.regNumber,
+                            child: Text('${b.busName} [${b.regNumber}]', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() => assignedBusReg = val);
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: () {
+                          if (!formKey.currentState!.validate()) return;
+
+                          final assignedBusObj = FleetState.instance.buses.firstWhere(
+                            (b) => b.regNumber == assignedBusReg,
+                            orElse: () => FleetState.instance.buses.first,
+                          );
+
+                          final newCond = ConductorModel(
+                            id: 'COND-${DateTime.now().millisecondsSinceEpoch}',
+                            name: nameCtrl.text.trim(),
+                            email: emailCtrl.text.trim(),
+                            userId: userIdCtrl.text.trim(),
+                            password: passwordCtrl.text.trim(),
+                            phone: phoneCtrl.text.trim(),
+                            licenseNumber: licenseCtrl.text.trim(),
+                            assignedBusReg: assignedBusObj.regNumber,
+                            assignedBusName: assignedBusObj.busName,
+                            todayCollection: 0.0,
+                          );
+
+                          // Also update bus's conductor field
+                          assignedBusObj.conductorName = newCond.name;
+
+                          setState(() {
+                            FleetState.instance.addConductor(newCond);
+                          });
+
+                          Navigator.pop(modalCtx);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Conductor ${newCond.name} added! Assigned to ${assignedBusObj.busName} (${assignedBusObj.regNumber}). Login ID: ${newCond.userId}'),
+                              backgroundColor: AppTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: const Text('Save & Authorize Conductor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: badgeCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Conductor License / MVD Badge',
-                    prefixIcon: const Icon(Icons.verified, color: AppTheme.primaryGreen),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Assign to Bus',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  initialValue: assignedBus,
-                  items: FleetState.instance.buses.map((b) => DropdownMenuItem(value: b.busName, child: Text('${b.busName} (${b.regNumber})'))).toList(),
-                  onChanged: (val) => assignedBus = val!,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    final newCond = ConductorModel(
-                      id: 'COND-${DateTime.now().millisecondsSinceEpoch}',
-                      loginId: loginIdCtrl.text,
-                      password: passCtrl.text,
-                      name: nameCtrl.text,
-                      phone: phoneCtrl.text,
-                      badgeNumber: badgeCtrl.text,
-                      assignedBusReg: FleetState.instance.buses.firstWhere((b) => b.busName == assignedBus).regNumber,
-                      assignedBusName: assignedBus,
-                      todayCollection: 0.0,
-                    );
-
-                    setState(() {
-                      FleetState.instance.addConductor(newCond);
-                    });
-
-                    Navigator.pop(context);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Conductor ${newCond.name} onboarded! Login ID: ${newCond.loginId}')),
-                    );
-                  },
-                  child: const Text('Create & Authorize Conductor Account'),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -164,7 +288,7 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(cond.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('Badge: ${cond.badgeNumber}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                  Text('Badge: ${cond.licenseNumber}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                 ],
               ),
             ],
@@ -174,12 +298,31 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(),
-              _credRow('Assigned Bus', '${cond.assignedBusName} (${cond.assignedBusReg})'),
+              _credRow('Assigned Bus', '${cond.assignedBusName} [${cond.assignedBusReg}]'),
+              _credRow('Email', cond.email),
               _credRow('Phone Number', cond.phone),
-              _credRow('Conductor Login ID', cond.loginId),
-              _credRow('Password', '•••••••• (${cond.password})'),
-              _credRow('Today\'s Collections', '₹${cond.todayCollection.toStringAsFixed(1)}'),
+              _credRow('License Number', cond.licenseNumber),
               const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('OWNER ASSIGNED APP LOGIN CREDENTIALS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.brown)),
+                    const SizedBox(height: 4),
+                    _credRow('User ID', cond.userId),
+                    _credRow('Password', cond.password),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              _credRow('Today\'s Collections', '₹${cond.todayCollection.toStringAsFixed(1)}'),
+              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -187,7 +330,7 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text(
-                  'Authorized to scan passenger QR codes and issue spot tickets for this bus.',
+                  'Logging into the app with this User ID and Owner-given password opens the Conductor Portal for the assigned bus.',
                   style: TextStyle(fontSize: 11, color: Colors.green),
                 ),
               ),
@@ -246,14 +389,37 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                   ),
                   onPressed: _showAddConductorModal,
                   icon: const Icon(Icons.person_add, size: 18),
-                  label: const Text('Add Conductor', style: TextStyle(fontSize: 13)),
+                  label: const Text('Add Conductor', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
 
+            const SizedBox(height: 12),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.shield_outlined, color: Colors.blue, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Conductor accounts are created by the Bus Owner. Conductors log into the app using their owner-assigned User ID & Password.',
+                      style: TextStyle(fontSize: 11, color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 16),
 
-            // Conductor Buttons List
+            // Conductor Cards List
             ...fleet.conductors.map((conductor) {
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -277,11 +443,11 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                             children: [
                               Text(conductor.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                               const SizedBox(height: 2),
-                              Text('Bus: ${conductor.assignedBusName} (${conductor.assignedBusReg})',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                              Text('Assigned: ${conductor.assignedBusName} [${conductor.assignedBusReg}]',
+                                  style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500)),
                               const SizedBox(height: 2),
-                              Text('ID: ${conductor.loginId} • Badge: ${conductor.badgeNumber}',
-                                  style: const TextStyle(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.w600)),
+                              Text('User ID: ${conductor.userId} • License: ${conductor.licenseNumber}',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 11)),
                             ],
                           ),
                         ),
