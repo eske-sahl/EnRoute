@@ -4,7 +4,7 @@ import 'services/api_service.dart';
 import 'features/auth/login_screen.dart';
 import 'features/passenger/passenger_portal.dart';
 import 'features/conductor/conductor_terminal_screen.dart';
-import 'features/owner/owner_fleet_screen.dart';
+import 'features/owner/owner_portal.dart';
 
 void main() {
   runApp(const SmartBusKeralaApp());
@@ -131,14 +131,8 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Bus Owner Portal'),
-          actions: [
-            IconButton(icon: const Icon(Icons.logout), onPressed: _handleLogout),
-          ],
-        ),
-        body: const OwnerFleetScreen(),
+      return OwnerPortal(
+        onLogout: _handleLogout,
       );
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../services/fleet_state.dart';
 import '../bus_location_screen.dart';
 
 class SearchTab extends StatefulWidget {
@@ -28,80 +29,10 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
     'Ernakulam Kaloor',
   ];
 
-  // Route buses running on Aluva - Perumbavoor
-  final List<Map<String, dynamic>> _routeBuses = [
-    {
-      'reg': 'KL 07 CD 4589',
-      'name': 'SpeedWings',
-      'type': 'Ordinary Service',
-      'departure': '10:15 AM',
-      'arrival': '11:05 AM',
-      'status': 'RUNNING NOW',
-      'fare': 18.0,
-      'isLive': true,
-      'company': 'St. George Motors',
-    },
-    {
-      'reg': 'KL 07 CE 1204',
-      'name': 'GreenCity Express',
-      'type': 'Fast Passenger (FP)',
-      'departure': '10:30 AM',
-      'arrival': '11:15 AM',
-      'status': 'STARTING IN 15M',
-      'fare': 22.0,
-      'isLive': true,
-      'company': 'St. George Motors',
-    },
-    {
-      'reg': 'KL 07 BQ 9981',
-      'name': 'St. Marys Line',
-      'type': 'Ordinary Service',
-      'departure': '11:00 AM',
-      'arrival': '11:50 AM',
-      'status': 'SCHEDULED',
-      'fare': 18.0,
-      'isLive': false,
-      'company': 'St. Marys Transport',
-    },
-  ];
-
   // Inner Tab 2: Bus Search by Reg Number State
   final _regSearchController = TextEditingController(text: 'KL 07 CD 4589');
   bool _hasFoundBus = false;
   Map<String, dynamic>? _foundBusDetails;
-
-  final Map<String, Map<String, dynamic>> _busRegistry = {
-    'KL07CD4589': {
-      'reg': 'KL 07 CD 4589',
-      'name': 'SpeedWings',
-      'type': 'Ordinary Stage Carriage',
-      'company': 'St. George Motors Ernakulam',
-      'routeSchedule': 'Aluva - Perumbavoor (via Kizhakkambalam, R-14)',
-      'startTime': '06:00 AM',
-      'endTime': '08:30 PM',
-      'driver': 'Venu Pillai (Badge #KL4201)',
-      'conductor': 'Suresh Kumar',
-      'capacity': '48 Seats',
-      'status': 'RUNNING NOW (Active Trip #TRIP-104)',
-      'currentStop': 'Pump Junction',
-      'nextStop': 'Kizhakkambalam (~4 mins)',
-    },
-    'KL07CE1204': {
-      'reg': 'KL 07 CE 1204',
-      'name': 'GreenCity Express',
-      'type': 'Fast Passenger (LSFP)',
-      'company': 'St. George Motors Ernakulam',
-      'routeSchedule': 'Ernakulam Kaloor - Thoppumpady (R-08)',
-      'startTime': '06:30 AM',
-      'endTime': '09:00 PM',
-      'driver': 'Antony Joseph',
-      'conductor': 'Biju Varghese',
-      'capacity': '52 Seats',
-      'status': 'RUNNING NOW (Active Trip #TRIP-108)',
-      'currentStop': 'Menaka Junction',
-      'nextStop': 'Thevara Ferry (~6 mins)',
-    },
-  };
 
   @override
   void initState() {
@@ -125,10 +56,29 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
 
   void _searchBusByReg() {
     final query = _regSearchController.text.replaceAll(' ', '').toUpperCase();
+    final match = FleetState.instance.buses.where((b) {
+      return b.regNumber.replaceAll(' ', '').toUpperCase() == query;
+    }).toList();
+
     setState(() {
-      if (_busRegistry.containsKey(query)) {
+      if (match.isNotEmpty) {
+        final b = match.first;
         _hasFoundBus = true;
-        _foundBusDetails = _busRegistry[query];
+        _foundBusDetails = {
+          'reg': b.regNumber,
+          'name': b.busName,
+          'type': b.busType,
+          'company': b.companyName,
+          'routeSchedule': b.routeName,
+          'startTime': b.startTime,
+          'endTime': b.endTime,
+          'driver': b.driverName,
+          'conductor': b.conductorName,
+          'capacity': '${b.seatingCapacity} Seats',
+          'status': b.status,
+          'currentStop': b.currentStop,
+          'nextStop': b.nextStop,
+        };
       } else {
         _hasFoundBus = false;
         _foundBusDetails = null;
@@ -257,19 +207,24 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                   'Buses on $_startPoint ➔ $_endPoint',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
-                Text('${_routeBuses.length} Available', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text('${FleetState.instance.buses.length} Available', style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
             const SizedBox(height: 10),
 
-            ..._routeBuses.map((bus) {
-              final isRunning = bus['status'] == 'RUNNING NOW';
+            ...FleetState.instance.buses.map((bus) {
+              final isRunning = bus.status == 'RUNNING_NOW';
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
-                  onTap: () => _openBusLiveLocation(bus),
+                  onTap: () => _openBusLiveLocation({
+                    'reg': bus.regNumber,
+                    'name': bus.busName,
+                    'routeSchedule': bus.routeName,
+                    'company': bus.companyName,
+                  }),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -282,13 +237,13 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                               children: [
                                 Row(
                                   children: [
-                                    Text(bus['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text(bus.busName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     const SizedBox(width: 8),
-                                    Text('(${bus['reg']})', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                    Text('(${bus.regNumber})', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                                   ],
                                 ),
                                 const SizedBox(height: 2),
-                                Text(bus['type'], style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                Text(bus.busType, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                               ],
                             ),
                             Container(
@@ -298,7 +253,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                bus['status'],
+                                isRunning ? 'RUNNING NOW' : 'SCHEDULED',
                                 style: TextStyle(
                                   color: isRunning ? Colors.green.shade800 : Colors.grey,
                                   fontWeight: FontWeight.bold,
@@ -316,15 +271,15 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                               children: [
                                 const Icon(Icons.access_time, size: 16, color: Colors.grey),
                                 const SizedBox(width: 6),
-                                Text('${bus['departure']} ➔ ${bus['arrival']}',
+                                Text('${bus.startTime} ➔ ${bus.endTime}',
                                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                               ],
                             ),
-                            Row(
+                            const Row(
                               children: [
-                                const Text('Track Bus', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13)),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primaryGreen),
+                                Text('Track Bus', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13)),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primaryGreen),
                               ],
                             ),
                           ],
