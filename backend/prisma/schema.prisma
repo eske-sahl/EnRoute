@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ROLE_PASSENGER
+  ROLE_CONDUCTOR
+  ROLE_OWNER
+  ROLE_ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_VERIFICATION
+  SUSPENDED
+}
+
+enum TripStatus {
+  SCHEDULED
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  WALLET
+  CASH
+  UPI
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  fullName     String
+  phoneNumber  String        @unique
+  role         Role          @default(ROLE_PASSENGER)
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  wallet       Wallet?
+  ownerProfile OwnerProfile?
+  tickets      Ticket[]
+  trips        Trip[]        @relation("ConductorTrips")
+}
+
+model OwnerProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operatorName String
+  idProofUrl   String?
+  permitDocUrl String?
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  buses        Bus[]
+}
+
+model Bus {
+  id              String       @id @default(uuid())
+  regNumber       String       @unique
+  busName         String
+  busType         String       @default("ORDINARY") // ORDINARY, LSFP, FAST_PASSENGER
+  seatingCapacity Int          @default(48)
+  ownerId         String
+  owner           OwnerProfile @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  trips           Trip[]
+}
+
+model Route {
+  id           String      @id @default(uuid())
+  routeNumber  String
+  sourceName   String
+  destName     String
+  baseFare     Float       @default(10.0)
+  farePerStage Float       @default(1.5)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  stops        RouteStop[]
+  trips        Trip[]
+}
+
+model RouteStop {
+  id         String @id @default(uuid())
+  routeId    String
+  route      Route  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stopName   String
+  stageIndex Int
+  latitude   Float
+  longitude  Float
+
+  @@unique([routeId, stageIndex])
+}
+
+model Trip {
+  id               String     @id @default(uuid())
+  busId            String
+  bus              Bus        @relation(fields: [busId], references: [id])
+  routeId          String
+  route            Route      @relation(fields: [routeId], references: [id])
+  conductorId      String
+  conductor        User       @relation("ConductorTrips", fields: [conductorId], references: [id])
+  status           TripStatus @default(SCHEDULED)
+  currentLatitude  Float?
+  currentLongitude Float?
+  currentBearing   Float?
+  lastGpsPing      DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  tickets          Ticket[]
+}
+
+model Ticket {
+  id               String        @id @default(uuid())
+  ticketNumber     String        @unique // e.g., SBK-20261018-0001
+  passengerId      String
+  passenger        User          @relation(fields: [passengerId], references: [id])
+  tripId           String
+  trip             Trip          @relation(fields: [tripId], references: [id])
+  boardingStop     String
+  destinationStop  String
+  boardingStage    Int
+  destinationStage Int
+  fareAmount       Float
+  passengerCount   Int           @default(1)
+  paymentMethod    PaymentMethod @default(WALLET)
+  issuedAt         DateTime      @default(now())
+}
+
+model Wallet {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance      Float         @default(250.0)
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        String   // CREDIT_RECHARGE, DEBIT_TICKET
+  description String
+  createdAt   DateTime @default(now())
+}
