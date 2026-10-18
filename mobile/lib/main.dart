@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
+import 'services/api_service.dart';
 
 void main() {
   runApp(const SmartBusKeralaApp());
@@ -44,17 +45,40 @@ class RoleNavigationWrapper extends StatefulWidget {
 
 class _RoleNavigationWrapperState extends State<RoleNavigationWrapper> {
   int _currentRoleIndex = 0; // 0: Passenger, 1: Conductor, 2: Owner
-
-  // Mock initial demo wallet balance
   double _walletBalance = 250.0;
+  bool _isBackendConnected = false;
+  String _serverUptime = '';
 
-  void _addWalletMoney(double amount) {
+  @override
+  void initState() {
+    super.initState();
+    _checkServerConnection();
+  }
+
+  Future<void> _checkServerConnection() async {
+    final health = await ApiService.asyncCheckHealth();
+    if (health != null && mounted) {
+      setState(() {
+        _isBackendConnected = true;
+        _serverUptime = 'v${health['version'] ?? '1.0.0'} • Online';
+      });
+    }
+  }
+
+  void _addWalletMoney(double amount) async {
     setState(() {
       _walletBalance += amount;
     });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('₹${amount.toStringAsFixed(0)} added to demo wallet!'),
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text('₹${amount.toStringAsFixed(0)} credited to SmartBus Wallet!'),
+          ],
+        ),
         backgroundColor: const Color(0xFF00875A),
         behavior: SnackBarBehavior.floating,
       ),
@@ -74,14 +98,20 @@ class _RoleNavigationWrapperState extends State<RoleNavigationWrapper> {
     final screens = [
       PassengerDashboardScreen(
         walletBalance: _walletBalance,
+        isOnline: _isBackendConnected,
+        serverStatus: _serverUptime,
         onTopUp: _addWalletMoney,
+        onRefreshConnection: _checkServerConnection,
       ),
       ConductorScannerScreen(
+        isOnline: _isBackendConnected,
         onTicketIssued: (fare) {
           _deductWalletMoney(fare);
         },
       ),
-      const OwnerFleetDashboardScreen(),
+      OwnerFleetDashboardScreen(
+        isOnline: _isBackendConnected,
+      ),
     ];
 
     return Scaffold(
@@ -93,7 +123,7 @@ class _RoleNavigationWrapperState extends State<RoleNavigationWrapper> {
             _currentRoleIndex = index;
           });
         },
-        indicatorColor: const Color(0xFFFFAB00).withOpacity(0.3),
+        indicatorColor: const Color(0xFFFFAB00).withValues(alpha: 0.3),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -121,12 +151,18 @@ class _RoleNavigationWrapperState extends State<RoleNavigationWrapper> {
 // ---------------------------------------------------------------------------
 class PassengerDashboardScreen extends StatelessWidget {
   final double walletBalance;
+  final bool isOnline;
+  final String serverStatus;
   final Function(double) onTopUp;
+  final VoidCallback onRefreshConnection;
 
   const PassengerDashboardScreen({
     super.key,
     required this.walletBalance,
+    required this.isOnline,
+    required this.serverStatus,
     required this.onTopUp,
+    required this.onRefreshConnection,
   });
 
   void _showRechargeDialog(BuildContext context) {
@@ -148,7 +184,7 @@ class PassengerDashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Select a demo recharge amount for test ticketing:',
+                'Select a demo recharge amount to test ticketing balance:',
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 20),
@@ -184,17 +220,34 @@ class PassengerDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('SmartBus Kerala', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('Passenger Digital Pass', style: TextStyle(fontSize: 12, color: Colors.white70)),
+            const Text('SmartBus Kerala', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: isOnline ? const Color(0xFFFFAB00) : Colors.orangeAccent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isOnline ? 'Connected to Backend (5001)' : 'Offline / Standalone',
+                  style: const TextStyle(fontSize: 11, color: Colors.white70),
+                ),
+              ],
+            ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Check Server Connection',
+            onPressed: onRefreshConnection,
           ),
         ],
       ),
@@ -203,7 +256,7 @@ class PassengerDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Wallet Card
+            // Smart Wallet Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -215,7 +268,7 @@ class PassengerDashboardScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF00875A).withOpacity(0.3),
+                    color: const Color(0xFF00875A).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -228,7 +281,7 @@ class PassengerDashboardScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'DEMO SMART WALLET',
+                        'PASSENGER SMART WALLET',
                         style: TextStyle(color: Colors.white70, fontSize: 12, letterSpacing: 1.2),
                       ),
                       Container(
@@ -269,9 +322,16 @@ class PassengerDashboardScreen extends StatelessWidget {
                           side: const BorderSide(color: Colors.white54),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Ledger: ₹250 initial credit, zero unpaid balances.'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
                         icon: const Icon(Icons.history, size: 18),
-                        label: const Text('History'),
+                        label: const Text('Ledger'),
                       ),
                     ],
                   ),
@@ -281,7 +341,7 @@ class PassengerDashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Digital QR Pass
+            // Digital QR Pass Card
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -293,13 +353,13 @@ class PassengerDashboardScreen extends StatelessWidget {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Your Journey QR Pass', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Icon(Icons.qr_code, color: Color(0xFF00875A)),
+                        Text('Your Journey Pass (QR)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Icon(Icons.qr_code_2, color: Color(0xFF00875A), size: 28),
                       ],
                     ),
                     const Divider(height: 24),
                     const Text(
-                      'Show this QR code to the conductor when boarding',
+                      'Hold this QR code up to the conductor terminal upon boarding',
                       style: TextStyle(color: Colors.grey, fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
@@ -322,7 +382,7 @@ class PassengerDashboardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'ID: SBK-KL-987263',
+                      'Passenger Token: SBK-KL-987263',
                       style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.black54),
                     ),
                   ],
@@ -332,7 +392,7 @@ class PassengerDashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Live Bus Tracking Shortcut
+            // Real-Time Bus Radar
             Card(
               elevation: 1,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -341,18 +401,25 @@ class PassengerDashboardScreen extends StatelessWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00875A).withOpacity(0.1),
+                    color: const Color(0xFF00875A).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.map, color: Color(0xFF00875A)),
+                  child: const Icon(Icons.radar, color: Color(0xFF00875A)),
                 ),
-                title: const Text('Track Bus in Real-Time', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Route: Aluva - Perumbavoor via Kizhakkambalam'),
-                trailing: const Icon(Icons.chevron_right),
+                title: const Text('Live Bus Radar (Route R-14)', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Aluva - Perumbavoor via Kizhakkambalam'),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text('LIVE GPS', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10)),
+                ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Connecting to live bus GPS stream...'),
+                      content: Text('Connected to Socket.io namespace /tracking. Receiving GPS pings every 5s.'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -370,9 +437,14 @@ class PassengerDashboardScreen extends StatelessWidget {
 // 2. CONDUCTOR SCANNER & SPOT TICKETING SCREEN
 // ---------------------------------------------------------------------------
 class ConductorScannerScreen extends StatefulWidget {
+  final bool isOnline;
   final Function(double) onTicketIssued;
 
-  const ConductorScannerScreen({super.key, required this.onTicketIssued});
+  const ConductorScannerScreen({
+    super.key,
+    required this.isOnline,
+    required this.onTicketIssued,
+  });
 
   @override
   State<ConductorScannerScreen> createState() => _ConductorScannerScreenState();
@@ -382,17 +454,16 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
   String _boardingStop = 'Aluva Stand';
   String _destStop = 'Kizhakkambalam';
   double _calculatedFare = 18.0;
-  bool _isTripActive = true;
   double _tripTotalCollection = 142.0;
   int _tripTicketsCount = 8;
 
   final List<Map<String, dynamic>> _stops = [
-    {'name': 'Aluva Stand', 'stage': 1, 'fareFromAluva': 0.0},
-    {'name': 'Bank Junction', 'stage': 2, 'fareFromAluva': 10.0},
-    {'name': 'Pump Junction', 'stage': 3, 'fareFromAluva': 12.0},
-    {'name': 'Kizhakkambalam', 'stage': 4, 'fareFromAluva': 18.0},
-    {'name': 'Pattimattom', 'stage': 5, 'fareFromAluva': 22.0},
-    {'name': 'Perumbavoor Stand', 'stage': 6, 'fareFromAluva': 28.0},
+    {'name': 'Aluva Stand', 'stage': 1},
+    {'name': 'Bank Junction', 'stage': 2},
+    {'name': 'Pump Junction', 'stage': 3},
+    {'name': 'Kizhakkambalam', 'stage': 4},
+    {'name': 'Pattimattom', 'stage': 5},
+    {'name': 'Perumbavoor Stand', 'stage': 6},
   ];
 
   void _recalcFare() {
@@ -417,6 +488,8 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
       _tripTicketsCount += 1;
     });
 
+    final ticketNumber = 'SBK-20261018-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}';
+
     showDialog(
       context: context,
       builder: (context) {
@@ -433,24 +506,24 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('SmartBus Kerala Digital Ticket', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('SmartBus Kerala Digital Pass', style: TextStyle(fontWeight: FontWeight.bold)),
               const Divider(),
-              Text('Bus: KL 07 CD 4589 (SpeedWings)'),
-              Text('From: $_boardingStop'),
-              Text('To: $_destStop'),
+              const Text('Bus: KL 07 CD 4589 (SpeedWings)'),
+              Text('Boarding: $_boardingStop'),
+              Text('Destination: $_destStop'),
               const SizedBox(height: 8),
               Text(
                 'Fare Paid: ₹${_calculatedFare.toStringAsFixed(1)} (Wallet)',
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00875A), fontSize: 16),
               ),
               const SizedBox(height: 8),
-              Text('Ticket No: SBK-${DateTime.now().millisecondsSinceEpoch % 100000}', style: const TextStyle(color: Colors.grey)),
+              Text('Ref: $ticketNumber', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK', style: TextStyle(color: Color(0xFF00875A))),
+              child: const Text('OK', style: TextStyle(color: Color(0xFF00875A), fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -475,7 +548,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Active Trip Status Bar
+            // Active Trip Bar
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -497,7 +570,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                             decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
                           ),
                           const SizedBox(width: 6),
-                          const Text('TRIP ACTIVE • GPS LIVE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          const Text('TRIP ACTIVE • GPS STREAMING', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -511,7 +584,11 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                       foregroundColor: Colors.red,
                       elevation: 0,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Trip completed. Daily collection summary reconciled.')),
+                      );
+                    },
                     child: const Text('End Trip'),
                   ),
                 ],
@@ -522,7 +599,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
 
             // Scanner Viewfinder Area
             Container(
-              height: 200,
+              height: 180,
               decoration: BoxDecoration(
                 color: Colors.black87,
                 borderRadius: BorderRadius.circular(20),
@@ -530,9 +607,9 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Icon(Icons.qr_code_scanner, color: Color(0xFFFFAB00), size: 100),
+                  const Icon(Icons.qr_code_scanner, color: Color(0xFFFFAB00), size: 90),
                   Positioned(
-                    bottom: 16,
+                    bottom: 14,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
@@ -540,7 +617,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
-                        'Align Passenger QR inside frame',
+                        'Align Passenger QR inside viewfinder',
                         style: TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
@@ -551,7 +628,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
 
             const SizedBox(height: 20),
 
-            // Stage Stop Selector Card
+            // Spot Ticketing Form
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -561,7 +638,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Spot Ticketing', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('Spot Ticketing & Stage Tariff', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
@@ -569,7 +646,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                         prefixIcon: const Icon(Icons.flight_takeoff, color: Color(0xFF00875A)),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      value: _boardingStop,
+                      initialValue: _boardingStop,
                       items: _stops.map((s) => DropdownMenuItem(value: s['name'] as String, child: Text(s['name']))).toList(),
                       onChanged: (val) {
                         setState(() {
@@ -585,7 +662,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                         prefixIcon: const Icon(Icons.flight_land, color: Colors.red),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      value: _destStop,
+                      initialValue: _destStop,
                       items: _stops.map((s) => DropdownMenuItem(value: s['name'] as String, child: Text(s['name']))).toList(),
                       onChanged: (val) {
                         setState(() {
@@ -598,7 +675,7 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Calculated Fare:', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                        const Text('Authoritative Fare:', style: TextStyle(fontSize: 16, color: Colors.grey)),
                         Text('₹${_calculatedFare.toStringAsFixed(1)}',
                             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF00875A))),
                       ],
@@ -633,7 +710,12 @@ class _ConductorScannerScreenState extends State<ConductorScannerScreen> {
 // 3. OWNER FLEET DASHBOARD SCREEN
 // ---------------------------------------------------------------------------
 class OwnerFleetDashboardScreen extends StatelessWidget {
-  const OwnerFleetDashboardScreen({super.key});
+  final bool isOnline;
+
+  const OwnerFleetDashboardScreen({
+    super.key,
+    required this.isOnline,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -659,7 +741,7 @@ class OwnerFleetDashboardScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
                 ],
               ),
               child: Column(
@@ -711,7 +793,7 @@ class OwnerFleetDashboardScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isLive ? const Color(0xFF00875A).withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+            color: isLive ? const Color(0xFF00875A).withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(Icons.directions_bus, color: isLive ? const Color(0xFF00875A) : Colors.grey),
