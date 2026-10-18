@@ -13,15 +13,22 @@ class SearchTab extends StatefulWidget {
 class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMixin {
   late TabController _innerTabCtrl;
 
+  // -------------------------------------------------------------------------
   // Inner Tab 1: Route Search State
-  String _startPoint = 'Aluva Stand';
-  String _endPoint = 'Perumbavoor Stand';
+  // -------------------------------------------------------------------------
+  final _startSearchController = TextEditingController(text: 'Aluva Stand');
+  final _endSearchController = TextEditingController(text: 'Perumbavoor Stand');
   bool _hasSearchedRoute = false;
+  List<String> _startSuggestions = [];
+  List<String> _endSuggestions = [];
+  bool _showStartSuggestions = false;
+  bool _showEndSuggestions = false;
 
-  // Inner Tab 2: Bus Search by Reg Number State
-  final _regSearchController = TextEditingController(text: 'KL 07 CD 4589');
-  bool _hasFoundBus = false;
-  BusModel? _foundBus;
+  // -------------------------------------------------------------------------
+  // Inner Tab 2: Bus Search by Name or Reg Number State
+  // -------------------------------------------------------------------------
+  final _busSearchController = TextEditingController(text: '');
+  BusModel? _selectedBus;
 
   // Dynamic stops extracted from all buses registered/modified by owner & conductor
   List<String> get _dynamicStops {
@@ -46,6 +53,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
       'Thoppumpady',
       'Vytilla Hub',
       'Kakkanad InfoPark',
+      'Palarivattom Bypass',
     ]);
     final sortedList = stopsSet.toList()..sort();
     return sortedList;
@@ -65,37 +73,96 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     _innerTabCtrl = TabController(length: 2, vsync: this);
-    _searchBusByReg(); // Pre-load default bus search
   }
 
   @override
   void dispose() {
     _innerTabCtrl.dispose();
-    _regSearchController.dispose();
+    _startSearchController.dispose();
+    _endSearchController.dispose();
+    _busSearchController.dispose();
     super.dispose();
   }
 
-  void _searchRoute() {
+  void _onStartChanged(String text) {
     setState(() {
+      if (text.trim().isEmpty) {
+        _startSuggestions = [];
+        _showStartSuggestions = false;
+      } else {
+        _startSuggestions = _dynamicStops
+            .where((s) => s.toLowerCase().contains(text.trim().toLowerCase()))
+            .toList();
+        _showStartSuggestions = _startSuggestions.isNotEmpty;
+      }
+    });
+  }
+
+  void _onEndChanged(String text) {
+    setState(() {
+      if (text.trim().isEmpty) {
+        _endSuggestions = [];
+        _showEndSuggestions = false;
+      } else {
+        _endSuggestions = _dynamicStops
+            .where((s) => s.toLowerCase().contains(text.trim().toLowerCase()))
+            .toList();
+        _showEndSuggestions = _endSuggestions.isNotEmpty;
+      }
+    });
+  }
+
+  void _selectStartStop(String stop) {
+    setState(() {
+      _startSearchController.text = stop;
+      _showStartSuggestions = false;
+    });
+  }
+
+  void _selectEndStop(String stop) {
+    setState(() {
+      _endSearchController.text = stop;
+      _showEndSuggestions = false;
+    });
+  }
+
+  void _searchRoute() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _showStartSuggestions = false;
+      _showEndSuggestions = false;
       _hasSearchedRoute = true;
     });
   }
 
-  void _searchBusByReg() {
-    final query = _regSearchController.text.replaceAll(' ', '').toUpperCase();
-    final match = FleetState.instance.buses.where((b) {
-      return b.regNumber.replaceAll(' ', '').toUpperCase() == query;
+  List<BusModel> _getFilteredRouteBuses() {
+    if (!_hasSearchedRoute) return [];
+
+    final startQuery = _startSearchController.text.trim().toLowerCase();
+    final endQuery = _endSearchController.text.trim().toLowerCase();
+
+    final matches = FleetState.instance.buses.where((bus) {
+      final allStopsText = '${bus.startPoint} ${bus.destPoint} ${bus.routeName} ${bus.stops.map((s) => s.stopName).join(" ")}'.toLowerCase();
+      final hasStart = startQuery.isEmpty || allStopsText.contains(startQuery);
+      final hasEnd = endQuery.isEmpty || allStopsText.contains(endQuery);
+      return hasStart && hasEnd;
     }).toList();
 
-    setState(() {
-      if (match.isNotEmpty) {
-        _hasFoundBus = true;
-        _foundBus = match.first;
-      } else {
-        _hasFoundBus = false;
-        _foundBus = null;
-      }
-    });
+    return matches.isNotEmpty ? matches : FleetState.instance.buses;
+  }
+
+  List<BusModel> _getMatchingBusesByNameOrReg() {
+    final query = _busSearchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      return FleetState.instance.buses;
+    }
+
+    final queryClean = query.replaceAll(' ', '');
+    return FleetState.instance.buses.where((bus) {
+      final nameMatches = bus.busName.toLowerCase().contains(query);
+      final regMatches = bus.regNumber.toLowerCase().replaceAll(' ', '').contains(queryClean);
+      return nameMatches || regMatches;
+    }).toList();
   }
 
   void _openBusLiveLocation(BusModel bus) {
@@ -107,35 +174,196 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
           busName: bus.busName,
           routeName: bus.routeName,
           companyName: bus.companyName,
+          currentStop: bus.currentStop,
+          nextStop: bus.nextStop,
+          eta: bus.eta,
+          stops: bus.stops,
+          category: bus.category,
+          driverName: bus.driverName,
+          conductorName: bus.conductorName,
         ),
       ),
     );
   }
 
-  List<BusModel> _getFilteredBuses() {
-    if (!_hasSearchedRoute) return [];
+  void _showBusRouteTimelineModal(BusModel bus) {
+    // Sort bus stops in ascending order of scheduled time
+    final sortedStops = List<BusStopSchedule>.from(bus.stops);
+    sortedStops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
+    final catColor = _getCategoryColor(bus.category);
 
-    final startQuery = _startPoint.trim().toLowerCase();
-    final endQuery = _endPoint.trim().toLowerCase();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (modalCtx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollCtrl) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: ListView(
+                controller: scrollCtrl,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(bus.busName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                          Text(bus.regNumber, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 13)),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: bus.isActive ? Colors.green.shade50 : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: bus.isActive ? Colors.green.shade300 : Colors.red.shade300),
+                        ),
+                        child: Text(
+                          bus.isActive ? 'ACTIVE ON ROUTE' : 'INACTIVE',
+                          style: TextStyle(
+                            color: bus.isActive ? Colors.green.shade800 : Colors.red.shade800,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
 
-    // Check buses where start/dest or any stops match the queried points
-    final matches = FleetState.instance.buses.where((bus) {
-      final text = '${bus.startPoint} ${bus.destPoint} ${bus.routeName} ${bus.stops.map((s) => s.stopName).join(" ")}'.toLowerCase();
-      final hasStart = text.contains(startQuery);
-      final hasEnd = text.contains(endQuery);
-      return hasStart || hasEnd;
-    }).toList();
+                  // Category tag
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: catColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: catColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(width: 8, height: 8, decoration: BoxDecoration(color: catColor, shape: BoxShape.circle)),
+                        const SizedBox(width: 6),
+                        Text(bus.category, style: TextStyle(color: catColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
 
-    return matches.isNotEmpty ? matches : FleetState.instance.buses;
+                  const Divider(height: 24),
+                  const Text('Scheduled Stops & Timeline (Ascending)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text('Operating from ${bus.startTime} to ${bus.endTime}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  const SizedBox(height: 14),
+
+                  // Scheduled timeline nodes in ascending order
+                  ...sortedStops.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final stop = entry.value;
+                    final isFirst = idx == 0;
+                    final isLast = idx == sortedStops.length - 1;
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            Container(
+                              width: 18,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: isFirst || isLast ? AppTheme.primaryGreen : Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppTheme.primaryGreen, width: 2),
+                              ),
+                              child: isFirst
+                                  ? const Icon(Icons.trip_origin, size: 10, color: Colors.white)
+                                  : (isLast ? const Icon(Icons.location_on, size: 10, color: Colors.white) : null),
+                            ),
+                            if (!isLast)
+                              Container(
+                                width: 2,
+                                height: 38,
+                                color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 18.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  stop.stopName,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: (isFirst || isLast) ? FontWeight.bold : FontWeight.w500,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    stop.time,
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+
+                  const SizedBox(height: 10),
+
+                  // Live Location Radar Button
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(modalCtx);
+                      _openBusLiveLocation(bus);
+                    },
+                    icon: const Icon(Icons.radar),
+                    label: const Text('Open Live GPS Radar & Timeline', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Ensure selected points exist in dynamic stops list
-    final allStops = _dynamicStops;
-    if (!allStops.contains(_startPoint)) _startPoint = allStops.first;
-    if (!allStops.contains(_endPoint)) _endPoint = allStops.length > 1 ? allStops[1] : allStops.first;
-
     return Column(
       children: [
         // Sub-Tabs Header
@@ -154,7 +382,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
               ),
               Tab(
                 icon: Icon(Icons.search, size: 20),
-                text: 'Bus by Reg. Number',
+                text: 'Bus Search',
               ),
             ],
           ),
@@ -165,8 +393,8 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
           child: TabBarView(
             controller: _innerTabCtrl,
             children: [
-              _buildRouteSearchTab(allStops),
-              _buildBusRegSearchTab(),
+              _buildRouteSearchTab(),
+              _buildBusSearchTab(),
             ],
           ),
         ),
@@ -175,10 +403,10 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   }
 
   // -------------------------------------------------------------------------
-  // INNER TAB 1: BUS ROUTE SEARCH
+  // INNER TAB 1: BUS ROUTE SEARCH (TYPE-TO-SEARCH STOPS)
   // -------------------------------------------------------------------------
-  Widget _buildRouteSearchTab(List<String> allStops) {
-    final filteredBuses = _getFilteredBuses();
+  Widget _buildRouteSearchTab() {
+    final filteredBuses = _getFilteredRouteBuses();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -193,40 +421,148 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Find Buses on Route', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Search Running Buses on Route', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 4),
-                  const Text('Real-time updates from owner fleet & conductor route changes', 
+                  const Text('Type stop names to see live autocomplete suggestions', 
                     style: TextStyle(color: Colors.grey, fontSize: 11)),
                   const SizedBox(height: 14),
 
-                  // Start Point Dropdown
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Trip Start Point',
-                      prefixIcon: const Icon(Icons.trip_origin, color: AppTheme.primaryGreen),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    initialValue: _startPoint,
-                    items: allStops.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _startPoint = val);
-                    },
+                  // 1. Start Point Type-To-Search Input
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _startSearchController,
+                        onChanged: _onStartChanged,
+                        decoration: InputDecoration(
+                          labelText: 'Trip Start Point',
+                          hintText: 'Type to search stops (e.g. Aluva, Kaloor)',
+                          prefixIcon: const Icon(Icons.trip_origin, color: AppTheme.primaryGreen),
+                          suffixIcon: _startSearchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    _startSearchController.clear();
+                                    _onStartChanged('');
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      if (_showStartSuggestions)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4)),
+                            ],
+                          ),
+                          constraints: const BoxConstraints(maxHeight: 180),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            itemCount: _startSuggestions.length,
+                            itemBuilder: (context, idx) {
+                              final suggestion = _startSuggestions[idx];
+                              return ListTile(
+                                dense: true,
+                                leading: const Icon(Icons.place, size: 16, color: AppTheme.primaryGreen),
+                                title: Text(suggestion, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                                onTap: () => _selectStartStop(suggestion),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
                   ),
+
                   const SizedBox(height: 12),
 
-                  // End Point Dropdown
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Trip End Point',
-                      prefixIcon: const Icon(Icons.location_on, color: Colors.red),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    initialValue: _endPoint,
-                    items: allStops.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _endPoint = val);
-                    },
+                  // 2. End Point Type-To-Search Input
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _endSearchController,
+                        onChanged: _onEndChanged,
+                        decoration: InputDecoration(
+                          labelText: 'Trip End Point',
+                          hintText: 'Type to search stops (e.g. Perumbavoor, Angamaly)',
+                          prefixIcon: const Icon(Icons.location_on, color: Colors.red),
+                          suffixIcon: _endSearchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    _endSearchController.clear();
+                                    _onEndChanged('');
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      if (_showEndSuggestions)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4)),
+                            ],
+                          ),
+                          constraints: const BoxConstraints(maxHeight: 180),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            itemCount: _endSuggestions.length,
+                            itemBuilder: (context, idx) {
+                              final suggestion = _endSuggestions[idx];
+                              return ListTile(
+                                dense: true,
+                                leading: const Icon(Icons.place, size: 16, color: Colors.red),
+                                title: Text(suggestion, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                                onTap: () => _selectEndStop(suggestion),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
                   ),
+
+                  const SizedBox(height: 12),
+
+                  // Popular Stop Quick-Fill Chips
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      'Aluva Stand',
+                      'Perumbavoor Stand',
+                      'Angamaly Stand',
+                      'Ernakulam Kaloor',
+                      'Kakkanad InfoPark',
+                      'Vytilla Hub',
+                    ].map((s) {
+                      return ActionChip(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        label: Text(s, style: const TextStyle(fontSize: 10)),
+                        onPressed: () {
+                          if (_startSearchController.text.isEmpty) {
+                            _selectStartStop(s);
+                          } else {
+                            _selectEndStop(s);
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+
                   const SizedBox(height: 16),
 
                   ElevatedButton.icon(
@@ -252,10 +588,10 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Buses on $_startPoint ➔ $_endPoint',
+                  'Buses on Route (${filteredBuses.length} running)',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
-                Text('${filteredBuses.length} Available', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                const Text('Tap bus for timeline schedule', style: TextStyle(color: Colors.grey, fontSize: 11)),
               ],
             ),
             const SizedBox(height: 10),
@@ -274,7 +610,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                 ),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
-                  onTap: () => _openBusLiveLocation(bus),
+                  onTap: () => _showBusRouteTimelineModal(bus),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -399,7 +735,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                             ),
                             const Row(
                               children: [
-                                Text('Live Radar Track', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+                                Text('View Schedule Timeline', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
                                 SizedBox(width: 4),
                                 Icon(Icons.arrow_forward_ios, size: 11, color: AppTheme.primaryGreen),
                               ],
@@ -420,7 +756,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                 children: [
                   Icon(Icons.directions_bus, size: 48, color: Colors.black26),
                   SizedBox(height: 10),
-                  Text('Select start and end points and tap Search Running Buses', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  Text('Type stop names to search running buses on your route', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 ],
               ),
             ),
@@ -431,9 +767,12 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   }
 
   // -------------------------------------------------------------------------
-  // INNER TAB 2: BUS SEARCH BY REGISTRATION NUMBER
+  // INNER TAB 2: BUS SEARCH (BY NAME OR REG NUMBER)
+  // Shows list first; full details only shown upon selecting a bus
   // -------------------------------------------------------------------------
-  Widget _buildBusRegSearchTab() {
+  Widget _buildBusSearchTab() {
+    final matchingBuses = _getMatchingBusesByNameOrReg();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -447,18 +786,36 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Search by Kerala Bus Registration Plate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Text('Search by Bus Name or Reg. Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  const Text('Type bus name (e.g. City Express) or Kerala number plate', 
+                    style: TextStyle(color: Colors.grey, fontSize: 11)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: _regSearchController,
-                          textCapitalization: TextCapitalization.characters,
+                          controller: _busSearchController,
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedBus = null; // Reset detailed selection when query changes
+                            });
+                          },
                           decoration: InputDecoration(
-                            labelText: 'Registration Number',
-                            hintText: 'e.g. KL 07 CD 4589',
-                            prefixIcon: const Icon(Icons.pin, color: AppTheme.primaryGreen),
+                            labelText: 'Bus Name or Plate Number',
+                            hintText: 'e.g. City, SpeedWings, or KL 07 CD 4589',
+                            prefixIcon: const Icon(Icons.search, color: AppTheme.primaryGreen),
+                            suffixIcon: _busSearchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 18),
+                                    onPressed: () {
+                                      _busSearchController.clear();
+                                      setState(() {
+                                        _selectedBus = null;
+                                      });
+                                    },
+                                  )
+                                : null,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                         ),
@@ -467,23 +824,33 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryGreen,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
-                        onPressed: _searchBusByReg,
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            _selectedBus = null;
+                          });
+                        },
                         child: const Text('Find', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
+
+                  // Quick query chips
                   Wrap(
-                    spacing: 8,
-                    children: FleetState.instance.buses.take(3).map((b) {
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: ['SpeedWings', 'GreenCity', 'City Rider', 'KL 07 CD 4589', 'KL 07 CE 1204'].map((q) {
                       return ActionChip(
-                        label: Text(b.regNumber, style: const TextStyle(fontSize: 10)),
+                        label: Text(q, style: const TextStyle(fontSize: 10)),
                         onPressed: () {
-                          _regSearchController.text = b.regNumber;
-                          _searchBusByReg();
+                          _busSearchController.text = q;
+                          setState(() {
+                            _selectedBus = null;
+                          });
                         },
                       );
                     }).toList(),
@@ -495,11 +862,17 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
 
           const SizedBox(height: 20),
 
-          // Search Result Card
-          if (_hasFoundBus && _foundBus != null) ...[
+          // -------------------------------------------------------------------
+          // STATE 1: If passenger has selected a bus -> SHOW ALL DETAILS
+          // -------------------------------------------------------------------
+          if (_selectedBus != null) ...[
             Builder(builder: (context) {
-              final bus = _foundBus!;
+              final bus = _selectedBus!;
               final catColor = _getCategoryColor(bus.category);
+
+              // Sort timetable in ascending order of time
+              final sortedStops = List<BusStopSchedule>.from(bus.stops);
+              sortedStops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
 
               return Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
@@ -508,18 +881,17 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header with back to list button
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(bus.busName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                              Text(bus.regNumber, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 14)),
-                            ],
+                          TextButton.icon(
+                            onPressed: () => setState(() => _selectedBus = null),
+                            icon: const Icon(Icons.arrow_back, size: 16, color: AppTheme.primaryGreen),
+                            label: const Text('Back to Matching Buses', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: bus.isActive ? Colors.green.shade50 : Colors.red.shade50,
                               borderRadius: BorderRadius.circular(8),
@@ -527,14 +899,11 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                             ),
                             child: Row(
                               children: [
-                                Icon(
-                                  bus.isActive ? Icons.sensors : Icons.power_settings_new,
-                                  size: 12,
-                                  color: bus.isActive ? Colors.green.shade700 : Colors.red.shade700,
-                                ),
+                                Icon(bus.isActive ? Icons.sensors : Icons.power_settings_new,
+                                    size: 12, color: bus.isActive ? Colors.green.shade700 : Colors.red.shade700),
                                 const SizedBox(width: 4),
                                 Text(
-                                  bus.isActive ? 'ACTIVE' : 'INACTIVE',
+                                  bus.isActive ? 'ACTIVE ON ROUTE' : 'INACTIVE',
                                   style: TextStyle(
                                     color: bus.isActive ? Colors.green.shade800 : Colors.red.shade800,
                                     fontWeight: FontWeight.bold,
@@ -546,9 +915,13 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
 
-                      // Category Livery
+                      Text(bus.busName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      Text(bus.regNumber, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 14)),
+                      const SizedBox(height: 8),
+
+                      // Livery Category Chip
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
@@ -570,36 +943,74 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                       _detailRow('Owner / Operator', bus.companyName),
                       _detailRow('Corridor Route', '${bus.startPoint} ➔ ${bus.destPoint}'),
                       _detailRow('Route Schedule', bus.routeName),
-                      _detailRow('Service Timings', '${bus.startTime} to ${bus.endTime}'),
-                      _detailRow('Driver', bus.driverName),
-                      _detailRow('Cleaner / Helper', bus.cleanerName),
-                      _detailRow('Assigned Conductor', bus.conductorName),
+                      _detailRow('Daily Service Timings', '${bus.startTime} to ${bus.endTime}'),
                       _detailRow('Seating Capacity', '${bus.seatingCapacity} Passenger Seats'),
-                      _detailRow('Current Stop', bus.currentStop),
-                      _detailRow('Next Stop', bus.nextStop),
-                      const SizedBox(height: 12),
+                      _detailRow('Driver', bus.driverName),
+                      _detailRow('Cleaner / Attendant', bus.cleanerName),
+                      _detailRow('Assigned Conductor', bus.conductorName),
+                      _detailRow('Current Location Stage', bus.currentStop),
+                      _detailRow('Next Stop ETA', '${bus.nextStop} (${bus.eta})'),
 
-                      // Intermediate Stops Timetable
-                      if (bus.stops.isNotEmpty) ...[
-                        const Text('Scheduled Stops & Timetable:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-                        const SizedBox(height: 6),
-                        ...bus.stops.map((s) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.circle, size: 8, color: AppTheme.primaryGreen),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(s.stopName, style: const TextStyle(fontSize: 12))),
-                                Text(s.time, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
-                              ],
-                            ),
-                          );
-                        }),
-                        const SizedBox(height: 14),
-                      ],
+                      const SizedBox(height: 14),
 
-                      // Live Location Button
+                      // Stops & Timetable in ascending order
+                      const Text('Full Route Timetable (Ascending Order):', 
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      const SizedBox(height: 8),
+                      if (sortedStops.isEmpty)
+                        const Text('No scheduled intermediate stops recorded.', style: TextStyle(color: Colors.grey, fontSize: 12))
+                      else
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            children: sortedStops.asMap().entries.map((entry) {
+                              final idx = entry.key;
+                              final s = entry.value;
+                              final isFirst = idx == 0;
+                              final isLast = idx == sortedStops.length - 1;
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      isFirst ? Icons.trip_origin : (isLast ? Icons.location_on : Icons.circle),
+                                      size: 12,
+                                      color: isFirst ? AppTheme.primaryGreen : (isLast ? Colors.red : Colors.grey),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        s.stopName,
+                                        style: TextStyle(
+                                          fontWeight: (isFirst || isLast) ? FontWeight.bold : FontWeight.w500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                                      child: Text(
+                                        s.time,
+                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                      const SizedBox(height: 18),
+
+                      // Live Radar Location Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -611,7 +1022,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                           ),
                           onPressed: () => _openBusLiveLocation(bus),
                           icon: const Icon(Icons.location_on),
-                          label: const Text('View Current Live Radar Location', style: TextStyle(fontWeight: FontWeight.bold)),
+                          label: const Text('View Current Live Radar Location & GPS', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -619,18 +1030,145 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                 ),
               );
             }),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.all(28),
-              alignment: Alignment.center,
-              child: const Column(
-                children: [
-                  Icon(Icons.search_off, size: 48, color: Colors.grey),
-                  SizedBox(height: 10),
-                  Text('No bus found with that registration plate.', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
+          ]
+
+          // -------------------------------------------------------------------
+          // STATE 2: INITIAL LIST OF MATCHING BUSES (Only summary shown)
+          // -------------------------------------------------------------------
+          else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Matching Buses (${matchingBuses.length})',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                const Text('Select a bus to inspect details', style: TextStyle(color: Colors.grey, fontSize: 11)),
+              ],
             ),
+            const SizedBox(height: 10),
+
+            if (matchingBuses.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(28),
+                alignment: Alignment.center,
+                child: const Column(
+                  children: [
+                    Icon(Icons.search_off, size: 48, color: Colors.grey),
+                    SizedBox(height: 10),
+                    Text('No buses found matching your search query.', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              )
+            else
+              ...matchingBuses.map((bus) {
+                final catColor = _getCategoryColor(bus.category);
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    side: BorderSide(
+                      color: bus.isActive ? Colors.green.withValues(alpha: 0.3) : Colors.grey.shade300,
+                      width: bus.isActive ? 1.5 : 1,
+                    ),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () {
+                      setState(() {
+                        _selectedBus = bus; // Select bus to reveal all details!
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: bus.isActive ? AppTheme.primaryGreen.withValues(alpha: 0.1) : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.directions_bus,
+                                      color: bus.isActive ? AppTheme.primaryGreen : Colors.grey.shade600,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(bus.busName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      const SizedBox(height: 2),
+                                      Text(bus.regNumber, style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: bus.isActive ? Colors.green.shade50 : Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: bus.isActive ? Colors.green.shade300 : Colors.red.shade300),
+                                ),
+                                child: Text(
+                                  bus.isActive ? 'ACTIVE' : 'INACTIVE',
+                                  style: TextStyle(
+                                    color: bus.isActive ? Colors.green.shade800 : Colors.red.shade800,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Livery tag
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: catColor.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: catColor.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(width: 6, height: 6, decoration: BoxDecoration(color: catColor, shape: BoxShape.circle)),
+                                const SizedBox(width: 6),
+                                Text(bus.category, style: TextStyle(color: catColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+                          Text('Route: ${bus.routeName}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+
+                          const Divider(height: 16),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Tap to view full timetable & crew details', 
+                                style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+                              Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primaryGreen),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
           ],
         ],
       ),
@@ -644,7 +1182,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 130,
+            width: 140,
             child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ),
           Expanded(

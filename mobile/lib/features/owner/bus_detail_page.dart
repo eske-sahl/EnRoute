@@ -35,11 +35,13 @@ class _BusDetailPageState extends State<BusDetailPage> {
   }
 
   void _syncFromBus() {
+    widget.bus.sortStops();
     _busName = widget.bus.busName;
     _category = widget.bus.category;
     _startPoint = widget.bus.startPoint;
     _destPoint = widget.bus.destPoint;
     _stops = List.from(widget.bus.stops);
+    _stops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
     _seats = widget.bus.seatingCapacity;
     _driver = widget.bus.driverName;
     _cleaner = widget.bus.cleanerName;
@@ -399,6 +401,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         final updatedStops = editStops.map((s) {
                           return BusStopSchedule(stopName: s['stop'] ?? 'Stop', time: s['time'] ?? '08:00 AM');
                         }).toList();
+                        updatedStops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
 
                         FleetState.instance.updateBus(
                           regNumber: widget.bus.regNumber,

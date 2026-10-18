@@ -399,6 +399,7 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                           final scheduleList = intermediateStops.map((s) {
                             return BusStopSchedule(stopName: s['stop'] ?? 'Stop', time: s['time'] ?? '08:00 AM');
                           }).toList();
+                          scheduleList.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
 
                           final newBus = BusModel(
                             id: 'BUS-${DateTime.now().millisecondsSinceEpoch}',

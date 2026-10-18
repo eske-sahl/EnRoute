@@ -1,3 +1,21 @@
+int parseTimeToMinutes(String timeStr) {
+  try {
+    final clean = timeStr.trim().toUpperCase();
+    final isPM = clean.contains('PM');
+    final isAM = clean.contains('AM');
+    final raw = clean.replaceAll('AM', '').replaceAll('PM', '').trim();
+    final parts = raw.split(':');
+    if (parts.length >= 2) {
+      int hour = int.parse(parts[0].trim());
+      int minute = int.parse(parts[1].trim());
+      if (isPM && hour < 12) hour += 12;
+      if (isAM && hour == 12) hour = 0;
+      return hour * 60 + minute;
+    }
+  } catch (_) {}
+  return 0;
+}
+
 class BusStopSchedule {
   String stopName;
   String time;
@@ -50,7 +68,13 @@ class BusModel {
     this.currentStop = 'Pump Junction',
     this.nextStop = 'Kizhakkambalam (~4 mins)',
     this.eta = '4 mins',
-  });
+  }) {
+    sortStops();
+  }
+
+  void sortStops() {
+    stops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
+  }
 
   String get busType => category;
   String get startTime => stops.isNotEmpty ? stops.first.time : '06:30 AM';
@@ -226,6 +250,7 @@ class FleetState {
   double get cashInHand => totalCollection * 0.35; // 35% cash
 
   void addBus(BusModel bus) {
+    bus.sortStops();
     buses.add(bus);
   }
 
@@ -263,6 +288,7 @@ class FleetState {
       b.status = isActive ? 'RUNNING_NOW' : 'IN_DEPOT';
       if (stops != null) {
         b.stops = stops;
+        b.sortStops();
       }
     }
   }
