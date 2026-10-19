@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/fleet_state.dart';
 import 'tabs/dashboard_tab.dart';
 import 'tabs/search_tab.dart';
 import 'tabs/wallet_tab.dart';
 import 'tabs/profile_tab.dart';
 
 class PassengerPortal extends StatefulWidget {
-  final String passengerName;
-  final String email;
-  final double walletBalance;
+  final PassengerModel passenger;
   final bool isOnline;
   final Function(double) onTopUp;
   final VoidCallback onLogout;
 
   const PassengerPortal({
     super.key,
-    required this.passengerName,
-    required this.email,
-    required this.walletBalance,
+    required this.passenger,
     required this.isOnline,
     required this.onTopUp,
     required this.onLogout,
@@ -35,8 +32,7 @@ class _PassengerPortalState extends State<PassengerPortal> {
     final tabs = [
       // Tab 1: Dashboard
       DashboardTab(
-        passengerName: widget.passengerName,
-        walletBalance: widget.walletBalance,
+        passenger: widget.passenger,
         onTopUp: widget.onTopUp,
       ),
 
@@ -45,14 +41,13 @@ class _PassengerPortalState extends State<PassengerPortal> {
 
       // Tab 3: Wallet Details (All transactions, recharge, upi, cash, travel history)
       WalletTab(
-        walletBalance: widget.walletBalance,
+        passenger: widget.passenger,
         onTopUp: widget.onTopUp,
       ),
 
       // Tab 4: Profile & Settings & Logout
       ProfileTab(
-        passengerName: widget.passengerName,
-        email: widget.email,
+        passenger: widget.passenger,
         onLogout: widget.onLogout,
       ),
     ];
@@ -82,7 +77,7 @@ class _PassengerPortalState extends State<PassengerPortal> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  widget.isOnline ? 'SmartBus Server Online' : 'Local Standalone Mode',
+                  '${widget.passenger.name} • ${widget.passenger.id}',
                   style: const TextStyle(fontSize: 11, color: Colors.white70),
                 ),
               ],

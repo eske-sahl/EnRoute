@@ -25,6 +25,30 @@ class BusStopSchedule {
   BusStopSchedule({required this.stopName, required this.time});
 }
 
+class PassengerModel {
+  final String id; // e.g. 'SBK-KL-987263'
+  String name;
+  String email;
+  String phone;
+  String password;
+  double walletBalance;
+  String homeStation;
+  String concessionCategory; // 'General / Adult Standard', 'Student Concession'
+  DateTime registeredAt;
+
+  PassengerModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.password,
+    this.walletBalance = 100.0,
+    this.homeStation = 'Aluva Stand, Ernakulam',
+    this.concessionCategory = 'General / Adult Standard',
+    required this.registeredAt,
+  });
+}
+
 class BusReviewModel {
   final String id;
   final String busRegNumber;
@@ -229,12 +253,110 @@ class FleetState extends ChangeNotifier {
   static final FleetState instance = FleetState._internal();
   FleetState._internal();
 
-  // Shared Passenger Demo Wallet (synchronized across conductor ticketing and passenger app)
-  double passengerWalletBalance = 250.0;
+  // Multi-Passenger Registry with Isolated Profiles, Wallets & Histories
+  final List<PassengerModel> registeredPassengers = [
+    PassengerModel(
+      id: 'SBK-KL-987263',
+      name: 'Anjali Nair',
+      email: 'passenger@gmail.com',
+      phone: '9847000004',
+      password: 'password123',
+      walletBalance: 250.0,
+      homeStation: 'Aluva Stand, Ernakulam',
+      concessionCategory: 'General / Adult Standard',
+      registeredAt: DateTime(2026, 10, 1),
+    ),
+    PassengerModel(
+      id: 'SBK-KL-554120',
+      name: 'Rahul Menon',
+      email: 'rahul@gmail.com',
+      phone: '9847000005',
+      password: 'password123',
+      walletBalance: 120.0,
+      homeStation: 'Perumbavoor Stand',
+      concessionCategory: 'Student Concession',
+      registeredAt: DateTime(2026, 10, 5),
+    ),
+    PassengerModel(
+      id: 'SBK-KL-339811',
+      name: 'Meera Pillai',
+      email: 'meera@gmail.com',
+      phone: '9847000006',
+      password: 'password123',
+      walletBalance: 450.0,
+      homeStation: 'Ernakulam Kaloor',
+      concessionCategory: 'General / Adult Standard',
+      registeredAt: DateTime(2026, 10, 10),
+    ),
+  ];
 
-  void topUpPassengerWallet(double amount) {
-    passengerWalletBalance += amount;
+  double get passengerWalletBalance => registeredPassengers.first.walletBalance;
+  set passengerWalletBalance(double val) => registeredPassengers.first.walletBalance = val;
+
+  void topUpPassengerWallet(String passengerId, double amount) {
+    final p = registeredPassengers.firstWhere(
+      (p) => p.id == passengerId,
+      orElse: () => registeredPassengers.first,
+    );
+    p.walletBalance += amount;
     notifyListeners();
+  }
+
+  PassengerModel? authenticatePassenger(String identifier, String password) {
+    try {
+      final clean = identifier.trim().toLowerCase();
+      return registeredPassengers.firstWhere(
+        (p) =>
+            (p.email.toLowerCase() == clean ||
+             p.phone == clean ||
+             p.id.toLowerCase() == clean) &&
+            p.password == password,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  PassengerModel? findPassengerByIdOrPhone(String query) {
+    try {
+      final clean = query.trim().toLowerCase();
+      return registeredPassengers.firstWhere(
+        (p) =>
+            p.id.toLowerCase() == clean ||
+            p.phone.toLowerCase() == clean ||
+            p.email.toLowerCase() == clean ||
+            p.name.toLowerCase() == clean,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  PassengerModel registerPassenger({
+    required String name,
+    required String phone,
+    required String email,
+    required String password,
+    String concessionCategory = 'General / Adult Standard',
+  }) {
+    final newId = 'SBK-KL-${100000 + registeredPassengers.length + 1}';
+    final passenger = PassengerModel(
+      id: newId,
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+      walletBalance: 150.0, // Welcome credit
+      concessionCategory: concessionCategory,
+      registeredAt: DateTime.now(),
+    );
+    registeredPassengers.add(passenger);
+    notifyListeners();
+    return passenger;
+  }
+
+  List<IssuedTicketModel> getTicketsForPassenger(String passengerId) {
+    return issuedTickets.where((t) => t.passengerId == passengerId).toList();
   }
 
   final List<BusModel> buses = [
@@ -404,7 +526,7 @@ class FleetState extends ChangeNotifier {
       busName: 'SpeedWings',
       conductorId: 'COND-1',
       conductorName: 'Suresh Kumar',
-      passengerId: 'PASS-1004',
+      passengerId: 'SBK-KL-987263',
       passengerName: 'Anjali Nair',
       boardingStop: 'Aluva Stand',
       destStop: 'Kizhakkambalam',
@@ -420,8 +542,8 @@ class FleetState extends ChangeNotifier {
       busName: 'SpeedWings',
       conductorId: 'COND-1',
       conductorName: 'Suresh Kumar',
-      passengerId: 'PASS-1008',
-      passengerName: 'Rahul Pillai',
+      passengerId: 'SBK-KL-554120',
+      passengerName: 'Rahul Menon',
       boardingStop: 'Bank Junction',
       destStop: 'Pattimattom',
       fare: 5.0,
@@ -438,8 +560,8 @@ class FleetState extends ChangeNotifier {
       busName: 'SpeedWings',
       conductorId: 'COND-1',
       conductorName: 'Suresh Kumar',
-      passengerId: 'PASS-1012',
-      passengerName: 'Deepa Menon',
+      passengerId: 'Unknown',
+      passengerName: 'Unknown',
       boardingStop: 'Pump Junction',
       destStop: 'Perumbavoor Stand',
       fare: 22.0,
@@ -454,8 +576,8 @@ class FleetState extends ChangeNotifier {
       busName: 'SpeedWings',
       conductorId: 'COND-1',
       conductorName: 'Suresh Kumar',
-      passengerId: 'PASS-1015',
-      passengerName: 'Kiran Das',
+      passengerId: 'Unknown',
+      passengerName: 'Unknown',
       boardingStop: 'Bank Junction',
       destStop: 'Kizhakkambalam',
       fare: 15.0,
@@ -591,9 +713,13 @@ class FleetState extends ChangeNotifier {
       conductors[condIdx].todayCollection += ticket.fare;
     }
 
-    // If Smart Wallet, debit passenger demo wallet
-    if (ticket.paymentMode == 'SMART_WALLET') {
-      passengerWalletBalance = (passengerWalletBalance - ticket.fare).clamp(0.0, 99999.0);
+    // If Smart Wallet, debit ONLY that connected passenger's wallet (and never Unknown)
+    if (ticket.paymentMode == 'SMART_WALLET' && ticket.passengerId != 'Unknown') {
+      final pIndex = registeredPassengers.indexWhere((p) => p.id == ticket.passengerId);
+      if (pIndex != -1) {
+        registeredPassengers[pIndex].walletBalance =
+            (registeredPassengers[pIndex].walletBalance - ticket.fare).clamp(0.0, 99999.0);
+      }
     } else if (ticket.paymentMode == 'SPLIT' && ticket.splitUpi > 0) {
       // Split portion handled
     }

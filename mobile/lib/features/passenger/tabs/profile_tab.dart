@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 
 class ProfileTab extends StatefulWidget {
-  final String passengerName;
-  final String email;
+  final PassengerModel passenger;
   final VoidCallback onLogout;
 
   const ProfileTab({
     super.key,
-    required this.passengerName,
-    required this.email,
+    required this.passenger,
     required this.onLogout,
   });
 
@@ -47,9 +46,9 @@ class _ProfileTabState extends State<ProfileTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.passengerName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(widget.passenger.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 2),
-                        Text(widget.email, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                        Text(widget.passenger.email, style: const TextStyle(color: Colors.grey, fontSize: 13)),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -57,9 +56,9 @@ class _ProfileTabState extends State<ProfileTab> {
                             color: Colors.green.shade50,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'VERIFIED PASSENGER • ID: SBK-KL-987263',
-                            style: TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold),
+                          child: Text(
+                            'VERIFIED PASSENGER • ID: ${widget.passenger.id}',
+                            style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -79,13 +78,17 @@ class _ProfileTabState extends State<ProfileTab> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: Column(
               children: [
-                _infoTile(Icons.phone, 'Mobile Number', '+91 98470 00004'),
+                _infoTile(Icons.tag, 'Passenger ID', widget.passenger.id),
                 const Divider(height: 1),
-                _infoTile(Icons.location_city, 'Home Station', 'Aluva Stand, Ernakulam'),
+                _infoTile(Icons.account_balance_wallet, 'Smart Wallet Balance', '₹${widget.passenger.walletBalance.toStringAsFixed(2)}'),
                 const Divider(height: 1),
-                _infoTile(Icons.school, 'Concession Category', 'General / Adult Standard'),
+                _infoTile(Icons.phone, 'Mobile Number', '+91 ${widget.passenger.phone}'),
                 const Divider(height: 1),
-                _infoTile(Icons.calendar_today, 'Registered Since', 'October 2026'),
+                _infoTile(Icons.location_city, 'Home Station', widget.passenger.homeStation),
+                const Divider(height: 1),
+                _infoTile(Icons.school, 'Concession Category', widget.passenger.concessionCategory),
+                const Divider(height: 1),
+                _infoTile(Icons.calendar_today, 'Registered Since', DateFormat('MMMM yyyy').format(widget.passenger.registeredAt)),
               ],
             ),
           ),

@@ -5,14 +5,12 @@ import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 
 class DashboardTab extends StatelessWidget {
-  final String passengerName;
-  final double walletBalance;
+  final PassengerModel passenger;
   final Function(double) onTopUp;
 
   const DashboardTab({
     super.key,
-    required this.passengerName,
-    required this.walletBalance,
+    required this.passenger,
     required this.onTopUp,
   });
 
@@ -70,16 +68,16 @@ class DashboardTab extends StatelessWidget {
               children: [
                 const Text('Passenger Identity Pass', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                const Text('Show this to Conductor for Ticketing', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                Text('${passenger.name} • ${passenger.concessionCategory}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 const SizedBox(height: 20),
                 QrImageView(
-                  data: 'SBK_PASSENGER_UID_987263',
+                  data: passenger.id,
                   version: QrVersions.auto,
                   size: 220.0,
                   eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppTheme.primaryGreen),
                 ),
                 const SizedBox(height: 16),
-                const Text('ID: SBK-KL-987263', style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 15)),
+                Text('ID: ${passenger.id}', style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -229,7 +227,8 @@ class DashboardTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
-    final issuedTickets = FleetState.instance.issuedTickets;
+    // Fetch ONLY tickets issued for this specific passenger
+    final issuedTickets = FleetState.instance.getTicketsForPassenger(passenger.id);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -270,7 +269,7 @@ class DashboardTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  currency.format(walletBalance),
+                  currency.format(passenger.walletBalance),
                   style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 18),
@@ -339,7 +338,7 @@ class DashboardTab extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: QrImageView(
-                        data: 'SBK_PASSENGER_UID_987263',
+                        data: passenger.id,
                         version: QrVersions.auto,
                         size: 150.0,
                         eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppTheme.primaryGreen),
@@ -347,7 +346,7 @@ class DashboardTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text('SBK-KL-987263', style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.black54)),
+                  Text(passenger.id, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.black54)),
                 ],
               ),
             ),

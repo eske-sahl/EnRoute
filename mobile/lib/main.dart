@@ -38,6 +38,7 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
   String _userRole = 'PASSENGER'; // 'PASSENGER', 'CONDUCTOR', 'OWNER'
   String _userEmail = 'passenger@gmail.com';
   String _userName = 'Anjali Nair';
+  String _userId = 'SBK-KL-987263';
   bool _isBackendOnline = false;
 
   @override
@@ -55,17 +56,18 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
     }
   }
 
-  void _handleLogin(String role, String email, String name) {
+  void _handleLogin(String role, String email, String name, String userId) {
     setState(() {
       _userRole = role;
       _userEmail = email;
       _userName = name;
+      _userId = userId;
       _isLoggedIn = true;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Logged in as $_userRole: $name'),
+        content: Text('Logged in as $_userRole: $name ($userId)'),
         backgroundColor: AppTheme.primaryGreen,
         behavior: SnackBarBehavior.floating,
       ),
@@ -85,9 +87,9 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
     );
   }
 
-  void _handleWalletTopUp(double amount) {
+  void _handleWalletTopUp(String passengerId, double amount) {
     setState(() {
-      FleetState.instance.topUpPassengerWallet(amount);
+      FleetState.instance.topUpPassengerWallet(passengerId, amount);
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -110,12 +112,14 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
 
         // 2. Logged In State: Route based on role
         if (_userRole == 'PASSENGER') {
+          final passenger = FleetState.instance.registeredPassengers.firstWhere(
+            (p) => p.id == _userId || p.email.toLowerCase() == _userEmail.toLowerCase(),
+            orElse: () => FleetState.instance.registeredPassengers.first,
+          );
           return PassengerPortal(
-            passengerName: _userName,
-            email: _userEmail,
-            walletBalance: FleetState.instance.passengerWalletBalance,
+            passenger: passenger,
             isOnline: _isBackendOnline,
-            onTopUp: _handleWalletTopUp,
+            onTopUp: (amt) => _handleWalletTopUp(passenger.id, amt),
             onLogout: _handleLogout,
           );
         } else if (_userRole == 'CONDUCTOR') {

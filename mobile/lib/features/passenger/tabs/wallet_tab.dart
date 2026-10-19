@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
+import '../../../services/fleet_state.dart';
 
 class WalletTab extends StatefulWidget {
-  final double walletBalance;
+  final PassengerModel passenger;
   final Function(double) onTopUp;
 
   const WalletTab({
     super.key,
-    required this.walletBalance,
+    required this.passenger,
     required this.onTopUp,
   });
 
@@ -146,7 +147,7 @@ class _WalletTabState extends State<WalletTab> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  currency.format(widget.walletBalance),
+                  currency.format(widget.passenger.walletBalance),
                   style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 18),

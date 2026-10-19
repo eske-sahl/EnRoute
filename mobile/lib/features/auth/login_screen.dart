@@ -3,7 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
 
 class LoginScreen extends StatefulWidget {
-  final Function(String role, String email, String name) onLoginSuccess;
+  final Function(String role, String email, String name, String userId) onLoginSuccess;
 
   const LoginScreen({super.key, required this.onLoginSuccess});
 
@@ -24,8 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _selectedRole = role;
       if (role == 'PASSENGER') {
-        _emailController.text = '9847000004';
+        _emailController.text = 'passenger@gmail.com';
         _nameController.text = 'Anjali Nair';
+        _phoneController.text = '9847000004';
         _passwordController.text = 'password123';
       } else if (role == 'CONDUCTOR') {
         // Owner-provisioned credentials
@@ -40,37 +41,105 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  void _fillAccount(String email, String pass, String name, String phone, String role) {
+    setState(() {
+      _selectedRole = role;
+      _emailController.text = email;
+      _passwordController.text = pass;
+      _nameController.text = name;
+      _phoneController.text = phone;
+      _isSignUp = false;
+    });
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.w600))),
+          ],
+        ),
+        backgroundColor: Colors.red.shade800,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   void _handleAuth() {
     final identifier = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    // 1. Check if user is logging in with Owner-provisioned Conductor credentials
-    final conductor = FleetState.instance.authenticateConductor(identifier, password);
-    if (conductor != null) {
-      widget.onLoginSuccess(
-        'CONDUCTOR',
-        conductor.email,
-        conductor.name,
-      );
+    if (identifier.isEmpty || password.isEmpty) {
+      _showError('Please enter both your login identifier and password.');
       return;
     }
 
-    // 2. Check if user is logging in as Bus Owner
-    if (_selectedRole == 'OWNER' || identifier.toLowerCase().contains('owner')) {
-      widget.onLoginSuccess(
-        'OWNER',
-        identifier,
-        _nameController.text.isNotEmpty ? _nameController.text : 'George Varghese (Owner)',
+    // 1. Sign-Up Mode for New Passengers
+    if (_isSignUp) {
+      final name = _nameController.text.trim();
+      final phone = _phoneController.text.trim();
+
+      if (name.isEmpty) {
+        _showError('Please enter your full name to register.');
+        return;
+      }
+      if (phone.isEmpty || phone.length < 10) {
+        _showError('Please enter a valid 10-digit mobile number.');
+        return;
+      }
+
+      // Check if already registered
+      final existing = FleetState.instance.findPassengerByIdOrPhone(phone) ??
+          FleetState.instance.findPassengerByIdOrPhone(identifier);
+      if (existing != null) {
+        _showError('An account with this phone or email already exists. Please sign in instead.');
+        return;
+      }
+
+      final newPassenger = FleetState.instance.registerPassenger(
+        name: name,
+        phone: phone,
+        email: identifier.contains('@') ? identifier : '$phone@smartbus.kerala.gov.in',
+        password: password,
       );
+
+      widget.onLoginSuccess('PASSENGER', newPassenger.email, newPassenger.name, newPassenger.id);
       return;
     }
 
-    // 3. Otherwise (self-created account with phone number, passenger email, or personal password) -> Passenger Portal!
-    widget.onLoginSuccess(
-      'PASSENGER',
-      identifier,
-      _nameController.text.isNotEmpty ? _nameController.text : 'Passenger ($identifier)',
-    );
+    // 2. Sign-In Mode: Conductor Login
+    if (_selectedRole == 'CONDUCTOR') {
+      final conductor = FleetState.instance.authenticateConductor(identifier, password);
+      if (conductor != null) {
+        widget.onLoginSuccess('CONDUCTOR', conductor.email, conductor.name, conductor.id);
+      } else {
+        _showError('Incorrect Conductor ID or password. Use owner-provisioned credentials.');
+      }
+      return;
+    }
+
+    // 3. Sign-In Mode: Bus Owner Login
+    if (_selectedRole == 'OWNER') {
+      final isOwnerId = identifier.toLowerCase() == 'owner@stgeorge.com' || identifier.toLowerCase() == 'owner';
+      if (isOwnerId && password == 'password123') {
+        widget.onLoginSuccess('OWNER', 'owner@stgeorge.com', 'George Varghese (Owner)', 'OWNER-1');
+      } else {
+        _showError('Incorrect Owner email or password. Please verify credentials.');
+      }
+      return;
+    }
+
+    // 4. Sign-In Mode: Passenger Login
+    final passenger = FleetState.instance.authenticatePassenger(identifier, password);
+    if (passenger != null) {
+      widget.onLoginSuccess('PASSENGER', passenger.email, passenger.name, passenger.id);
+    } else {
+      _showError('Incorrect email/phone or password. Please verify credentials or create an account.');
+    }
   }
 
   @override
@@ -314,23 +383,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.bolt, color: AppTheme.accentAmber, size: 18),
-                          SizedBox(width: 6),
+                          const Icon(Icons.bolt, color: AppTheme.accentAmber, size: 18),
+                          const SizedBox(width: 6),
                           Text(
-                            'Viva Demo Quick Fill:',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            'Quick Account Switcher (Pre-Configured Credentials):',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.grey.shade700),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        alignment: WrapAlignment.center,
                         children: [
-                          _quickFillBtn('Passenger', 'PASSENGER'),
-                          _quickFillBtn('Conductor', 'CONDUCTOR'),
-                          _quickFillBtn('Owner', 'OWNER'),
+                          _accountFillBtn('Anjali Nair (Passenger)', () => _fillAccount('passenger@gmail.com', 'password123', 'Anjali Nair', '9847000004', 'PASSENGER')),
+                          _accountFillBtn('Rahul Menon (Student Pass)', () => _fillAccount('rahul@gmail.com', 'password123', 'Rahul Menon', '9847000005', 'PASSENGER')),
+                          _accountFillBtn('Suresh (Conductor)', () => _fillAccount('suresh.conductor', 'password123', 'Suresh Kumar', '9847011001', 'CONDUCTOR')),
+                          _accountFillBtn('George (Owner)', () => _fillAccount('owner@stgeorge.com', 'password123', 'George Varghese', '9447012345', 'OWNER')),
                         ],
                       ),
                     ],
@@ -374,15 +446,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _quickFillBtn(String label, String roleKey) {
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        side: BorderSide(color: Colors.grey.shade300),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      onPressed: () => _selectRole(roleKey),
-      child: Text(label, style: const TextStyle(fontSize: 11, color: Colors.black87)),
+  Widget _accountFillBtn(String label, VoidCallback onTap) {
+    return ActionChip(
+      avatar: const Icon(Icons.person_pin, size: 14, color: AppTheme.primaryGreen),
+      label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+      backgroundColor: Colors.white,
+      side: BorderSide(color: Colors.grey.shade300),
+      onPressed: onTap,
     );
   }
 }
