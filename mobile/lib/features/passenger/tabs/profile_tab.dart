@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../services/fleet_state.dart';
 
 class ProfileTab extends StatefulWidget {
   final String passengerName;
@@ -132,6 +133,30 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ),
 
+          const SizedBox(height: 20),
+
+          // Reviews Section
+          const Text('My Ratings & Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 10),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentAmber.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.star, color: Colors.amber, size: 24),
+              ),
+              title: const Text('My Bus Reviews & Feedback', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              subtitle: const Text('View and manage your submitted bus ratings', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showMyReviewsModal(context),
+            ),
+          ),
+
           const SizedBox(height: 24),
 
           // Big Red Logout Button
@@ -150,6 +175,124 @@ class _ProfileTabState extends State<ProfileTab> {
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  void _showMyReviewsModal(BuildContext context) {
+    // Reviews from passenger Anjali Nair or all demo reviews
+    final reviews = FleetState.instance.reviews;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (sheetCtx, scrollCtrl) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: ListView(
+                controller: scrollCtrl,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.rate_review, color: AppTheme.accentAmber),
+                          SizedBox(width: 8),
+                          Text('My Bus Ratings & Feedback', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                        ],
+                      ),
+                      Text('${reviews.length} total', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text('Ratings shared with Bus Owners and Conductors across Kerala',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  const Divider(height: 24),
+
+                  if (reviews.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      alignment: Alignment.center,
+                      child: const Column(
+                        children: [
+                          Icon(Icons.star_border, size: 48, color: Colors.grey),
+                          SizedBox(height: 10),
+                          Text('You have not submitted any reviews yet.', style: TextStyle(color: Colors.grey)),
+                          SizedBox(height: 6),
+                          Text('Search for any bus and tap "Rate & Give Feedback"',
+                              style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    )
+                  else
+                    ...reviews.map((r) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('${r.busName} (${r.busRegNumber})',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  Row(
+                                    children: List.generate(5, (starIdx) {
+                                      return Icon(
+                                        starIdx < r.rating.round() ? Icons.star : Icons.star_border,
+                                        color: AppTheme.accentAmber,
+                                        size: 16,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(r.comment, style: const TextStyle(fontSize: 13, height: 1.3)),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('By: ${r.passengerName}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(4)),
+                                    child: const Text('NOTIFIED TO OWNER & CREW',
+                                        style: TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

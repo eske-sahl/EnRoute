@@ -1,0 +1,308 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../../theme/app_theme.dart';
+import '../../../services/fleet_state.dart';
+
+class ConductorProfileTab extends StatefulWidget {
+  final ConductorModel conductor;
+  final VoidCallback onLogout;
+
+  const ConductorProfileTab({
+    super.key,
+    required this.conductor,
+    required this.onLogout,
+  });
+
+  @override
+  State<ConductorProfileTab> createState() => _ConductorProfileTabState();
+}
+
+class _ConductorProfileTabState extends State<ConductorProfileTab> {
+  void _showReviewsModal() {
+    setState(() {
+      FleetState.instance.markReviewsAsReadForConductor(widget.conductor.assignedBusReg);
+    });
+
+    final reviews = FleetState.instance.reviews
+        .where((r) => r.busRegNumber == widget.conductor.assignedBusReg)
+        .toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollCtrl) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: ListView(
+                controller: scrollCtrl,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.star, color: AppTheme.accentAmber),
+                          SizedBox(width: 8),
+                          Text('Passenger Reviews & Ratings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                        ],
+                      ),
+                      Text('${reviews.length} reviews', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Direct feedback submitted by passengers for ${widget.conductor.assignedBusName}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  const Divider(height: 24),
+
+                  if (reviews.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      alignment: Alignment.center,
+                      child: const Column(
+                        children: [
+                          Icon(Icons.rate_review_outlined, size: 48, color: Colors.grey),
+                          SizedBox(height: 10),
+                          Text('No passenger reviews yet for this bus.', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    )
+                  else
+                    ...reviews.map((r) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 14,
+                                        backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                                        child: Text(
+                                          r.passengerName.isNotEmpty ? r.passengerName[0] : 'P',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.primaryGreen),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(r.passengerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: List.generate(5, (starIdx) {
+                                      return Icon(
+                                        starIdx < r.rating.round() ? Icons.star : Icons.star_border,
+                                        color: AppTheme.accentAmber,
+                                        size: 16,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text('"${r.comment}"', style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(r.busName, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                  Text(DateFormat('dd MMM, hh:mm a').format(r.createdAt), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bus = FleetState.instance.getBusByReg(widget.conductor.assignedBusReg);
+    final unreadReviews = FleetState.instance.getUnreadReviewsCountForConductor(widget.conductor.assignedBusReg);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Conductor Profile Header
+          Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              gradient: AppTheme.darkCardGradient,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 15, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 36,
+                  backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                  child: const Icon(Icons.qr_code_scanner, color: AppTheme.accentAmber, size: 38),
+                ),
+                const SizedBox(height: 12),
+                Text(widget.conductor.name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text('Badge: ${widget.conductor.licenseNumber}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
+                  child: Text(
+                    'Assigned Bus: ${widget.conductor.assignedBusName} (${widget.conductor.assignedBusReg})',
+                    style: const TextStyle(color: AppTheme.accentAmber, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const Divider(color: Colors.white12, height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _headerMetric('Login ID', widget.conductor.userId),
+                    _headerMetric('Mobile Phone', widget.conductor.phone),
+                    _headerMetric('Shift Revenue', '₹${widget.conductor.todayCollection.toStringAsFixed(0)}'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Options Menu List
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              children: [
+                // 1. REVIEWS & PASSENGER RATINGS (WITH UNREAD NOTIFICATION BADGE)
+                ListTile(
+                  leading: const Icon(Icons.star_rate, color: AppTheme.accentAmber),
+                  title: const Text('Passenger Reviews & Ratings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('View ratings and feedback submitted by passengers'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (unreadReviews > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
+                          child: Text('$unreadReviews New', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
+                  onTap: _showReviewsModal,
+                ),
+                const Divider(height: 1),
+
+                // 2. Assigned Bus Specifications & Owner Details
+                ListTile(
+                  leading: const Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                  title: const Text('Assigned Bus Specifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: Text('${bus?.busName} • Owner: ${bus?.ownerName} (${bus?.ownerPhone})'),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        title: Text('${bus?.busName} Specs'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Reg Plate: ${bus?.regNumber}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Category: ${bus?.category}'),
+                            Text('Route: ${bus?.routeName}'),
+                            Text('Owner: ${bus?.ownerName} (${bus?.ownerPhone})'),
+                            Text('Owner Email: ${bus?.ownerEmail}'),
+                            Text('Seating Capacity: ${bus?.seatingCapacity} Seats'),
+                          ],
+                        ),
+                        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+
+                // 3. Device Location & GPS Broadcast Settings
+                ListTile(
+                  leading: const Icon(Icons.gps_fixed, color: Colors.blue),
+                  title: const Text('Device GPS Telemetry Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Automatic live location broadcast active for passengers & owner'),
+                  trailing: const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                ),
+                const Divider(height: 1),
+
+                // 4. Conductor Badge & Kerala MVD Guidelines
+                ListTile(
+                  leading: const Icon(Icons.verified_user, color: Colors.teal),
+                  title: const Text('MVD Kerala Conductor Guidelines', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Uniform badge, student concessions & spot ticketing norms'),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Kerala Motor Vehicle Department (MVD) rules compliant.')),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+
+                // 5. Sign Out / Logout Option
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text('Sign Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('End conductor terminal session'),
+                  onTap: widget.onLogout,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _headerMetric(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
+      ],
+    );
+  }
+}

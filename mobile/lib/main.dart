@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'services/api_service.dart';
+import 'services/fleet_state.dart';
 import 'features/auth/login_screen.dart';
 import 'features/passenger/passenger_portal.dart';
-import 'features/conductor/conductor_terminal_screen.dart';
+import 'features/conductor/conductor_portal.dart';
 import 'features/owner/owner_portal.dart';
 
 void main() {
@@ -37,9 +38,6 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
   String _userRole = 'PASSENGER'; // 'PASSENGER', 'CONDUCTOR', 'OWNER'
   String _userEmail = 'passenger@gmail.com';
   String _userName = 'Anjali Nair';
-
-  // State for passenger demo wallet
-  double _walletBalance = 250.0;
   bool _isBackendOnline = false;
 
   @override
@@ -89,7 +87,7 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
 
   void _handleWalletTopUp(double amount) {
     setState(() {
-      _walletBalance += amount;
+      FleetState.instance.topUpPassengerWallet(amount);
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -102,38 +100,42 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
 
   @override
   Widget build(BuildContext context) {
-    // 1. Initial State: User sees Login Page
-    if (!_isLoggedIn) {
-      return LoginScreen(onLoginSuccess: _handleLogin);
-    }
+    return ListenableBuilder(
+      listenable: FleetState.instance,
+      builder: (context, _) {
+        // 1. Initial State: User sees Login Page
+        if (!_isLoggedIn) {
+          return LoginScreen(onLoginSuccess: _handleLogin);
+        }
 
-    // 2. Logged In State: Route based on role
-    if (_userRole == 'PASSENGER') {
-      return PassengerPortal(
-        passengerName: _userName,
-        email: _userEmail,
-        walletBalance: _walletBalance,
-        isOnline: _isBackendOnline,
-        onTopUp: _handleWalletTopUp,
-        onLogout: _handleLogout,
-      );
-    } else if (_userRole == 'CONDUCTOR') {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Conductor Portal'),
-          actions: [
-            IconButton(icon: const Icon(Icons.logout), onPressed: _handleLogout),
-          ],
-        ),
-        body: ConductorTerminalScreen(
-          onEndTrip: _handleLogout,
-          onTicketIssued: (fare) {},
-        ),
-      );
-    } else {
-      return OwnerPortal(
-        onLogout: _handleLogout,
-      );
-    }
+        // 2. Logged In State: Route based on role
+        if (_userRole == 'PASSENGER') {
+          return PassengerPortal(
+            passengerName: _userName,
+            email: _userEmail,
+            walletBalance: FleetState.instance.passengerWalletBalance,
+            isOnline: _isBackendOnline,
+            onTopUp: _handleWalletTopUp,
+            onLogout: _handleLogout,
+          );
+        } else if (_userRole == 'CONDUCTOR') {
+          final conductor = FleetState.instance.conductors.firstWhere(
+            (c) =>
+                c.email.toLowerCase() == _userEmail.toLowerCase() ||
+                c.userId.toLowerCase() == _userEmail.toLowerCase() ||
+                c.name.toLowerCase() == _userName.toLowerCase(),
+            orElse: () => FleetState.instance.conductors.first,
+          );
+          return ConductorPortal(
+            conductor: conductor,
+            onLogout: _handleLogout,
+          );
+        } else {
+          return OwnerPortal(
+            onLogout: _handleLogout,
+          );
+        }
+      },
+    );
   }
 }

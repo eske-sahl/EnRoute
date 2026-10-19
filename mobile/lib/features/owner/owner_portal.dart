@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/fleet_state.dart';
 import 'tabs/owner_dashboard_tab.dart';
 import 'tabs/owner_bus_list_tab.dart';
 import 'tabs/owner_conductor_tab.dart';
@@ -55,6 +56,8 @@ class _OwnerPortalState extends State<OwnerPortal> {
       'Owner Profile & Permits',
     ];
 
+    final unreadReviews = FleetState.instance.getUnreadReviewsCountForOwner();
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -65,6 +68,31 @@ class _OwnerPortalState extends State<OwnerPortal> {
           ],
         ),
         actions: [
+          // Reviews Quick Notification Icon
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.star_rate),
+                tooltip: 'Passenger Reviews',
+                onPressed: () {
+                  setState(() {
+                    _selectedTabIndex = 3; // Navigate to Profile / Reviews
+                  });
+                },
+              ),
+              if (unreadReviews > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: Text('$unreadReviews', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign Out',

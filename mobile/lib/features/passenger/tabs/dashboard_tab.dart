@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
+import '../../../services/fleet_state.dart';
 
 class DashboardTab extends StatelessWidget {
   final String passengerName;
@@ -92,36 +93,143 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
+  void _showTicketDetails(BuildContext context, IssuedTicketModel ticket) {
+    final fmt = DateFormat('dd MMM yyyy, hh:mm a');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.confirmation_num, color: AppTheme.primaryGreen, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Digital Bus Ticket', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(ticket.ticketNumber, style: const TextStyle(fontFamily: 'monospace', color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade300),
+                    ),
+                    child: const Text('PAID & VALID', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10)),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+
+              // Bus & Route
+              _ticketRow('Bus Vehicle', '${ticket.busName} (${ticket.busRegNumber})'),
+              _ticketRow('Boarding Stop', ticket.boardingStop),
+              _ticketRow('Destination Stop', ticket.destinationStop),
+              _ticketRow('Issued At', fmt.format(ticket.timestamp)),
+              _ticketRow('Passenger ID', ticket.passengerId),
+              _ticketRow('Concession Category', ticket.isStudentConcession ? 'Student Concession (₹5 Concession)' : 'General Fare'),
+              _ticketRow('Payment Mode', ticket.paymentModeLabel),
+              if (ticket.cashTendered != null && ticket.cashTendered! > 0)
+                _ticketRow('Cash Handed', '₹${ticket.cashTendered!.toStringAsFixed(1)} (Change: ₹${(ticket.cashChangeGiven ?? 0).toStringAsFixed(1)})'),
+              if (ticket.isSplitPayment)
+                _ticketRow('Split Breakdown', 'Cash: ₹${ticket.splitCashAmount?.toStringAsFixed(1)} + UPI: ₹${ticket.splitUpiAmount?.toStringAsFixed(1)}'),
+              _ticketRow('Conductor Crew', ticket.conductorName),
+
+              const Divider(height: 24),
+
+              // Total Fare Box
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Total Fare Paid', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      '₹${ticket.fare.toStringAsFixed(1)}',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryGreen,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _ticketRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
-
-    final recentTickets = [
-      {
-        'bus': 'KL 07 CD 4589 (SpeedWings)',
-        'route': 'Aluva ➔ Kizhakkambalam',
-        'fare': 18.0,
-        'date': 'Today, 09:40 AM',
-        'status': 'COMPLETED',
-        'ref': 'SBK-20261018-0042',
-      },
-      {
-        'bus': 'KL 07 CE 1204 (GreenCity)',
-        'route': 'Perumbavoor ➔ Pattimattom',
-        'fare': 12.0,
-        'date': 'Yesterday, 05:15 PM',
-        'status': 'COMPLETED',
-        'ref': 'SBK-20261017-8912',
-      },
-      {
-        'bus': 'KL 07 BQ 9981 (St. Marys)',
-        'route': 'Aluva ➔ Pump Junction',
-        'fare': 10.0,
-        'date': '16 Oct, 11:20 AM',
-        'status': 'COMPLETED',
-        'ref': 'SBK-20261016-3301',
-      },
-    ];
+    final issuedTickets = FleetState.instance.issuedTickets;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -252,40 +360,79 @@ class DashboardTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Recent Ticket History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('${recentTickets.length} journeys', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text('${issuedTickets.length} journeys', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 10),
 
-          ...recentTickets.map((ticket) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
+          if (issuedTickets.isEmpty)
+            Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              child: ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(28.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.confirmation_num_outlined, size: 40, color: Colors.grey),
+                      SizedBox(height: 8),
+                      Text('No tickets issued yet.', style: TextStyle(color: Colors.grey)),
+                    ],
                   ),
-                  child: const Icon(Icons.confirmation_num, color: AppTheme.primaryGreen),
-                ),
-                title: Text(ticket['route'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                subtitle: Text('${ticket['bus']} • ${ticket['date']}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('₹${(ticket['fare'] as double).toStringAsFixed(1)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 15)),
-                    const Text('PAID', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 9)),
-                  ],
                 ),
               ),
-            );
-          }),
+            )
+          else
+            ...issuedTickets.map((ticket) {
+              final dateStr = DateFormat('dd MMM, hh:mm a').format(ticket.timestamp);
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                child: ListTile(
+                  onTap: () => _showTicketDetails(context, ticket),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.confirmation_num, color: AppTheme.primaryGreen),
+                  ),
+                  title: Text(
+                    '${ticket.boardingStop} ➔ ${ticket.destinationStop}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    '${ticket.busRegNumber} (${ticket.busName}) • $dateStr',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '₹${ticket.fare.toStringAsFixed(1)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 15),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          ticket.paymentMode,
+                          style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.bold, fontSize: 8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
         ],
       ),
     );
   }
 }
+

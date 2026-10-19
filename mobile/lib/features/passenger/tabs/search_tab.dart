@@ -186,6 +186,296 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
     );
   }
 
+  Widget _buildDirectContactCard(BusModel bus) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blueGrey.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.headset_mic, size: 16, color: AppTheme.primaryGreen),
+              SizedBox(width: 6),
+              Text('Direct Operator & Crew Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Owner Info Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Owner: ${bus.ownerName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text('${bus.ownerPhone} • ${bus.ownerEmail}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.call, size: 18, color: AppTheme.primaryGreen),
+                    tooltip: 'Call Owner',
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Calling Bus Owner: ${bus.ownerPhone} (${bus.ownerName})')),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.email, size: 18, color: Colors.blueAccent),
+                    tooltip: 'Email Owner',
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Composing email to: ${bus.ownerEmail}')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Divider(height: 14),
+          // Conductor Info Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Conductor: ${bus.conductorName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text('${bus.conductorPhone} • ${bus.conductorEmail}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.call, size: 18, color: AppTheme.primaryGreen),
+                    tooltip: 'Call Conductor',
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Calling Conductor: ${bus.conductorPhone} (${bus.conductorName})')),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.email, size: 18, color: Colors.blueAccent),
+                    tooltip: 'Email Conductor',
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Composing email to: ${bus.conductorEmail}')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRateAndFeedbackDialog(BuildContext context, BusModel bus) {
+    double selectedRating = 5.0;
+    final commentCtrl = TextEditingController();
+    final quickTags = [
+      'Punctual & on time ⏱️',
+      'Clean & sanitized 🧼',
+      'Polite Conductor 🤝',
+      'Safe driving 🚌',
+      'Student friendly 🎒',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (dlgCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setDlgState) {
+            final starLabels = {
+              1.0: 'Poor Service (1 Star)',
+              2.0: 'Below Average (2 Stars)',
+              3.0: 'Average (3 Stars)',
+              4.0: 'Good Experience (4 Stars)',
+              5.0: 'Excellent & Highly Recommended (5 Stars)',
+            };
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Row(
+                children: [
+                  const Icon(Icons.rate_review, color: AppTheme.accentAmber),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Rate ${bus.busName}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '${bus.regNumber} • ${bus.companyName}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
+                    // Star Rating Selector
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          final starNum = index + 1.0;
+                          return IconButton(
+                            iconSize: 32,
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            icon: Icon(
+                              starNum <= selectedRating ? Icons.star : Icons.star_border,
+                              color: AppTheme.accentAmber,
+                            ),
+                            onPressed: () {
+                              setDlgState(() {
+                                selectedRating = starNum;
+                              });
+                            },
+                          );
+                        }),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        starLabels[selectedRating] ?? 'Selected: ${selectedRating.toInt()} Stars',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Quick Tags
+                    const Text('Quick Highlights:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: quickTags.map((tag) {
+                        return ActionChip(
+                          label: Text(tag, style: const TextStyle(fontSize: 10)),
+                          backgroundColor: Colors.grey.shade100,
+                          onPressed: () {
+                            setDlgState(() {
+                              if (commentCtrl.text.isEmpty) {
+                                commentCtrl.text = tag;
+                              } else {
+                                commentCtrl.text = '${commentCtrl.text}, $tag';
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Comments input
+                    TextField(
+                      controller: commentCtrl,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Share feedback regarding timings, conductor attitude, driving quality...',
+                        hintStyle: const TextStyle(fontSize: 12),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 12, color: Colors.grey),
+                        SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Ratings notify the Owner & Conductor instantly.',
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dlgCtx),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    final comment = commentCtrl.text.trim().isNotEmpty
+                        ? commentCtrl.text.trim()
+                        : 'Great service on ${bus.busName}!';
+                    FleetState.instance.addReview(
+                      busId: bus.id,
+                      busRegNumber: bus.regNumber,
+                      busName: bus.busName,
+                      passengerName: 'Anjali Nair',
+                      rating: selectedRating,
+                      comment: comment,
+                    );
+                    Navigator.pop(dlgCtx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Feedback submitted for ${bus.busName}! Notified to Owner & Conductor.'),
+                        backgroundColor: AppTheme.primaryGreen,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.send, size: 16),
+                  label: const Text('Submit Review'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRateAndFeedbackButton(BusModel bus) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.amber.shade900,
+          side: BorderSide(color: Colors.amber.shade400, width: 1.5),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        onPressed: () => _showRateAndFeedbackDialog(context, bus),
+        icon: const Icon(Icons.star_rate, color: Colors.amber),
+        label: const Text('Rate & Give Feedback for this Bus', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
   void _showBusRouteTimelineModal(BusModel bus) {
     // Sort bus stops in ascending order of scheduled time
     final sortedStops = List<BusStopSchedule>.from(bus.stops);
@@ -336,6 +626,16 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                       ],
                     );
                   }),
+
+                  const SizedBox(height: 14),
+
+                  // Conductor & Owner Direct Contact
+                  _buildDirectContactCard(bus),
+
+                  const SizedBox(height: 10),
+
+                  // Rate & Give Feedback
+                  _buildRateAndFeedbackButton(bus),
 
                   const SizedBox(height: 10),
 
@@ -1009,6 +1309,16 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                         ),
 
                       const SizedBox(height: 18),
+
+                      // Conductor & Owner Direct Contact
+                      _buildDirectContactCard(bus),
+
+                      const SizedBox(height: 12),
+
+                      // Rate & Give Feedback
+                      _buildRateAndFeedbackButton(bus),
+
+                      const SizedBox(height: 12),
 
                       // Live Radar Location Button
                       SizedBox(
