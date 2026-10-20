@@ -20,54 +20,6 @@ class WalletTab extends StatefulWidget {
 class _WalletTabState extends State<WalletTab> {
   String _selectedFilter = 'ALL'; // 'ALL', 'RECHARGE', 'WALLET', 'UPI', 'CASH'
 
-  final List<Map<String, dynamic>> _transactions = [
-    {
-      'id': 'TX-9041',
-      'title': 'Bus Ticket: Aluva ➔ Kizhakkambalam',
-      'bus': 'KL 07 CD 4589',
-      'amount': -18.0,
-      'type': 'WALLET',
-      'date': 'Today, 09:40 AM',
-      'status': 'SUCCESS',
-    },
-    {
-      'id': 'TX-9032',
-      'title': 'Demo Wallet Top-Up',
-      'bus': 'Net Banking / UPI Ref #89123',
-      'amount': 200.0,
-      'type': 'RECHARGE',
-      'date': 'Today, 09:00 AM',
-      'status': 'SUCCESS',
-    },
-    {
-      'id': 'TX-8911',
-      'title': 'Bus Ticket: Perumbavoor ➔ Pattimattom',
-      'bus': 'KL 07 CE 1204',
-      'amount': -12.0,
-      'type': 'UPI',
-      'date': 'Yesterday, 05:15 PM',
-      'status': 'SUCCESS',
-    },
-    {
-      'id': 'TX-8740',
-      'title': 'Bus Ticket: Aluva ➔ Pump Junction',
-      'bus': 'KL 07 BQ 9981',
-      'amount': -10.0,
-      'type': 'CASH',
-      'date': '16 Oct, 11:20 AM',
-      'status': 'SUCCESS',
-    },
-    {
-      'id': 'TX-8600',
-      'title': 'Initial Signup Bonus Credit',
-      'bus': 'SmartBus Kerala Promotion',
-      'amount': 250.0,
-      'type': 'RECHARGE',
-      'date': '15 Oct, 08:30 AM',
-      'status': 'SUCCESS',
-    },
-  ];
-
   void _showAddMoneyModal() {
     showModalBottomSheet(
       context: context,
@@ -112,11 +64,15 @@ class _WalletTabState extends State<WalletTab> {
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+    final dateFmt = DateFormat('dd MMM, hh:mm a');
+
+    // Query strictly this passenger's ledger from FleetState
+    final passengerTransactions = FleetState.instance.getTransactionsForPassenger(widget.passenger.id);
 
     // Filter transactions
-    final filtered = _transactions.where((tx) {
+    final filtered = passengerTransactions.where((tx) {
       if (_selectedFilter == 'ALL') return true;
-      return tx['type'] == _selectedFilter;
+      return tx.type == _selectedFilter;
     }).toList();
 
     return SingleChildScrollView(
@@ -187,7 +143,7 @@ class _WalletTabState extends State<WalletTab> {
 
           const SizedBox(height: 16),
 
-          // Transactions List
+          // Transactions List Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -197,69 +153,96 @@ class _WalletTabState extends State<WalletTab> {
           ),
           const SizedBox(height: 10),
 
-          ...filtered.map((tx) {
-            final isCredit = (tx['amount'] as double) > 0;
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          if (filtered.isEmpty)
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+                padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: isCredit
-                            ? Colors.green.withValues(alpha: 0.1)
-                            : (tx['type'] == 'UPI' ? Colors.blue.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        isCredit
-                            ? Icons.account_balance_wallet
-                            : (tx['type'] == 'UPI' ? Icons.qr_code : Icons.directions_bus),
-                        color: isCredit
-                            ? Colors.green
-                            : (tx['type'] == 'UPI' ? Colors.blue : AppTheme.primaryGreen),
-                        size: 20,
-                      ),
+                    Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey.shade400),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'No Ledger Entries Found',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(tx['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          const SizedBox(height: 3),
-                          Text('${tx['bus']} • ${tx['date']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'METHOD: ${tx['type']}',
-                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 6),
                     Text(
-                      '${isCredit ? '+' : ''}₹${(tx['amount'] as double).abs().toStringAsFixed(1)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: isCredit ? Colors.green : Colors.black87,
-                      ),
+                      _selectedFilter == 'ALL'
+                          ? 'This account has no transaction history yet. Recharge your wallet above or travel on SmartBus to view ledger entries.'
+                          : 'No $_selectedFilter transactions found for this account.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-            );
-          }),
+            )
+          else
+            ...filtered.map((tx) {
+              final isCredit = tx.amount > 0;
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isCredit
+                              ? Colors.green.withValues(alpha: 0.1)
+                              : (tx.type == 'UPI' ? Colors.blue.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          isCredit
+                              ? Icons.account_balance_wallet
+                              : (tx.type == 'UPI' ? Icons.qr_code : Icons.directions_bus),
+                          color: isCredit
+                              ? Colors.green
+                              : (tx.type == 'UPI' ? Colors.blue : AppTheme.primaryGreen),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(tx.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            const SizedBox(height: 3),
+                            Text('${tx.busOrSource} • ${dateFmt.format(tx.timestamp)}',
+                                style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'METHOD: ${tx.type}',
+                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        '${isCredit ? '+' : ''}₹${tx.amount.abs().toStringAsFixed(1)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: isCredit ? Colors.green : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
         ],
       ),
     );

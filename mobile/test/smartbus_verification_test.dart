@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile/services/fleet_state.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
 
   group('SmartBus Kerala Verification Tests', () {
     test('1. Authentication Validation - Invalid credentials rejected', () {
@@ -225,6 +228,96 @@ void main() {
       expect(conductorDeleted, isTrue);
       expect(state.conductors.any((c) => c.id == 'COND-TEMP'), isFalse);
     });
+
+    test('7. New Owner Profile starts completely empty and isolated from other operators', () {
+      final state = FleetState.instance;
+
+      // Register completely new owner
+      final newOwner = state.registerOwner(
+        name: 'Varghese John',
+        email: 'varghese@malabartransits.com',
+        phone: '9847223344',
+        password: 'pass',
+        companyName: 'Malabar Transits Kannur',
+      );
+
+      // Verify empty profile
+      final ownerBuses = state.getBusesForOwner(newOwner.id);
+      final ownerConductors = state.getConductorsForOwner(newOwner.id);
+      expect(ownerBuses.isEmpty, isTrue, reason: 'New owner must NOT inherit other operators\' buses');
+      expect(ownerConductors.isEmpty, isTrue, reason: 'New owner must NOT inherit other operators\' conductors');
+      expect(state.getTotalCollectionForOwner(newOwner.id), 0.0);
+      expect(state.getActiveBusesCountForOwner(newOwner.id), 0);
+      expect(state.getTotalTicketsSoldForOwner(newOwner.id), 0);
+      expect(state.getWalletCollectionForOwner(newOwner.id), 0.0);
+      expect(state.getCashInHandForOwner(newOwner.id), 0.0);
+
+      // Register a bus for this owner
+      final newBus = BusModel(
+        id: 'BUS-MALABAR-1',
+        ownerId: newOwner.id,
+        regNumber: 'KL 13 AB 7788',
+        busName: 'Malabar Queen',
+        category: 'Limited Stop Bus (Red-Whiteline)',
+        startPoint: 'Kannur Stand',
+        destPoint: 'Thalassery Stand',
+        routeName: 'Kannur Stand - Thalassery Stand',
+        stops: [
+          BusStopSchedule(stopName: 'Kannur Stand', time: '08:00 AM'),
+          BusStopSchedule(stopName: 'Thalassery Stand', time: '08:45 AM'),
+        ],
+        companyName: newOwner.companyName,
+        todayCollection: 1500.0,
+        ticketsCount: 45,
+        isActive: true,
+      );
+      state.addBus(newBus);
+
+      // Verify bus appears ONLY for new owner, not for St. George Motors (OWNER-1)
+      expect(state.getBusesForOwner(newOwner.id).length, 1);
+      expect(state.getBusesForOwner(newOwner.id).first.busName, 'Malabar Queen');
+      expect(state.getBusesForOwner('OWNER-1').any((b) => b.regNumber == 'KL 13 AB 7788'), isFalse);
+      expect(state.getTotalCollectionForOwner(newOwner.id), 1500.0);
+    });
+
+    test('8. New Passenger Profile starts with clean 0.0 balance and isolated transactions ledger', () {
+      final state = FleetState.instance;
+
+      // Register new passenger
+      final newPassenger = state.registerPassenger(
+        name: 'Arjun Das',
+        email: 'arjun@gmail.com',
+        phone: '9847998877',
+        password: 'password123',
+      );
+
+      // Verify clean 0.0 balance (NOT 150, NOT 250)
+      expect(newPassenger.walletBalance, 0.0, reason: 'New passenger balance must start at clean 0.0 rupees');
+
+      // Verify empty transaction ledger (NOT inheriting Anjali Nair's preset transactions)
+      final newPassengerTx = state.getTransactionsForPassenger(newPassenger.id);
+      expect(newPassengerTx.isEmpty, isTrue, reason: 'New passenger must have an empty transaction ledger');
+
+      // Anjali Nair's wallet and ledger must remain untouched
+      final anjali = state.findPassengerByIdOrPhone('SBK-KL-987263')!;
+      expect(anjali.walletBalance, greaterThan(0.0));
+      expect(state.getTransactionsForPassenger(anjali.id).isNotEmpty, isTrue);
+
+      // Arjun Das tops up 100 rupees
+      state.topUpPassengerWallet(newPassenger.id, 100.0, source: 'GPay Recharge');
+      expect(newPassenger.walletBalance, 100.0);
+
+      // Ledger now contains exactly 1 top-up transaction
+      final updatedTx = state.getTransactionsForPassenger(newPassenger.id);
+      expect(updatedTx.length, 1);
+      expect(updatedTx.first.amount, 100.0);
+      expect(updatedTx.first.type, 'RECHARGE');
+      expect(updatedTx.first.passengerId, newPassenger.id);
+
+      // Anjali's ledger still does NOT have Arjun's transaction
+      expect(state.getTransactionsForPassenger(anjali.id).any((tx) => tx.passengerId == newPassenger.id), isFalse);
+    });
   });
 }
+
 

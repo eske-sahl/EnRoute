@@ -375,10 +375,12 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         prefixIcon: const Icon(Icons.badge, color: AppTheme.primaryGreen),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      initialValue: selectedCond,
+                      initialValue: (FleetState.instance.getConductorsForOwner(widget.bus.ownerId).any((c) => c.name == selectedCond))
+                          ? selectedCond
+                          : 'Unassigned',
                       items: [
                         const DropdownMenuItem(value: 'Unassigned', child: Text('Unassigned')),
-                        ...FleetState.instance.conductors.map((c) {
+                        ...FleetState.instance.getConductorsForOwner(widget.bus.ownerId).map((c) {
                           return DropdownMenuItem(value: c.name, child: Text('${c.name} (${c.userId})'));
                         }),
                       ],

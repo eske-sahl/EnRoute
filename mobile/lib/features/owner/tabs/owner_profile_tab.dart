@@ -77,7 +77,7 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Passenger Reviews & Feedback', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              if (fleet.getUnreadReviewsCountForOwner() > 0)
+              if (fleet.getUnreadReviewsCountForOwner(widget.owner.id) > 0)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -85,7 +85,7 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '${fleet.getUnreadReviewsCountForOwner()} NEW',
+                    '${fleet.getUnreadReviewsCountForOwner(widget.owner.id)} NEW',
                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -106,13 +106,13 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
               ),
               title: const Text('Fleet Reviews & Ratings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               subtitle: Text(
-                '${fleet.reviews.length} total passenger reviews across fleet',
+                '${fleet.reviews.where((r) => fleet.getBusesForOwner(widget.owner.id).any((b) => b.regNumber.toUpperCase() == r.busRegNumber.toUpperCase())).length} passenger reviews for ${widget.owner.companyName}',
                 style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (fleet.getUnreadReviewsCountForOwner() > 0)
+                  if (fleet.getUnreadReviewsCountForOwner(widget.owner.id) > 0)
                     Container(
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -122,7 +122,7 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                         border: Border.all(color: Colors.red.shade300),
                       ),
                       child: Text(
-                        '${fleet.getUnreadReviewsCountForOwner()} unread',
+                        '${fleet.getUnreadReviewsCountForOwner(widget.owner.id)} unread',
                         style: TextStyle(color: Colors.red.shade800, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -142,15 +142,15 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: Column(
               children: [
-                _infoTile(Icons.verified, 'MVD Operator Permit', 'KL-MVD-OPERATOR-2018-9941'),
+                _infoTile(Icons.verified, 'MVD Operator Permit', 'KL-MVD-OPERATOR-${widget.owner.id}'),
                 const Divider(height: 1),
-                _infoTile(Icons.directions_bus, 'Total Fleet Size', '${fleet.buses.length} Stage Carriages'),
+                _infoTile(Icons.directions_bus, 'Total Fleet Size', '${fleet.getBusesForOwner(widget.owner.id).length} Stage Carriages'),
                 const Divider(height: 1),
-                _infoTile(Icons.people, 'Registered Conductors', '${fleet.conductors.length} Crew Members'),
+                _infoTile(Icons.people, 'Registered Conductors', '${fleet.getConductorsForOwner(widget.owner.id).length} Crew Members'),
                 const Divider(height: 1),
                 _infoTile(Icons.phone, 'Official Contact', '+91 ${widget.owner.phone} • ${widget.owner.email}'),
                 const Divider(height: 1),
-                _infoTile(Icons.location_on, 'Regional RTO Hub', 'Ernakulam RTO (KL-07)'),
+                _infoTile(Icons.location_on, 'Regional RTO Hub', 'Kerala Motor Vehicles Dept'),
               ],
             ),
           ),
@@ -312,10 +312,11 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
 
   void _showOwnerReviewsModal() {
     setState(() {
-      FleetState.instance.markReviewsAsReadForOwner();
+      FleetState.instance.markReviewsAsReadForOwner(widget.owner.id);
     });
 
-    final reviews = FleetState.instance.reviews;
+    final ownerBusRegs = FleetState.instance.getBusesForOwner(widget.owner.id).map((b) => b.regNumber.toUpperCase()).toSet();
+    final reviews = FleetState.instance.reviews.where((r) => ownerBusRegs.contains(r.busRegNumber.toUpperCase())).toList();
 
     showModalBottomSheet(
       context: context,
@@ -357,8 +358,8 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text('Live feedback submitted across all St. George Motors buses',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text('Live feedback submitted across all ${widget.owner.companyName} buses',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   const Divider(height: 24),
 
                   if (reviews.isEmpty)

@@ -3,7 +3,8 @@ import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 
 class OwnerConductorTab extends StatefulWidget {
-  const OwnerConductorTab({super.key});
+  final OwnerModel owner;
+  const OwnerConductorTab({super.key, required this.owner});
 
   @override
   State<OwnerConductorTab> createState() => _OwnerConductorTabState();
@@ -18,10 +19,11 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
     final phoneCtrl = TextEditingController(text: '+91 98470 55009');
     final licenseCtrl = TextEditingController(text: 'KL-MVD-COND-6621');
     
-    // Default assigned bus
-    String assignedBusReg = FleetState.instance.buses.isNotEmpty 
-        ? FleetState.instance.buses.first.regNumber 
-        : 'KL 07 CD 4589';
+    // Default assigned bus for this owner
+    final ownerBuses = FleetState.instance.getBusesForOwner(widget.owner.id);
+    String assignedBusReg = ownerBuses.isNotEmpty 
+        ? ownerBuses.first.regNumber 
+        : 'Unassigned';
 
     final formKey = GlobalKey<FormState>();
 
@@ -199,12 +201,15 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         initialValue: assignedBusReg,
-                        items: FleetState.instance.buses.map((b) {
-                          return DropdownMenuItem(
-                            value: b.regNumber,
-                            child: Text('${b.busName} [${b.regNumber}]', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                          );
-                        }).toList(),
+                        items: [
+                          const DropdownMenuItem(value: 'Unassigned', child: Text('Unassigned (Assign Later)')),
+                          ...ownerBuses.map((b) {
+                            return DropdownMenuItem(
+                              value: b.regNumber,
+                              child: Text('${b.busName} [${b.regNumber}]', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            );
+                          }),
+                        ],
                         onChanged: (val) {
                           if (val != null) {
                             setModalState(() => assignedBusReg = val);
@@ -223,26 +228,26 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                         onPressed: () {
                           if (!formKey.currentState!.validate()) return;
 
-                          final assignedBusObj = FleetState.instance.buses.firstWhere(
-                            (b) => b.regNumber == assignedBusReg,
-                            orElse: () => FleetState.instance.buses.first,
-                          );
+                          final assignedBusObj = ownerBuses.where((b) => b.regNumber == assignedBusReg).firstOrNull;
 
                           final newCond = ConductorModel(
                             id: 'COND-${DateTime.now().millisecondsSinceEpoch}',
+                            ownerId: widget.owner.id,
                             name: nameCtrl.text.trim(),
                             email: emailCtrl.text.trim(),
                             userId: userIdCtrl.text.trim(),
                             password: passwordCtrl.text.trim(),
                             phone: phoneCtrl.text.trim(),
                             licenseNumber: licenseCtrl.text.trim(),
-                            assignedBusReg: assignedBusObj.regNumber,
-                            assignedBusName: assignedBusObj.busName,
+                            assignedBusReg: assignedBusObj?.regNumber ?? 'Unassigned',
+                            assignedBusName: assignedBusObj?.busName ?? 'Unassigned',
                             todayCollection: 0.0,
                           );
 
-                          // Also update bus's conductor field
-                          assignedBusObj.conductorName = newCond.name;
+                          // Also update bus's conductor field if assigned
+                          if (assignedBusObj != null) {
+                            assignedBusObj.conductorName = newCond.name;
+                          }
 
                           setState(() {
                             FleetState.instance.addConductor(newCond);
@@ -252,7 +257,7 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Conductor ${newCond.name} added! Assigned to ${assignedBusObj.busName} (${assignedBusObj.regNumber}). Login ID: ${newCond.userId}'),
+                              content: Text('Conductor ${newCond.name} added! Assigned to ${newCond.assignedBusName} (${newCond.assignedBusReg}). Login ID: ${newCond.userId}'),
                               backgroundColor: AppTheme.primaryGreen,
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -363,6 +368,7 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
   @override
   Widget build(BuildContext context) {
     final fleet = FleetState.instance;
+    final ownerConductors = fleet.getConductorsForOwner(widget.owner.id);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -378,7 +384,7 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Conductor Crew Directory', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('${fleet.conductors.length} active conductors', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text('${ownerConductors.length} active conductors', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
                 ),
                 ElevatedButton.icon(
@@ -419,8 +425,32 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
 
             const SizedBox(height: 16),
 
-            // Conductor Cards List
-            ...fleet.conductors.map((conductor) {
+            if (ownerConductors.isEmpty)
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                  child: Column(
+                    children: [
+                      Icon(Icons.badge_outlined, size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 14),
+                      Text(
+                        'No Conductors Added for ${widget.owner.companyName}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Provision app login credentials for your crew by tapping "Add Conductor" above. Your conductors will use these credentials to issue smart tickets and sync collections to your dashboard.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...ownerConductors.map((conductor) {
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

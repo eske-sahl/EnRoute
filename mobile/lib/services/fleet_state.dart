@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'storage_service.dart';
 
 int parseTimeToMinutes(String timeStr) {
   try {
@@ -23,6 +24,16 @@ class BusStopSchedule {
   String time;
 
   BusStopSchedule({required this.stopName, required this.time});
+
+  Map<String, dynamic> toJson() => {
+    'stopName': stopName,
+    'time': time,
+  };
+
+  factory BusStopSchedule.fromJson(Map<String, dynamic> json) => BusStopSchedule(
+    stopName: json['stopName'] as String,
+    time: json['time'] as String,
+  );
 }
 
 class PassengerModel {
@@ -42,11 +53,35 @@ class PassengerModel {
     required this.email,
     required this.phone,
     required this.password,
-    this.walletBalance = 100.0,
+    this.walletBalance = 0.0, // Clean 0 balance for new signups
     this.homeStation = 'Aluva Stand, Ernakulam',
     this.concessionCategory = 'General / Adult Standard',
     required this.registeredAt,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'email': email,
+    'phone': phone,
+    'password': password,
+    'walletBalance': walletBalance,
+    'homeStation': homeStation,
+    'concessionCategory': concessionCategory,
+    'registeredAt': registeredAt.toIso8601String(),
+  };
+
+  factory PassengerModel.fromJson(Map<String, dynamic> json) => PassengerModel(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    phone: json['phone'] as String,
+    password: json['password'] as String,
+    walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
+    homeStation: (json['homeStation'] as String?) ?? 'Aluva Stand, Ernakulam',
+    concessionCategory: (json['concessionCategory'] as String?) ?? 'General / Adult Standard',
+    registeredAt: DateTime.tryParse(json['registeredAt'] as String? ?? '') ?? DateTime.now(),
+  );
 }
 
 class OwnerModel {
@@ -69,6 +104,28 @@ class OwnerModel {
     this.isVerified = true,
     required this.registeredAt,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'email': email,
+    'phone': phone,
+    'password': password,
+    'companyName': companyName,
+    'isVerified': isVerified,
+    'registeredAt': registeredAt.toIso8601String(),
+  };
+
+  factory OwnerModel.fromJson(Map<String, dynamic> json) => OwnerModel(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    phone: json['phone'] as String,
+    password: json['password'] as String,
+    companyName: json['companyName'] as String,
+    isVerified: (json['isVerified'] as bool?) ?? true,
+    registeredAt: DateTime.tryParse(json['registeredAt'] as String? ?? '') ?? DateTime.now(),
+  );
 }
 
 class BusReviewModel {
@@ -93,6 +150,30 @@ class BusReviewModel {
     this.isReadByOwner = false,
     this.isReadByConductor = false,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'busRegNumber': busRegNumber,
+    'busName': busName,
+    'passengerName': passengerName,
+    'rating': rating,
+    'comment': comment,
+    'createdAt': createdAt.toIso8601String(),
+    'isReadByOwner': isReadByOwner,
+    'isReadByConductor': isReadByConductor,
+  };
+
+  factory BusReviewModel.fromJson(Map<String, dynamic> json) => BusReviewModel(
+    id: json['id'] as String,
+    busRegNumber: json['busRegNumber'] as String,
+    busName: json['busName'] as String,
+    passengerName: json['passengerName'] as String,
+    rating: (json['rating'] as num).toDouble(),
+    comment: json['comment'] as String,
+    createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+    isReadByOwner: (json['isReadByOwner'] as bool?) ?? false,
+    isReadByConductor: (json['isReadByConductor'] as bool?) ?? false,
+  );
 }
 
 class IssuedTicketModel {
@@ -158,10 +239,97 @@ class IssuedTicketModel {
   bool get isSplitPayment => paymentMode == 'SPLIT' || (splitCash > 0 && splitUpi > 0);
   double? get splitCashAmount => splitCash > 0 ? splitCash : null;
   double? get splitUpiAmount => splitUpi > 0 ? splitUpi : null;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'ticketNumber': ticketNumber,
+    'busRegNumber': busRegNumber,
+    'busName': busName,
+    'conductorId': conductorId,
+    'conductorName': conductorName,
+    'passengerId': passengerId,
+    'passengerName': passengerName,
+    'boardingStop': boardingStop,
+    'destStop': destStop,
+    'fare': fare,
+    'category': category,
+    'paymentMode': paymentMode,
+    'cashGiven': cashGiven,
+    'changeReturned': changeReturned,
+    'splitCash': splitCash,
+    'splitUpi': splitUpi,
+    'issuedAt': issuedAt.toIso8601String(),
+  };
+
+  factory IssuedTicketModel.fromJson(Map<String, dynamic> json) => IssuedTicketModel(
+    id: json['id'] as String,
+    ticketNumber: json['ticketNumber'] as String,
+    busRegNumber: json['busRegNumber'] as String,
+    busName: json['busName'] as String,
+    conductorId: json['conductorId'] as String,
+    conductorName: json['conductorName'] as String,
+    passengerId: json['passengerId'] as String,
+    passengerName: json['passengerName'] as String,
+    boardingStop: json['boardingStop'] as String,
+    destStop: json['destStop'] as String,
+    fare: (json['fare'] as num).toDouble(),
+    category: json['category'] as String,
+    paymentMode: json['paymentMode'] as String,
+    cashGiven: (json['cashGiven'] as num?)?.toDouble() ?? 0.0,
+    changeReturned: (json['changeReturned'] as num?)?.toDouble() ?? 0.0,
+    splitCash: (json['splitCash'] as num?)?.toDouble() ?? 0.0,
+    splitUpi: (json['splitUpi'] as num?)?.toDouble() ?? 0.0,
+    issuedAt: DateTime.tryParse(json['issuedAt'] as String? ?? '') ?? DateTime.now(),
+  );
+}
+
+class WalletTransactionModel {
+  final String id;
+  final String passengerId;
+  final String title;
+  final String busOrSource;
+  final double amount; // positive for top-up, negative for fare
+  final String type; // 'RECHARGE', 'WALLET', 'UPI', 'CASH'
+  final DateTime timestamp;
+  final String status;
+
+  WalletTransactionModel({
+    required this.id,
+    required this.passengerId,
+    required this.title,
+    required this.busOrSource,
+    required this.amount,
+    required this.type,
+    required this.timestamp,
+    this.status = 'SUCCESS',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'passengerId': passengerId,
+    'title': title,
+    'busOrSource': busOrSource,
+    'amount': amount,
+    'type': type,
+    'timestamp': timestamp.toIso8601String(),
+    'status': status,
+  };
+
+  factory WalletTransactionModel.fromJson(Map<String, dynamic> json) => WalletTransactionModel(
+    id: json['id'] as String,
+    passengerId: json['passengerId'] as String,
+    title: json['title'] as String,
+    busOrSource: json['busOrSource'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    type: json['type'] as String,
+    timestamp: DateTime.tryParse(json['timestamp'] as String? ?? '') ?? DateTime.now(),
+    status: (json['status'] as String?) ?? 'SUCCESS',
+  );
 }
 
 class BusModel {
   final String id;
+  final String ownerId; // Isolated to registering bus owner
   final String regNumber; // Immutable after registration
   String busName;
   String category; // 'Limited Stop Bus (Red-Whiteline)', 'Ordinary Bus (Blue-Whiteline)', 'City Bus (Green-Whiteline)'
@@ -199,6 +367,7 @@ class BusModel {
 
   BusModel({
     required this.id,
+    this.ownerId = 'OWNER-1',
     required this.regNumber,
     required this.busName,
     required this.category,
@@ -240,10 +409,84 @@ class BusModel {
   String get busType => category;
   String get startTime => stops.isNotEmpty ? stops.first.time : '06:30 AM';
   String get endTime => stops.isNotEmpty ? stops.last.time : '08:00 PM';
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'ownerId': ownerId,
+    'regNumber': regNumber,
+    'busName': busName,
+    'category': category,
+    'startPoint': startPoint,
+    'destPoint': destPoint,
+    'routeName': routeName,
+    'stops': stops.map((s) => s.toJson()).toList(),
+    'seatingCapacity': seatingCapacity,
+    'driverName': driverName,
+    'cleanerName': cleanerName,
+    'conductorName': conductorName,
+    'companyName': companyName,
+    'todayCollection': todayCollection,
+    'ticketsCount': ticketsCount,
+    'isActive': isActive,
+    'status': status,
+    'isApprovedByAdmin': isApprovedByAdmin,
+    'currentStop': currentStop,
+    'nextStop': nextStop,
+    'eta': eta,
+    'ownerName': ownerName,
+    'ownerPhone': ownerPhone,
+    'ownerEmail': ownerEmail,
+    'conductorPhone': conductorPhone,
+    'conductorEmail': conductorEmail,
+    'isTripActive': isTripActive,
+    'currentStageIndex': currentStageIndex,
+    'currentLatitude': currentLatitude,
+    'currentLongitude': currentLongitude,
+    'conductorLocationString': conductorLocationString,
+  };
+
+  factory BusModel.fromJson(Map<String, dynamic> json) => BusModel(
+    id: json['id'] as String,
+    ownerId: (json['ownerId'] as String?) ?? 'OWNER-1',
+    regNumber: json['regNumber'] as String,
+    busName: json['busName'] as String,
+    category: json['category'] as String,
+    startPoint: (json['startPoint'] as String?) ?? 'Aluva Stand',
+    destPoint: (json['destPoint'] as String?) ?? 'Perumbavoor Stand',
+    routeName: (json['routeName'] as String?) ?? '',
+    stops: (json['stops'] as List<dynamic>?)
+            ?.map((e) => BusStopSchedule.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList() ??
+        [],
+    seatingCapacity: (json['seatingCapacity'] as num?)?.toInt() ?? 48,
+    driverName: (json['driverName'] as String?) ?? 'Unassigned',
+    cleanerName: (json['cleanerName'] as String?) ?? 'Unassigned',
+    conductorName: (json['conductorName'] as String?) ?? 'Unassigned',
+    companyName: (json['companyName'] as String?) ?? '',
+    todayCollection: (json['todayCollection'] as num?)?.toDouble() ?? 0.0,
+    ticketsCount: (json['ticketsCount'] as num?)?.toInt() ?? 0,
+    isActive: (json['isActive'] as bool?) ?? true,
+    status: (json['status'] as String?) ?? 'RUNNING_NOW',
+    isApprovedByAdmin: (json['isApprovedByAdmin'] as bool?) ?? true,
+    currentStop: (json['currentStop'] as String?) ?? '',
+    nextStop: (json['nextStop'] as String?) ?? '',
+    eta: (json['eta'] as String?) ?? '',
+    ownerName: (json['ownerName'] as String?) ?? '',
+    ownerPhone: (json['ownerPhone'] as String?) ?? '',
+    ownerEmail: (json['ownerEmail'] as String?) ?? '',
+    conductorPhone: (json['conductorPhone'] as String?) ?? '',
+    conductorEmail: (json['conductorEmail'] as String?) ?? '',
+    isTripActive: (json['isTripActive'] as bool?) ?? false,
+    currentStageIndex: (json['currentStageIndex'] as num?)?.toInt() ?? 0,
+    currentLatitude: (json['currentLatitude'] as num?)?.toDouble() ?? 10.0,
+    currentLongitude: (json['currentLongitude'] as num?)?.toDouble() ?? 76.0,
+    conductorLocationString: (json['conductorLocationString'] as String?) ?? '',
+  );
 }
 
 class ConductorModel {
   final String id;
+  final String ownerId; // Isolated to provisioning owner
   String name;
   String email;
   String userId; // App Login ID
@@ -256,6 +499,7 @@ class ConductorModel {
 
   ConductorModel({
     required this.id,
+    this.ownerId = 'OWNER-1',
     required this.name,
     required this.email,
     required this.userId,
@@ -269,59 +513,498 @@ class ConductorModel {
 
   String get loginId => userId;
   String get badgeNumber => licenseNumber;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'ownerId': ownerId,
+    'name': name,
+    'email': email,
+    'userId': userId,
+    'password': password,
+    'phone': phone,
+    'licenseNumber': licenseNumber,
+    'assignedBusReg': assignedBusReg,
+    'assignedBusName': assignedBusName,
+    'todayCollection': todayCollection,
+  };
+
+  factory ConductorModel.fromJson(Map<String, dynamic> json) => ConductorModel(
+    id: json['id'] as String,
+    ownerId: (json['ownerId'] as String?) ?? 'OWNER-1',
+    name: json['name'] as String,
+    email: json['email'] as String,
+    userId: json['userId'] as String,
+    password: json['password'] as String,
+    phone: json['phone'] as String,
+    licenseNumber: json['licenseNumber'] as String,
+    assignedBusReg: (json['assignedBusReg'] as String?) ?? '',
+    assignedBusName: (json['assignedBusName'] as String?) ?? '',
+    todayCollection: (json['todayCollection'] as num?)?.toDouble() ?? 0.0,
+  );
 }
 
 class FleetState extends ChangeNotifier {
   static final FleetState instance = FleetState._internal();
-  FleetState._internal();
+  FleetState._internal() {
+    _initDefaultSeedData();
+  }
 
-  // Multi-Passenger Registry with Isolated Profiles, Wallets & Histories
-  final List<PassengerModel> registeredPassengers = [
-    PassengerModel(
-      id: 'SBK-KL-987263',
-      name: 'Anjali Nair',
-      email: 'passenger@gmail.com',
-      phone: '9847000004',
-      password: 'password123',
-      walletBalance: 250.0,
-      homeStation: 'Aluva Stand, Ernakulam',
-      concessionCategory: 'General / Adult Standard',
-      registeredAt: DateTime(2026, 10, 1),
-    ),
-    PassengerModel(
-      id: 'SBK-KL-554120',
-      name: 'Rahul Menon',
-      email: 'rahul@gmail.com',
-      phone: '9847000005',
-      password: 'password123',
-      walletBalance: 120.0,
-      homeStation: 'Perumbavoor Stand',
-      concessionCategory: 'Student Concession',
-      registeredAt: DateTime(2026, 10, 5),
-    ),
-    PassengerModel(
-      id: 'SBK-KL-339811',
-      name: 'Meera Pillai',
-      email: 'meera@gmail.com',
-      phone: '9847000006',
-      password: 'password123',
-      walletBalance: 450.0,
-      homeStation: 'Ernakulam Kaloor',
-      concessionCategory: 'General / Adult Standard',
-      registeredAt: DateTime(2026, 10, 10),
-    ),
-  ];
+  bool _isStorageLoaded = false;
 
-  double get passengerWalletBalance => registeredPassengers.first.walletBalance;
-  set passengerWalletBalance(double val) => registeredPassengers.first.walletBalance = val;
+  // In-Memory Multi-Tenant Registries
+  final List<PassengerModel> registeredPassengers = [];
+  final List<OwnerModel> registeredOwners = [];
+  final List<ConductorModel> conductors = [];
+  final List<BusModel> buses = [];
+  final List<IssuedTicketModel> issuedTickets = [];
+  final List<WalletTransactionModel> walletTransactions = [];
+  final List<BusReviewModel> reviews = [];
 
-  void topUpPassengerWallet(String passengerId, double amount) {
-    final p = registeredPassengers.firstWhere(
-      (p) => p.id == passengerId,
-      orElse: () => registeredPassengers.first,
-    );
-    p.walletBalance += amount;
+  void _initDefaultSeedData() {
+    registeredPassengers.addAll([
+      PassengerModel(
+        id: 'SBK-KL-987263',
+        name: 'Anjali Nair',
+        email: 'passenger@gmail.com',
+        phone: '9847000004',
+        password: 'password123',
+        walletBalance: 250.0,
+        homeStation: 'Aluva Stand, Ernakulam',
+        concessionCategory: 'General / Adult Standard',
+        registeredAt: DateTime(2026, 10, 1),
+      ),
+      PassengerModel(
+        id: 'SBK-KL-554120',
+        name: 'Rahul Menon',
+        email: 'rahul@gmail.com',
+        phone: '9847000005',
+        password: 'password123',
+        walletBalance: 120.0,
+        homeStation: 'Perumbavoor Stand',
+        concessionCategory: 'Student Concession',
+        registeredAt: DateTime(2026, 10, 5),
+      ),
+      PassengerModel(
+        id: 'SBK-KL-339811',
+        name: 'Meera Pillai',
+        email: 'meera@gmail.com',
+        phone: '9847000006',
+        password: 'password123',
+        walletBalance: 450.0,
+        homeStation: 'Ernakulam Kaloor',
+        concessionCategory: 'General / Adult Standard',
+        registeredAt: DateTime(2026, 10, 10),
+      ),
+    ]);
+
+    registeredOwners.addAll([
+      OwnerModel(
+        id: 'OWNER-1',
+        name: 'George Varghese',
+        email: 'owner@stgeorge.com',
+        phone: '9447012345',
+        password: 'password123',
+        companyName: 'St. George Motors Ernakulam',
+        isVerified: true,
+        registeredAt: DateTime(2026, 10, 1),
+      ),
+    ]);
+
+    conductors.addAll([
+      ConductorModel(
+        id: 'COND-1',
+        ownerId: 'OWNER-1',
+        name: 'Suresh Kumar',
+        email: 'suresh@stgeorge.com',
+        userId: 'suresh.conductor',
+        password: 'password123',
+        phone: '+91 98470 11001',
+        licenseNumber: 'KL-MVD-COND-8941',
+        assignedBusReg: 'KL 07 CD 4589',
+        assignedBusName: 'SpeedWings',
+        todayCollection: 6420.0,
+      ),
+      ConductorModel(
+        id: 'COND-2',
+        ownerId: 'OWNER-1',
+        name: 'Biju Varghese',
+        email: 'biju@stgeorge.com',
+        userId: 'biju.conductor',
+        password: 'password123',
+        phone: '+91 98470 11002',
+        licenseNumber: 'KL-MVD-COND-9214',
+        assignedBusReg: 'KL 07 CE 1204',
+        assignedBusName: 'GreenCity Express',
+        todayCollection: 7840.0,
+      ),
+      ConductorModel(
+        id: 'COND-3',
+        ownerId: 'OWNER-1',
+        name: 'Rajesh M.',
+        email: 'rajesh@stgeorge.com',
+        userId: 'rajesh.conductor',
+        password: 'password123',
+        phone: '+91 98470 11003',
+        licenseNumber: 'KL-MVD-COND-7731',
+        assignedBusReg: 'KL 07 BQ 9981',
+        assignedBusName: 'City Rider',
+        todayCollection: 4220.0,
+      ),
+    ]);
+
+    buses.addAll([
+      BusModel(
+        id: 'BUS-1',
+        ownerId: 'OWNER-1',
+        regNumber: 'KL 07 CD 4589',
+        busName: 'SpeedWings',
+        category: 'Ordinary Bus (Blue-Whiteline)',
+        startPoint: 'Aluva Stand',
+        destPoint: 'Perumbavoor Stand',
+        routeName: 'Aluva Stand - Perumbavoor Stand (via Kizhakkambalam)',
+        stops: [
+          BusStopSchedule(stopName: 'Aluva Stand', time: '10:00 AM'),
+          BusStopSchedule(stopName: 'Bank Junction', time: '10:08 AM'),
+          BusStopSchedule(stopName: 'Pump Junction', time: '10:15 AM'),
+          BusStopSchedule(stopName: 'Kizhakkambalam', time: '10:24 AM'),
+          BusStopSchedule(stopName: 'Pattimattom', time: '10:35 AM'),
+          BusStopSchedule(stopName: 'Perumbavoor Stand', time: '10:48 AM'),
+        ],
+        seatingCapacity: 48,
+        driverName: 'Venu Pillai (Badge #KL4201)',
+        cleanerName: 'Mani K.',
+        conductorName: 'Suresh Kumar',
+        companyName: 'St. George Motors Ernakulam',
+        todayCollection: 6420.0,
+        ticketsCount: 168,
+        isActive: true,
+        status: 'RUNNING_NOW',
+        isApprovedByAdmin: true,
+        currentStop: 'Pump Junction (Stage 3)',
+        nextStop: 'Kizhakkambalam (~4 mins)',
+        eta: '4 mins',
+        ownerName: 'George Varghese',
+        ownerPhone: '+91 94470 12345',
+        ownerEmail: 'owner@stgeorge.com',
+        conductorPhone: '+91 98470 11001',
+        conductorEmail: 'suresh@stgeorge.com',
+        isTripActive: true,
+        currentStageIndex: 2,
+        currentLatitude: 10.1076,
+        currentLongitude: 76.3516,
+        conductorLocationString: 'Pump Junction, Aluva (Conductor Live GPS)',
+      ),
+      BusModel(
+        id: 'BUS-2',
+        ownerId: 'OWNER-1',
+        regNumber: 'KL 07 CE 1204',
+        busName: 'GreenCity Express',
+        category: 'Limited Stop Bus (Red-Whiteline)',
+        startPoint: 'Ernakulam Kaloor',
+        destPoint: 'Thoppumpady',
+        routeName: 'Ernakulam Kaloor - Thoppumpady (via Menaka)',
+        stops: [
+          BusStopSchedule(stopName: 'Kaloor Stand', time: '10:30 AM'),
+          BusStopSchedule(stopName: 'Menaka Junction', time: '10:42 AM'),
+          BusStopSchedule(stopName: 'Thevara Ferry', time: '10:55 AM'),
+          BusStopSchedule(stopName: 'Thoppumpady', time: '11:15 AM'),
+        ],
+        seatingCapacity: 52,
+        driverName: 'Antony Joseph',
+        cleanerName: 'Saji T.',
+        conductorName: 'Biju Varghese',
+        companyName: 'St. George Motors Ernakulam',
+        todayCollection: 7840.0,
+        ticketsCount: 202,
+        isActive: true,
+        status: 'RUNNING_NOW',
+        isApprovedByAdmin: true,
+        currentStop: 'Menaka Junction',
+        nextStop: 'Thevara Ferry (~6 mins)',
+        eta: '6 mins',
+        ownerName: 'George Varghese',
+        ownerPhone: '+91 94470 12345',
+        ownerEmail: 'owner@stgeorge.com',
+        conductorPhone: '+91 98470 11002',
+        conductorEmail: 'biju@stgeorge.com',
+        isTripActive: true,
+        currentStageIndex: 1,
+        currentLatitude: 9.9816,
+        currentLongitude: 76.2750,
+        conductorLocationString: 'Menaka Marine Drive, Ernakulam (Live GPS)',
+      ),
+      BusModel(
+        id: 'BUS-3',
+        ownerId: 'OWNER-1',
+        regNumber: 'KL 07 BQ 9981',
+        busName: 'City Rider',
+        category: 'City Bus (Green-Whiteline)',
+        startPoint: 'Vytilla Hub',
+        destPoint: 'Kakkanad InfoPark',
+        routeName: 'Vytilla Hub - Kakkanad InfoPark (via Palarivattom)',
+        stops: [
+          BusStopSchedule(stopName: 'Vytilla Hub', time: '11:00 AM'),
+          BusStopSchedule(stopName: 'Palarivattom Bypass', time: '11:15 AM'),
+          BusStopSchedule(stopName: 'Kakkanad Stand', time: '11:30 AM'),
+          BusStopSchedule(stopName: 'InfoPark Express', time: '11:45 AM'),
+        ],
+        seatingCapacity: 48,
+        driverName: 'Pradeep Kumar',
+        cleanerName: 'Babu N.',
+        conductorName: 'Rajesh M.',
+        companyName: 'St. George Motors Ernakulam',
+        todayCollection: 4220.0,
+        ticketsCount: 116,
+        isActive: false,
+        status: 'IN_DEPOT',
+        isApprovedByAdmin: true,
+        currentStop: 'Vytilla Mobility Hub',
+        nextStop: 'Scheduled at 02:00 PM',
+        eta: 'Resting',
+        ownerName: 'George Varghese',
+        ownerPhone: '+91 94470 12345',
+        ownerEmail: 'owner@stgeorge.com',
+        conductorPhone: '+91 98470 11003',
+        conductorEmail: 'rajesh@stgeorge.com',
+        isTripActive: false,
+        currentStageIndex: 0,
+        currentLatitude: 9.9678,
+        currentLongitude: 76.3195,
+        conductorLocationString: 'Vytilla Mobility Hub Depot (Resting)',
+      ),
+    ]);
+
+    issuedTickets.addAll([
+      IssuedTicketModel(
+        id: 'TCK-001',
+        ticketNumber: 'KL-SBK-2610-0042',
+        busRegNumber: 'KL 07 CD 4589',
+        busName: 'SpeedWings',
+        conductorId: 'COND-1',
+        conductorName: 'Suresh Kumar',
+        passengerId: 'SBK-KL-987263',
+        passengerName: 'Anjali Nair',
+        boardingStop: 'Aluva Stand',
+        destStop: 'Kizhakkambalam',
+        fare: 18.0,
+        category: 'General',
+        paymentMode: 'SMART_WALLET',
+        issuedAt: DateTime.now().subtract(const Duration(minutes: 35)),
+      ),
+      IssuedTicketModel(
+        id: 'TCK-002',
+        ticketNumber: 'KL-SBK-2610-0043',
+        busRegNumber: 'KL 07 CD 4589',
+        busName: 'SpeedWings',
+        conductorId: 'COND-1',
+        conductorName: 'Suresh Kumar',
+        passengerId: 'SBK-KL-554120',
+        passengerName: 'Rahul Menon',
+        boardingStop: 'Bank Junction',
+        destStop: 'Pattimattom',
+        fare: 5.0,
+        category: 'Student Concession',
+        paymentMode: 'CASH',
+        cashGiven: 10.0,
+        changeReturned: 5.0,
+        issuedAt: DateTime.now().subtract(const Duration(minutes: 20)),
+      ),
+    ]);
+
+    walletTransactions.addAll([
+      WalletTransactionModel(
+        id: 'TX-9041',
+        passengerId: 'SBK-KL-987263',
+        title: 'Bus Ticket: Aluva ➔ Kizhakkambalam',
+        busOrSource: 'SpeedWings (KL 07 CD 4589)',
+        amount: -18.0,
+        type: 'WALLET',
+        timestamp: DateTime.now().subtract(const Duration(minutes: 35)),
+      ),
+      WalletTransactionModel(
+        id: 'TX-9032',
+        passengerId: 'SBK-KL-987263',
+        title: 'Demo Wallet Top-Up',
+        busOrSource: 'Net Banking / UPI Ref #89123',
+        amount: 200.0,
+        type: 'RECHARGE',
+        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
+      ),
+    ]);
+
+    reviews.addAll([
+      BusReviewModel(
+        id: 'REV-001',
+        busRegNumber: 'KL 07 CD 4589',
+        busName: 'SpeedWings',
+        passengerName: 'Anjali Nair',
+        rating: 5.0,
+        comment: 'Very punctual and clean bus. Conductor was polite and digital wallet ticketing took 2 seconds!',
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        isReadByOwner: false,
+        isReadByConductor: false,
+      ),
+      BusReviewModel(
+        id: 'REV-002',
+        busRegNumber: 'KL 07 CD 4589',
+        busName: 'SpeedWings',
+        passengerName: 'Gopakumar K.',
+        rating: 4.5,
+        comment: 'Smooth driving on Aluva-Perumbavoor route. GPS tracking was accurate.',
+        createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+        isReadByOwner: false,
+        isReadByConductor: false,
+      ),
+    ]);
+  }
+
+  // Asynchronous Storage Initializer (Persists data across hot restarts & web reloads)
+  Future<void> initialize() async {
+    if (_isStorageLoaded) return;
+    await StorageService.instance.init();
+
+    final savedPassengers = StorageService.instance.loadList(StorageService.keyPassengers);
+    final savedOwners = StorageService.instance.loadList(StorageService.keyOwners);
+    final savedConductors = StorageService.instance.loadList(StorageService.keyConductors);
+    final savedBuses = StorageService.instance.loadList(StorageService.keyBuses);
+    final savedTickets = StorageService.instance.loadList(StorageService.keyTickets);
+    final savedTx = StorageService.instance.loadList(StorageService.keyTransactions);
+    final savedReviews = StorageService.instance.loadList(StorageService.keyReviews);
+
+    if (savedPassengers != null) {
+      registeredPassengers.clear();
+      registeredPassengers.addAll(savedPassengers.map((e) => PassengerModel.fromJson(e)));
+    } else {
+      await _persistPassengers();
+    }
+
+    if (savedOwners != null) {
+      registeredOwners.clear();
+      registeredOwners.addAll(savedOwners.map((e) => OwnerModel.fromJson(e)));
+    } else {
+      await _persistOwners();
+    }
+
+    if (savedConductors != null) {
+      conductors.clear();
+      conductors.addAll(savedConductors.map((e) => ConductorModel.fromJson(e)));
+    } else {
+      await _persistConductors();
+    }
+
+    if (savedBuses != null) {
+      buses.clear();
+      buses.addAll(savedBuses.map((e) => BusModel.fromJson(e)));
+    } else {
+      await _persistBuses();
+    }
+
+    if (savedTickets != null) {
+      issuedTickets.clear();
+      issuedTickets.addAll(savedTickets.map((e) => IssuedTicketModel.fromJson(e)));
+    } else {
+      await _persistTickets();
+    }
+
+    if (savedTx != null) {
+      walletTransactions.clear();
+      walletTransactions.addAll(savedTx.map((e) => WalletTransactionModel.fromJson(e)));
+    } else {
+      await _persistTransactions();
+    }
+
+    if (savedReviews != null) {
+      reviews.clear();
+      reviews.addAll(savedReviews.map((e) => BusReviewModel.fromJson(e)));
+    } else {
+      await _persistReviews();
+    }
+
+    _isStorageLoaded = true;
     notifyListeners();
+  }
+
+  // Persistence helpers
+  Future<void> _persistPassengers() async {
+    await StorageService.instance.saveList(
+      StorageService.keyPassengers,
+      registeredPassengers.map((p) => p.toJson()).toList(),
+    );
+  }
+
+  Future<void> _persistOwners() async {
+    await StorageService.instance.saveList(
+      StorageService.keyOwners,
+      registeredOwners.map((o) => o.toJson()).toList(),
+    );
+  }
+
+  Future<void> _persistConductors() async {
+    await StorageService.instance.saveList(
+      StorageService.keyConductors,
+      conductors.map((c) => c.toJson()).toList(),
+    );
+  }
+
+  Future<void> _persistBuses() async {
+    await StorageService.instance.saveList(
+      StorageService.keyBuses,
+      buses.map((b) => b.toJson()).toList(),
+    );
+  }
+
+  Future<void> _persistTickets() async {
+    await StorageService.instance.saveList(
+      StorageService.keyTickets,
+      issuedTickets.map((t) => t.toJson()).toList(),
+    );
+  }
+
+  Future<void> _persistTransactions() async {
+    await StorageService.instance.saveList(
+      StorageService.keyTransactions,
+      walletTransactions.map((tx) => tx.toJson()).toList(),
+    );
+  }
+
+  Future<void> _persistReviews() async {
+    await StorageService.instance.saveList(
+      StorageService.keyReviews,
+      reviews.map((r) => r.toJson()).toList(),
+    );
+  }
+
+  // Passenger Methods
+  double get passengerWalletBalance =>
+      registeredPassengers.isNotEmpty ? registeredPassengers.first.walletBalance : 0.0;
+  set passengerWalletBalance(double val) {
+    if (registeredPassengers.isNotEmpty) {
+      registeredPassengers.first.walletBalance = val;
+      _persistPassengers();
+      notifyListeners();
+    }
+  }
+
+  void topUpPassengerWallet(String passengerId, double amount, {String source = 'UPI / Net Banking'}) {
+    final pIndex = registeredPassengers.indexWhere((p) => p.id == passengerId);
+    if (pIndex != -1) {
+      registeredPassengers[pIndex].walletBalance += amount;
+      walletTransactions.insert(
+        0,
+        WalletTransactionModel(
+          id: 'TX-${DateTime.now().millisecondsSinceEpoch}',
+          passengerId: passengerId,
+          title: 'Transit Wallet Top-Up',
+          busOrSource: source,
+          amount: amount,
+          type: 'RECHARGE',
+          timestamp: DateTime.now(),
+        ),
+      );
+      _persistPassengers();
+      _persistTransactions();
+      notifyListeners();
+    }
   }
 
   PassengerModel? authenticatePassenger(String identifier, String password) {
@@ -329,9 +1012,7 @@ class FleetState extends ChangeNotifier {
       final clean = identifier.trim().toLowerCase();
       return registeredPassengers.firstWhere(
         (p) =>
-            (p.email.toLowerCase() == clean ||
-             p.phone == clean ||
-             p.id.toLowerCase() == clean) &&
+            (p.email.toLowerCase() == clean || p.phone == clean || p.id.toLowerCase() == clean) &&
             p.password == password,
       );
     } catch (_) {
@@ -356,8 +1037,8 @@ class FleetState extends ChangeNotifier {
 
   PassengerModel registerPassenger({
     required String name,
-    required String phone,
     required String email,
+    required String phone,
     required String password,
     String concessionCategory = 'General / Adult Standard',
   }) {
@@ -368,11 +1049,12 @@ class FleetState extends ChangeNotifier {
       email: email,
       phone: phone,
       password: password,
-      walletBalance: 150.0, // Welcome credit
+      walletBalance: 0.0, // Clean 0 balance as requested
       concessionCategory: concessionCategory,
       registeredAt: DateTime.now(),
     );
     registeredPassengers.add(passenger);
+    _persistPassengers();
     notifyListeners();
     return passenger;
   }
@@ -381,20 +1063,24 @@ class FleetState extends ChangeNotifier {
     return issuedTickets.where((t) => t.passengerId == passengerId).toList();
   }
 
-  // Multi-Owner Registry with Isolated Fleet & Company Profiles
-  final List<OwnerModel> registeredOwners = [
-    OwnerModel(
-      id: 'OWNER-1',
-      name: 'George Varghese',
-      email: 'owner@stgeorge.com',
-      phone: '9447012345',
-      password: 'password123',
-      companyName: 'St. George Motors Ernakulam',
-      isVerified: true,
-      registeredAt: DateTime(2026, 10, 1),
-    ),
-  ];
+  List<WalletTransactionModel> getTransactionsForPassenger(String passengerId) {
+    return walletTransactions.where((t) => t.passengerId == passengerId).toList();
+  }
 
+  bool deletePassenger(String passengerId) {
+    final idx = registeredPassengers.indexWhere((p) => p.id == passengerId);
+    if (idx != -1) {
+      registeredPassengers.removeAt(idx);
+      walletTransactions.removeWhere((t) => t.passengerId == passengerId);
+      _persistPassengers();
+      _persistTransactions();
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  // Owner Methods & Multi-Tenant Isolation
   OwnerModel? authenticateOwner(String identifier, String password) {
     try {
       final clean = identifier.trim().toLowerCase();
@@ -434,7 +1120,7 @@ class FleetState extends ChangeNotifier {
     required String password,
     required String companyName,
   }) {
-    final newId = 'OWNER-${registeredOwners.length + 1}';
+    final newId = 'OWNER-${DateTime.now().millisecondsSinceEpoch}';
     final owner = OwnerModel(
       id: newId,
       name: name,
@@ -446,324 +1132,106 @@ class FleetState extends ChangeNotifier {
       registeredAt: DateTime.now(),
     );
     registeredOwners.add(owner);
+    _persistOwners();
     notifyListeners();
-    return owner;
+    return owner; // Completely empty fleet profile!
   }
 
   bool deleteOwner(String ownerId) {
     final idx = registeredOwners.indexWhere((o) => o.id == ownerId);
     if (idx != -1) {
       registeredOwners.removeAt(idx);
+      buses.removeWhere((b) => b.ownerId == ownerId);
+      conductors.removeWhere((c) => c.ownerId == ownerId);
+      _persistOwners();
+      _persistBuses();
+      _persistConductors();
       notifyListeners();
       return true;
     }
     return false;
   }
 
-  bool deletePassenger(String passengerId) {
-    final idx = registeredPassengers.indexWhere((p) => p.id == passengerId);
-    if (idx != -1) {
-      registeredPassengers.removeAt(idx);
-      notifyListeners();
-      return true;
+  // Owner-Specific Fleet Queries
+  List<BusModel> getBusesForOwner(String ownerId) {
+    return buses.where((b) => b.ownerId == ownerId).toList();
+  }
+
+  List<ConductorModel> getConductorsForOwner(String ownerId) {
+    return conductors.where((c) => c.ownerId == ownerId).toList();
+  }
+
+  double getTotalCollectionForOwner(String ownerId) {
+    final ownerBuses = getBusesForOwner(ownerId);
+    return ownerBuses.fold<double>(0.0, (sum, b) => sum + b.todayCollection);
+  }
+
+  int getActiveBusesCountForOwner(String ownerId) {
+    return getBusesForOwner(ownerId).where((b) => b.isActive).length;
+  }
+
+  int getTotalTicketsSoldForOwner(String ownerId) {
+    return getBusesForOwner(ownerId).fold<int>(0, (sum, b) => sum + b.ticketsCount);
+  }
+
+  double getWalletCollectionForOwner(String ownerId) {
+    return getTotalCollectionForOwner(ownerId) * 0.65;
+  }
+
+  double getCashInHandForOwner(String ownerId) {
+    return getTotalCollectionForOwner(ownerId) * 0.35;
+  }
+
+  int getUnreadReviewsCountForOwner([String? ownerId]) {
+    if (ownerId == null) {
+      return reviews.where((r) => !r.isReadByOwner).length;
     }
-    return false;
+    final ownerBusRegs = getBusesForOwner(ownerId).map((b) => b.regNumber.toUpperCase()).toSet();
+    return reviews.where((r) => !r.isReadByOwner && ownerBusRegs.contains(r.busRegNumber.toUpperCase())).length;
+  }
+
+  // Conductor Methods
+  ConductorModel? authenticateConductor(String userId, String password) {
+    try {
+      return conductors.firstWhere(
+        (c) => c.userId.trim().toLowerCase() == userId.trim().toLowerCase() && c.password == password,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   bool deleteConductor(String conductorId) {
     final idx = conductors.indexWhere((c) => c.id == conductorId);
     if (idx != -1) {
       conductors.removeAt(idx);
+      _persistConductors();
       notifyListeners();
       return true;
     }
     return false;
   }
 
-  final List<BusModel> buses = [
-    BusModel(
-      id: 'BUS-1',
-      regNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      category: 'Ordinary Bus (Blue-Whiteline)',
-      startPoint: 'Aluva Stand',
-      destPoint: 'Perumbavoor Stand',
-      routeName: 'Aluva Stand - Perumbavoor Stand (via Kizhakkambalam)',
-      stops: [
-        BusStopSchedule(stopName: 'Aluva Stand', time: '10:00 AM'),
-        BusStopSchedule(stopName: 'Bank Junction', time: '10:08 AM'),
-        BusStopSchedule(stopName: 'Pump Junction', time: '10:15 AM'),
-        BusStopSchedule(stopName: 'Kizhakkambalam', time: '10:24 AM'),
-        BusStopSchedule(stopName: 'Pattimattom', time: '10:35 AM'),
-        BusStopSchedule(stopName: 'Perumbavoor Stand', time: '10:48 AM'),
-      ],
-      seatingCapacity: 48,
-      driverName: 'Venu Pillai (Badge #KL4201)',
-      cleanerName: 'Mani K.',
-      conductorName: 'Suresh Kumar',
-      companyName: 'St. George Motors Ernakulam',
-      todayCollection: 6420.0,
-      ticketsCount: 168,
-      isActive: true,
-      status: 'RUNNING_NOW',
-      isApprovedByAdmin: true,
-      currentStop: 'Pump Junction (Stage 3)',
-      nextStop: 'Kizhakkambalam (~4 mins)',
-      eta: '4 mins',
-      ownerName: 'George Varghese',
-      ownerPhone: '+91 94470 12345',
-      ownerEmail: 'owner@stgeorge.com',
-      conductorPhone: '+91 98470 11001',
-      conductorEmail: 'suresh@stgeorge.com',
-      isTripActive: true,
-      currentStageIndex: 2,
-      currentLatitude: 10.1076,
-      currentLongitude: 76.3516,
-      conductorLocationString: 'Pump Junction, Aluva (Conductor Live GPS)',
-    ),
-    BusModel(
-      id: 'BUS-2',
-      regNumber: 'KL 07 CE 1204',
-      busName: 'GreenCity Express',
-      category: 'Limited Stop Bus (Red-Whiteline)',
-      startPoint: 'Ernakulam Kaloor',
-      destPoint: 'Thoppumpady',
-      routeName: 'Ernakulam Kaloor - Thoppumpady (via Menaka)',
-      stops: [
-        BusStopSchedule(stopName: 'Kaloor Stand', time: '10:30 AM'),
-        BusStopSchedule(stopName: 'Menaka Junction', time: '10:42 AM'),
-        BusStopSchedule(stopName: 'Thevara Ferry', time: '10:55 AM'),
-        BusStopSchedule(stopName: 'Thoppumpady', time: '11:15 AM'),
-      ],
-      seatingCapacity: 52,
-      driverName: 'Antony Joseph',
-      cleanerName: 'Saji T.',
-      conductorName: 'Biju Varghese',
-      companyName: 'St. George Motors Ernakulam',
-      todayCollection: 7840.0,
-      ticketsCount: 202,
-      isActive: true,
-      status: 'RUNNING_NOW',
-      isApprovedByAdmin: true,
-      currentStop: 'Menaka Junction',
-      nextStop: 'Thevara Ferry (~6 mins)',
-      eta: '6 mins',
-      ownerName: 'George Varghese',
-      ownerPhone: '+91 94470 12345',
-      ownerEmail: 'owner@stgeorge.com',
-      conductorPhone: '+91 98470 11002',
-      conductorEmail: 'biju@stgeorge.com',
-      isTripActive: true,
-      currentStageIndex: 1,
-      currentLatitude: 9.9816,
-      currentLongitude: 76.2750,
-      conductorLocationString: 'Menaka Marine Drive, Ernakulam (Live GPS)',
-    ),
-    BusModel(
-      id: 'BUS-3',
-      regNumber: 'KL 07 BQ 9981',
-      busName: 'City Rider',
-      category: 'City Bus (Green-Whiteline)',
-      startPoint: 'Vytilla Hub',
-      destPoint: 'Kakkanad InfoPark',
-      routeName: 'Vytilla Hub - Kakkanad InfoPark (via Palarivattom)',
-      stops: [
-        BusStopSchedule(stopName: 'Vytilla Hub', time: '11:00 AM'),
-        BusStopSchedule(stopName: 'Palarivattom Bypass', time: '11:15 AM'),
-        BusStopSchedule(stopName: 'Kakkanad Stand', time: '11:30 AM'),
-        BusStopSchedule(stopName: 'InfoPark Express', time: '11:45 AM'),
-      ],
-      seatingCapacity: 48,
-      driverName: 'Pradeep Kumar',
-      cleanerName: 'Babu N.',
-      conductorName: 'Rajesh M.',
-      companyName: 'St. George Motors Ernakulam',
-      todayCollection: 4220.0,
-      ticketsCount: 116,
-      isActive: false, // Inactive / In Depot
-      status: 'IN_DEPOT',
-      isApprovedByAdmin: true,
-      currentStop: 'Vytilla Mobility Hub',
-      nextStop: 'Scheduled at 02:00 PM',
-      eta: 'Resting',
-      ownerName: 'George Varghese',
-      ownerPhone: '+91 94470 12345',
-      ownerEmail: 'owner@stgeorge.com',
-      conductorPhone: '+91 98470 11003',
-      conductorEmail: 'rajesh@stgeorge.com',
-      isTripActive: false,
-      currentStageIndex: 0,
-      currentLatitude: 9.9678,
-      currentLongitude: 76.3195,
-      conductorLocationString: 'Vytilla Mobility Hub Depot (Resting)',
-    ),
-  ];
+  void addConductor(ConductorModel conductor) {
+    conductors.add(conductor);
+    _persistConductors();
+    notifyListeners();
+  }
 
-  final List<ConductorModel> conductors = [
-    ConductorModel(
-      id: 'COND-1',
-      name: 'Suresh Kumar',
-      email: 'suresh@stgeorge.com',
-      userId: 'suresh.conductor',
-      password: 'password123',
-      phone: '+91 98470 11001',
-      licenseNumber: 'KL-MVD-COND-8941',
-      assignedBusReg: 'KL 07 CD 4589',
-      assignedBusName: 'SpeedWings',
-      todayCollection: 6420.0,
-    ),
-    ConductorModel(
-      id: 'COND-2',
-      name: 'Biju Varghese',
-      email: 'biju@stgeorge.com',
-      userId: 'biju.conductor',
-      password: 'password123',
-      phone: '+91 98470 11002',
-      licenseNumber: 'KL-MVD-COND-9214',
-      assignedBusReg: 'KL 07 CE 1204',
-      assignedBusName: 'GreenCity Express',
-      todayCollection: 7840.0,
-    ),
-    ConductorModel(
-      id: 'COND-3',
-      name: 'Rajesh M.',
-      email: 'rajesh@stgeorge.com',
-      userId: 'rajesh.conductor',
-      password: 'password123',
-      phone: '+91 98470 11003',
-      licenseNumber: 'KL-MVD-COND-7731',
-      assignedBusReg: 'KL 07 BQ 9981',
-      assignedBusName: 'City Rider',
-      todayCollection: 4220.0,
-    ),
-  ];
-
-  // Seeded Issued Tickets History
-  final List<IssuedTicketModel> issuedTickets = [
-    IssuedTicketModel(
-      id: 'TCK-001',
-      ticketNumber: 'KL-SBK-2610-0042',
-      busRegNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      conductorId: 'COND-1',
-      conductorName: 'Suresh Kumar',
-      passengerId: 'SBK-KL-987263',
-      passengerName: 'Anjali Nair',
-      boardingStop: 'Aluva Stand',
-      destStop: 'Kizhakkambalam',
-      fare: 18.0,
-      category: 'General',
-      paymentMode: 'SMART_WALLET',
-      issuedAt: DateTime.now().subtract(const Duration(minutes: 35)),
-    ),
-    IssuedTicketModel(
-      id: 'TCK-002',
-      ticketNumber: 'KL-SBK-2610-0043',
-      busRegNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      conductorId: 'COND-1',
-      conductorName: 'Suresh Kumar',
-      passengerId: 'SBK-KL-554120',
-      passengerName: 'Rahul Menon',
-      boardingStop: 'Bank Junction',
-      destStop: 'Pattimattom',
-      fare: 5.0,
-      category: 'Student Concession',
-      paymentMode: 'CASH',
-      cashGiven: 10.0,
-      changeReturned: 5.0,
-      issuedAt: DateTime.now().subtract(const Duration(minutes: 20)),
-    ),
-    IssuedTicketModel(
-      id: 'TCK-003',
-      ticketNumber: 'KL-SBK-2610-0044',
-      busRegNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      conductorId: 'COND-1',
-      conductorName: 'Suresh Kumar',
-      passengerId: 'Unknown',
-      passengerName: 'Unknown',
-      boardingStop: 'Pump Junction',
-      destStop: 'Perumbavoor Stand',
-      fare: 22.0,
-      category: 'General',
-      paymentMode: 'UPI',
-      issuedAt: DateTime.now().subtract(const Duration(minutes: 8)),
-    ),
-    IssuedTicketModel(
-      id: 'TCK-004',
-      ticketNumber: 'KL-SBK-2610-0045',
-      busRegNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      conductorId: 'COND-1',
-      conductorName: 'Suresh Kumar',
-      passengerId: 'Unknown',
-      passengerName: 'Unknown',
-      boardingStop: 'Bank Junction',
-      destStop: 'Kizhakkambalam',
-      fare: 15.0,
-      category: 'General',
-      paymentMode: 'SPLIT',
-      splitCash: 10.0,
-      splitUpi: 5.0,
-      issuedAt: DateTime.now().subtract(const Duration(minutes: 2)),
-    ),
-  ];
-
-  // Seeded Passenger Reviews & Ratings
-  final List<BusReviewModel> reviews = [
-    BusReviewModel(
-      id: 'REV-001',
-      busRegNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      passengerName: 'Anjali Nair',
-      rating: 5.0,
-      comment: 'Very punctual and clean bus. Conductor was polite and digital wallet ticketing took 2 seconds!',
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      isReadByOwner: false,
-      isReadByConductor: false,
-    ),
-    BusReviewModel(
-      id: 'REV-002',
-      busRegNumber: 'KL 07 CD 4589',
-      busName: 'SpeedWings',
-      passengerName: 'Gopakumar K.',
-      rating: 4.5,
-      comment: 'Smooth driving on Aluva-Perumbavoor route. GPS tracking was accurate.',
-      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-      isReadByOwner: false,
-      isReadByConductor: false,
-    ),
-    BusReviewModel(
-      id: 'REV-003',
-      busRegNumber: 'KL 07 CE 1204',
-      busName: 'GreenCity Express',
-      passengerName: 'Rohit George',
-      rating: 4.0,
-      comment: 'Good service across Menaka. Air conditioning would be even better.',
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      isReadByOwner: true,
-      isReadByConductor: true,
-    ),
-  ];
-
-  // Aggregated Stats for Owner Dashboard
+  // Global / General Fleet Queries
   double get totalCollection => buses.fold(0.0, (sum, b) => sum + b.todayCollection);
   int get totalTicketsSold => buses.fold(0, (sum, b) => sum + b.ticketsCount);
   int get activeBusesCount => buses.where((b) => b.isActive).length;
-  double get walletCollection => totalCollection * 0.65; // 65% digital wallet
-  double get cashInHand => totalCollection * 0.35; // 35% cash
+  double get walletCollection => totalCollection * 0.65;
+  double get cashInHand => totalCollection * 0.35;
 
   void addBus(BusModel bus) {
     bus.sortStops();
     buses.add(bus);
+    _persistBuses();
+    notifyListeners();
   }
 
-  void addConductor(ConductorModel conductor) {
-    conductors.add(conductor);
-  }
-
-  // Edit bus details (regNumber is immutable)
   void updateBus({
     required String regNumber,
     required String busName,
@@ -795,17 +1263,8 @@ class FleetState extends ChangeNotifier {
         b.stops = stops;
         b.sortStops();
       }
-    }
-  }
-
-  // Check if credentials match an owner-provisioned conductor
-  ConductorModel? authenticateConductor(String userId, String password) {
-    try {
-      return conductors.firstWhere(
-        (c) => c.userId.trim().toLowerCase() == userId.trim().toLowerCase() && c.password == password,
-      );
-    } catch (_) {
-      return null;
+      _persistBuses();
+      notifyListeners();
     }
   }
 
@@ -817,7 +1276,6 @@ class FleetState extends ChangeNotifier {
     }
   }
 
-  // Issue Ticket and reconcile across Conductor, Bus, and Passenger Wallet
   void issueTicket(IssuedTicketModel ticket) {
     issuedTickets.insert(0, ticket);
 
@@ -834,20 +1292,36 @@ class FleetState extends ChangeNotifier {
       conductors[condIdx].todayCollection += ticket.fare;
     }
 
-    // If Smart Wallet, debit ONLY that connected passenger's wallet (and never Unknown)
+    // If Smart Wallet, debit ONLY that connected passenger's wallet
     if (ticket.paymentMode == 'SMART_WALLET' && ticket.passengerId != 'Unknown') {
       final pIndex = registeredPassengers.indexWhere((p) => p.id == ticket.passengerId);
       if (pIndex != -1) {
         registeredPassengers[pIndex].walletBalance =
             (registeredPassengers[pIndex].walletBalance - ticket.fare).clamp(0.0, 99999.0);
+        
+        walletTransactions.insert(
+          0,
+          WalletTransactionModel(
+            id: 'TX-${DateTime.now().millisecondsSinceEpoch}',
+            passengerId: ticket.passengerId,
+            title: 'Bus Ticket: ${ticket.boardingStop} ➔ ${ticket.destStop}',
+            busOrSource: '${ticket.busName} (${ticket.busRegNumber})',
+            amount: -ticket.fare,
+            type: 'WALLET',
+            timestamp: ticket.issuedAt,
+          ),
+        );
       }
-    } else if (ticket.paymentMode == 'SPLIT' && ticket.splitUpi > 0) {
-      // Split portion handled
     }
+
+    _persistTickets();
+    _persistBuses();
+    _persistConductors();
+    _persistPassengers();
+    _persistTransactions();
     notifyListeners();
   }
 
-  // Add review and trigger notification
   void addReview({
     required String busId,
     required String busRegNumber,
@@ -868,21 +1342,28 @@ class FleetState extends ChangeNotifier {
       isReadByConductor: false,
     );
     reviews.insert(0, review);
+    _persistReviews();
     notifyListeners();
-  }
-
-  int getUnreadReviewsCountForOwner() {
-    return reviews.where((r) => !r.isReadByOwner).length;
   }
 
   int getUnreadReviewsCountForConductor(String busReg) {
     return reviews.where((r) => r.busRegNumber == busReg && !r.isReadByConductor).length;
   }
 
-  void markReviewsAsReadForOwner() {
-    for (final r in reviews) {
-      r.isReadByOwner = true;
+  void markReviewsAsReadForOwner([String? ownerId]) {
+    if (ownerId == null) {
+      for (final r in reviews) {
+        r.isReadByOwner = true;
+      }
+    } else {
+      final ownerBuses = getBusesForOwner(ownerId).map((b) => b.regNumber.toUpperCase()).toSet();
+      for (final r in reviews) {
+        if (ownerBuses.contains(r.busRegNumber.toUpperCase())) {
+          r.isReadByOwner = true;
+        }
+      }
     }
+    _persistReviews();
     notifyListeners();
   }
 
@@ -892,10 +1373,10 @@ class FleetState extends ChangeNotifier {
         r.isReadByConductor = true;
       }
     }
+    _persistReviews();
     notifyListeners();
   }
 
-  // Live Location and Stage Progression by Conductor
   void advanceBusStage(String busReg) {
     final bus = getBusByReg(busReg);
     if (bus == null || bus.stops.isEmpty) return;
@@ -908,6 +1389,7 @@ class FleetState extends ChangeNotifier {
     bus.nextStop = '${bus.stops[futureIndex].stopName} (~3 mins)';
     bus.eta = '3 mins';
     bus.conductorLocationString = '${bus.stops[nextIndex].stopName} (Conductor Live Device Location)';
+    _persistBuses();
     notifyListeners();
   }
 
@@ -922,6 +1404,7 @@ class FleetState extends ChangeNotifier {
         bus.nextStop = 'Standing at Destination';
         bus.eta = 'Halted';
       }
+      _persistBuses();
       notifyListeners();
     }
   }

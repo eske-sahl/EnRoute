@@ -7,7 +7,9 @@ import 'features/passenger/passenger_portal.dart';
 import 'features/conductor/conductor_portal.dart';
 import 'features/owner/owner_portal.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FleetState.instance.initialize();
   runApp(const SmartBusKeralaApp());
 }
 

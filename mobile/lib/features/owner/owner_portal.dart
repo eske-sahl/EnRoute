@@ -34,16 +34,20 @@ class _OwnerPortalState extends State<OwnerPortal> {
     final tabs = [
       // Tab 1: Owner Dashboard
       OwnerDashboardTab(
+        owner: widget.owner,
         onNavigateToConductorTab: _navigateToConductorTab,
       ),
 
       // Tab 2: My Buses (Fleet management & + Register Bus)
       OwnerBusListTab(
+        owner: widget.owner,
         onNavigateToConductorTab: _navigateToConductorTab,
       ),
 
       // Tab 3: Conductor List (Add Conductor credentials)
-      const OwnerConductorTab(),
+      OwnerConductorTab(
+        owner: widget.owner,
+      ),
 
       // Tab 4: Owner Profile & Settings
       OwnerProfileTab(
@@ -59,7 +63,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
       'Owner Profile & Permits',
     ];
 
-    final unreadReviews = FleetState.instance.getUnreadReviewsCountForOwner();
+    final unreadReviews = FleetState.instance.getUnreadReviewsCountForOwner(widget.owner.id);
 
     return Scaffold(
       appBar: AppBar(

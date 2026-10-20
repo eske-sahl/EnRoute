@@ -4,10 +4,12 @@ import '../../../services/fleet_state.dart';
 import '../bus_detail_page.dart';
 
 class OwnerBusListTab extends StatefulWidget {
+  final OwnerModel owner;
   final VoidCallback onNavigateToConductorTab;
 
   const OwnerBusListTab({
     super.key,
+    required this.owner,
     required this.onNavigateToConductorTab,
   });
 
@@ -38,8 +40,9 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
     final seatsCtrl = TextEditingController(text: '48');
     final driverCtrl = TextEditingController(text: 'Babu Mathew (Badge #KL7712)');
     final cleanerCtrl = TextEditingController(text: 'Sunil K.');
-    String selectedConductor = FleetState.instance.conductors.isNotEmpty 
-        ? FleetState.instance.conductors.first.name 
+    final ownerConductors = FleetState.instance.getConductorsForOwner(widget.owner.id);
+    String selectedConductor = ownerConductors.isNotEmpty 
+        ? ownerConductors.first.name 
         : 'Unassigned';
 
     // Optional intermediate stops
@@ -365,7 +368,7 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                         initialValue: selectedConductor,
                         items: [
                           const DropdownMenuItem(value: 'Unassigned', child: Text('Unassigned (Assign Later)')),
-                          ...FleetState.instance.conductors.map((c) {
+                          ...FleetState.instance.getConductorsForOwner(widget.owner.id).map((c) {
                             return DropdownMenuItem(value: c.name, child: Text('${c.name} (${c.userId})'));
                           }),
                         ],
@@ -403,6 +406,7 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
 
                           final newBus = BusModel(
                             id: 'BUS-${DateTime.now().millisecondsSinceEpoch}',
+                            ownerId: widget.owner.id,
                             regNumber: regCtrl.text.trim().toUpperCase(),
                             busName: nameCtrl.text.trim(),
                             category: selectedCategory,
@@ -414,7 +418,10 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                             driverName: driver,
                             cleanerName: cleaner,
                             conductorName: selectedConductor,
-                            companyName: 'St. George Motors Ernakulam',
+                            companyName: widget.owner.companyName,
+                            ownerName: widget.owner.name,
+                            ownerPhone: widget.owner.phone,
+                            ownerEmail: widget.owner.email,
                             todayCollection: 0.0,
                             ticketsCount: 0,
                             isActive: true,
@@ -494,6 +501,8 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
   @override
   Widget build(BuildContext context) {
     final fleet = FleetState.instance;
+    final ownerBuses = fleet.getBusesForOwner(widget.owner.id);
+    final activeCount = ownerBuses.where((b) => b.isActive).length;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -509,7 +518,7 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('My Bus Fleet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('${fleet.buses.length} registered vehicles • ${fleet.activeBusesCount} Active', 
+                    Text('${ownerBuses.length} registered vehicles • $activeCount Active', 
                       style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
                 ),
@@ -528,8 +537,32 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
 
             const SizedBox(height: 16),
 
-            // Bus Buttons List
-            ...fleet.buses.map((bus) {
+            if (ownerBuses.isEmpty)
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                  child: Column(
+                    children: [
+                      Icon(Icons.directions_bus_outlined, size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 14),
+                      Text(
+                        'No Buses Registered Under ${widget.owner.companyName}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Add your first private or city bus to the fleet by tapping "Register New Bus" above. Once registered, your routes, time schedules, and conductors will be tracked live.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...ownerBuses.map((bus) {
               final catColor = _getCategoryColor(bus.category);
 
               return Card(
