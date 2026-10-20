@@ -135,7 +135,20 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
             onLogout: _handleLogout,
           );
         } else {
+          final owner = FleetState.instance.registeredOwners.firstWhere(
+            (o) => o.id == _userId || o.email.toLowerCase() == _userEmail.toLowerCase(),
+            orElse: () => FleetState.instance.registeredOwners.isNotEmpty
+                ? FleetState.instance.registeredOwners.first
+                : FleetState.instance.registerOwner(
+                    name: _userName,
+                    email: _userEmail,
+                    phone: '9447012345',
+                    password: 'password123',
+                    companyName: 'St. George Motors Ernakulam',
+                  ),
+          );
           return OwnerPortal(
+            owner: owner,
             onLogout: _handleLogout,
           );
         }

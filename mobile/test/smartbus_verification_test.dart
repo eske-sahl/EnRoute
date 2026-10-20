@@ -136,5 +136,95 @@ void main() {
       final anjaliTickets = state.getTicketsForPassenger(anjali.id);
       expect(anjaliTickets.any((t) => t.id == 'TCK-RAHUL-1'), isFalse);
     });
+
+    test('5. Owner Signup & Authentication', () {
+      final state = FleetState.instance;
+
+      // Seed owner authentication
+      final seedOwner = state.authenticateOwner('owner@stgeorge.com', 'password123');
+      expect(seedOwner, isNotNull);
+      expect(seedOwner!.companyName, 'St. George Motors Ernakulam');
+
+      // Register new owner
+      final newOwner = state.registerOwner(
+        name: 'Mathew Thomas',
+        email: 'mathew@keralaexpress.in',
+        phone: '9847112233',
+        password: 'securepass123',
+        companyName: 'Kerala Express Lines',
+      );
+
+      expect(newOwner.id, startsWith('OWNER-'));
+      expect(newOwner.name, 'Mathew Thomas');
+      expect(newOwner.companyName, 'Kerala Express Lines');
+
+      // Authenticate new owner via email
+      final authByEmail = state.authenticateOwner('mathew@keralaexpress.in', 'securepass123');
+      expect(authByEmail, isNotNull);
+      expect(authByEmail!.name, 'Mathew Thomas');
+
+      // Authenticate new owner via phone
+      final authByPhone = state.authenticateOwner('9847112233', 'securepass123');
+      expect(authByPhone, isNotNull);
+      expect(authByPhone!.id, newOwner.id);
+
+      // Invalid credentials rejected
+      expect(state.authenticateOwner('mathew@keralaexpress.in', 'wrongpassword'), isNull);
+      expect(state.authenticateOwner('unregistered@owner.com', 'password123'), isNull);
+    });
+
+    test('6. Delete Account in each portal (Passenger, Owner, Conductor)', () {
+      final state = FleetState.instance;
+
+      // 1. Delete Passenger
+      final tempPassenger = state.registerPassenger(
+        name: 'Temp Passenger',
+        email: 'temp.passenger@gmail.com',
+        phone: '9999990001',
+        password: 'pass',
+        concessionCategory: 'General',
+      );
+      expect(state.authenticatePassenger('temp.passenger@gmail.com', 'pass'), isNotNull);
+
+      final passengerDeleted = state.deletePassenger(tempPassenger.id);
+      expect(passengerDeleted, isTrue);
+      expect(state.authenticatePassenger('temp.passenger@gmail.com', 'pass'), isNull);
+      expect(state.findPassengerByIdOrPhone(tempPassenger.id), isNull);
+
+      // 2. Delete Owner
+      final tempOwner = state.registerOwner(
+        name: 'Temp Owner',
+        email: 'temp.owner@transits.com',
+        phone: '9999990002',
+        password: 'pass',
+        companyName: 'Temp Transports',
+      );
+      expect(state.authenticateOwner('temp.owner@transits.com', 'pass'), isNotNull);
+
+      final ownerDeleted = state.deleteOwner(tempOwner.id);
+      expect(ownerDeleted, isTrue);
+      expect(state.authenticateOwner('temp.owner@transits.com', 'pass'), isNull);
+      expect(state.findOwnerByIdOrPhone(tempOwner.id), isNull);
+
+      // 3. Delete Conductor
+      final tempConductor = ConductorModel(
+        id: 'COND-TEMP',
+        name: 'Temp Conductor',
+        email: 'temp.cond@test.com',
+        userId: 'tempcond1',
+        password: 'condpassword',
+        phone: '9999990003',
+        licenseNumber: 'KL-COND-999',
+        assignedBusReg: 'KL 07 CD 4589',
+        assignedBusName: 'SpeedWings',
+      );
+      state.conductors.add(tempConductor);
+      expect(state.conductors.any((c) => c.id == 'COND-TEMP'), isTrue);
+
+      final conductorDeleted = state.deleteConductor('COND-TEMP');
+      expect(conductorDeleted, isTrue);
+      expect(state.conductors.any((c) => c.id == 'COND-TEMP'), isFalse);
+    });
   });
 }
+

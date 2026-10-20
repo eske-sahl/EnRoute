@@ -7,10 +7,12 @@ import 'tabs/owner_conductor_tab.dart';
 import 'tabs/owner_profile_tab.dart';
 
 class OwnerPortal extends StatefulWidget {
+  final OwnerModel owner;
   final VoidCallback onLogout;
 
   const OwnerPortal({
     super.key,
+    required this.owner,
     required this.onLogout,
   });
 
@@ -45,6 +47,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
 
       // Tab 4: Owner Profile & Settings
       OwnerProfileTab(
+        owner: widget.owner,
         onLogout: widget.onLogout,
       ),
     ];
@@ -64,7 +67,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(titles[_selectedTabIndex], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            const Text('St. George Motors • Ernakulam', style: TextStyle(fontSize: 11, color: Colors.white70)),
+            Text('${widget.owner.companyName} • ${widget.owner.name}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
           ],
         ),
         actions: [

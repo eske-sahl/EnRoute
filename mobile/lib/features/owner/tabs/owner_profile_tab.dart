@@ -3,10 +3,12 @@ import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 
 class OwnerProfileTab extends StatefulWidget {
+  final OwnerModel owner;
   final VoidCallback onLogout;
 
   const OwnerProfileTab({
     super.key,
+    required this.owner,
     required this.onLogout,
   });
 
@@ -44,8 +46,8 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('George Varghese', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        const Text('St. George Motors Ernakulam', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                        Text(widget.owner.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(widget.owner.companyName, style: const TextStyle(color: Colors.grey, fontSize: 13)),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -53,9 +55,9 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                             color: Colors.green.shade50,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'STATE ADMIN VERIFIED OPERATOR',
-                            style: TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold),
+                          child: Text(
+                            'STATE ADMIN VERIFIED OPERATOR • ID: ${widget.owner.id}',
+                            style: const TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -146,7 +148,7 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                 const Divider(height: 1),
                 _infoTile(Icons.people, 'Registered Conductors', '${fleet.conductors.length} Crew Members'),
                 const Divider(height: 1),
-                _infoTile(Icons.phone, 'Official Contact', '+91 98470 00002 • owner@stgeorge.com'),
+                _infoTile(Icons.phone, 'Official Contact', '+91 ${widget.owner.phone} • ${widget.owner.email}'),
                 const Divider(height: 1),
                 _infoTile(Icons.location_on, 'Regional RTO Hub', 'Ernakulam RTO (KL-07)'),
               ],
@@ -181,6 +183,49 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
             ),
           ),
 
+          const SizedBox(height: 20),
+
+          // Danger Zone / Account Deletion
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(color: Colors.red.shade200),
+            ),
+            color: Colors.red.shade50.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Text('Danger Zone', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: 14)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Permanently delete your bus operator account, fleet configurations, and conductor authorizations.',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red.shade700,
+                      side: BorderSide(color: Colors.red.shade300),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () => _confirmDeleteAccount(context),
+                    icon: const Icon(Icons.delete_forever, size: 18),
+                    label: const Text('Delete Operator Account', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           const SizedBox(height: 24),
 
           // Logout Button
@@ -199,6 +244,69 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 10),
+              Text('Delete Operator Account?', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to permanently delete the operator account for ${widget.owner.name} (${widget.owner.companyName})?'),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Operator ID ${widget.owner.id}, registered buses, and crew credentials will be permanently deactivated. This action cannot be undone.',
+                  style: TextStyle(fontSize: 12, color: Colors.red.shade900, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                FleetState.instance.deleteOwner(widget.owner.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Operator account for ${widget.owner.name} has been permanently deleted.'),
+                    backgroundColor: Colors.red.shade800,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                widget.onLogout();
+              },
+              child: const Text('Delete Permanently'),
+            ),
+          ],
+        );
+      },
     );
   }
 

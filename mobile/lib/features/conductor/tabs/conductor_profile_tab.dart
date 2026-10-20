@@ -288,11 +288,83 @@ class _ConductorProfileTabState extends State<ConductorProfileTab> {
                   subtitle: const Text('End conductor terminal session'),
                   onTap: widget.onLogout,
                 ),
+                const Divider(height: 1),
+
+                // 6. Delete Conductor Account Option
+                ListTile(
+                  leading: const Icon(Icons.delete_forever, color: Colors.red),
+                  title: const Text('Delete Conductor Account', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Permanently remove this conductor profile & credentials'),
+                  onTap: () => _confirmDeleteAccount(context),
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 10),
+              Text('Delete Conductor Account?', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to delete the conductor profile for ${widget.conductor.name} (${widget.conductor.userId})?'),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Badge ${widget.conductor.licenseNumber} and authorization to issue tickets on ${widget.conductor.assignedBusName} (${widget.conductor.assignedBusReg}) will be removed.',
+                  style: TextStyle(fontSize: 12, color: Colors.red.shade900, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                FleetState.instance.deleteConductor(widget.conductor.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Conductor profile for ${widget.conductor.name} has been deleted.'),
+                    backgroundColor: Colors.red.shade800,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                widget.onLogout();
+              },
+              child: const Text('Delete Permanently'),
+            ),
+          ],
+        );
+      },
     );
   }
 

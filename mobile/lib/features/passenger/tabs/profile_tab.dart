@@ -160,6 +160,49 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ),
 
+          const SizedBox(height: 20),
+
+          // Danger Zone / Account Deletion
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(color: Colors.red.shade200),
+            ),
+            color: Colors.red.shade50.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Text('Danger Zone', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: 14)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Permanently delete your passenger account, wallet, and history from SmartBus Kerala.',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red.shade700,
+                      side: BorderSide(color: Colors.red.shade300),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () => _confirmDeleteAccount(context),
+                    icon: const Icon(Icons.delete_forever, size: 18),
+                    label: const Text('Delete Passenger Account', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           const SizedBox(height: 24),
 
           // Big Red Logout Button
@@ -178,6 +221,69 @@ class _ProfileTabState extends State<ProfileTab> {
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 10),
+              Text('Delete Passenger Account?', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to permanently delete your account for ${widget.passenger.name} (${widget.passenger.id})?'),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Remaining Wallet Balance of ₹${widget.passenger.walletBalance.toStringAsFixed(2)} and all travel records will be purged permanently. This action cannot be undone.',
+                  style: TextStyle(fontSize: 12, color: Colors.red.shade900, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                FleetState.instance.deletePassenger(widget.passenger.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Account for ${widget.passenger.name} has been permanently deleted.'),
+                    backgroundColor: Colors.red.shade800,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                widget.onLogout();
+              },
+              child: const Text('Delete Permanently'),
+            ),
+          ],
+        );
+      },
     );
   }
 

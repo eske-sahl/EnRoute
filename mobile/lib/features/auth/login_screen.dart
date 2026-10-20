@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController(text: 'password123');
   final _nameController = TextEditingController(text: 'Anjali Nair');
   final _phoneController = TextEditingController(text: '9847000004');
+  final _companyController = TextEditingController(text: 'St. George Motors Ernakulam');
 
   void _selectRole(String role) {
     setState(() {
@@ -33,21 +34,25 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text = 'suresh.conductor';
         _nameController.text = 'Suresh Kumar (Conductor)';
         _passwordController.text = 'password123';
+        _isSignUp = false;
       } else {
         _emailController.text = 'owner@stgeorge.com';
-        _nameController.text = 'George Varghese (Owner)';
+        _nameController.text = 'George Varghese';
+        _companyController.text = 'St. George Motors Ernakulam';
+        _phoneController.text = '9447012345';
         _passwordController.text = 'password123';
       }
     });
   }
 
-  void _fillAccount(String email, String pass, String name, String phone, String role) {
+  void _fillAccount(String email, String pass, String name, String phone, String role, [String company = 'St. George Motors Ernakulam']) {
     setState(() {
       _selectedRole = role;
       _emailController.text = email;
       _passwordController.text = pass;
       _nameController.text = name;
       _phoneController.text = phone;
+      _companyController.text = company;
       _isSignUp = false;
     });
   }
@@ -78,8 +83,13 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // 1. Sign-Up Mode for New Passengers
+    // 1. Sign-Up Mode for Passengers and Bus Owners
     if (_isSignUp) {
+      if (_selectedRole == 'CONDUCTOR') {
+        _showError('Conductor accounts are created by Bus Owners in the Owner Portal.');
+        return;
+      }
+
       final name = _nameController.text.trim();
       final phone = _phoneController.text.trim();
 
@@ -92,7 +102,34 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Check if already registered
+      // Owner Sign-Up
+      if (_selectedRole == 'OWNER') {
+        final company = _companyController.text.trim();
+        if (company.isEmpty) {
+          _showError('Please enter your bus firm or company name.');
+          return;
+        }
+
+        final existingOwner = FleetState.instance.findOwnerByIdOrPhone(phone) ??
+            FleetState.instance.findOwnerByIdOrPhone(identifier);
+        if (existingOwner != null) {
+          _showError('An owner account with this phone or email already exists. Please sign in instead.');
+          return;
+        }
+
+        final newOwner = FleetState.instance.registerOwner(
+          name: name,
+          email: identifier.contains('@') ? identifier : '$phone@smartbus.kerala.gov.in',
+          phone: phone,
+          password: password,
+          companyName: company,
+        );
+
+        widget.onLoginSuccess('OWNER', newOwner.email, '${newOwner.name} (${newOwner.companyName})', newOwner.id);
+        return;
+      }
+
+      // Passenger Sign-Up
       final existing = FleetState.instance.findPassengerByIdOrPhone(phone) ??
           FleetState.instance.findPassengerByIdOrPhone(identifier);
       if (existing != null) {
@@ -124,11 +161,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // 3. Sign-In Mode: Bus Owner Login
     if (_selectedRole == 'OWNER') {
-      final isOwnerId = identifier.toLowerCase() == 'owner@stgeorge.com' || identifier.toLowerCase() == 'owner';
-      if (isOwnerId && password == 'password123') {
-        widget.onLoginSuccess('OWNER', 'owner@stgeorge.com', 'George Varghese (Owner)', 'OWNER-1');
+      final owner = FleetState.instance.authenticateOwner(identifier, password);
+      if (owner != null) {
+        widget.onLoginSuccess('OWNER', owner.email, '${owner.name} (${owner.companyName})', owner.id);
       } else {
-        _showError('Incorrect Owner email or password. Please verify credentials.');
+        _showError('Incorrect Owner email/phone or password. Please verify credentials or create an owner account.');
       }
       return;
     }
@@ -284,12 +321,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextField(
                           controller: _nameController,
                           decoration: InputDecoration(
-                            labelText: 'Full Name',
+                            labelText: _selectedRole == 'OWNER' ? 'Owner Full Name' : 'Full Name',
                             prefixIcon: const Icon(Icons.badge_outlined, color: AppTheme.primaryGreen),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                         ),
                         const SizedBox(height: 16),
+                        if (_selectedRole == 'OWNER') ...[
+                          TextField(
+                            controller: _companyController,
+                            decoration: InputDecoration(
+                              labelText: 'Operating Firm / Bus Company Name',
+                              hintText: 'e.g. St. George Motors, Kondody Transports',
+                              prefixIcon: const Icon(Icons.business_outlined, color: AppTheme.primaryGreen),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         TextField(
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
@@ -308,10 +357,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: _selectedRole == 'CONDUCTOR'
                               ? 'Owner-Assigned Conductor User ID'
-                              : (_selectedRole == 'OWNER' ? 'Owner Email / Username' : 'Mobile Number or Email'),
+                              : (_selectedRole == 'OWNER' ? 'Owner Email Address' : 'Mobile Number or Email'),
                           hintText: _selectedRole == 'CONDUCTOR'
                               ? 'e.g. suresh.conductor'
-                              : (_selectedRole == 'OWNER' ? 'owner@stgeorge.com' : 'e.g. 9847000004'),
+                              : (_selectedRole == 'OWNER' ? 'e.g. owner@stgeorge.com' : 'e.g. 9847000004'),
                           prefixIcon: Icon(
                             _selectedRole == 'CONDUCTOR'
                                 ? Icons.badge_outlined
@@ -321,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                           helperText: _selectedRole == 'CONDUCTOR'
                               ? 'Conductor credentials are created by the Bus Owner'
-                              : (_selectedRole == 'PASSENGER' ? 'Personal phone/account accesses Passenger Portal' : null),
+                              : (_selectedRole == 'PASSENGER' ? 'Personal phone/account accesses Passenger Portal' : 'Official owner credentials'),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -346,7 +395,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         child: Text(
-                          _isSignUp ? 'Register & Continue' : 'Sign In as $_selectedRole',
+                          _isSignUp ? 'Register as $_selectedRole' : 'Sign In as $_selectedRole',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -354,19 +403,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
 
                       // Switch between Sign in and Sign up
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isSignUp = !_isSignUp;
-                          });
-                        },
-                        child: Text(
-                          _isSignUp
-                              ? 'Already have an account? Sign In'
-                              : 'New user? Create a free account',
-                          style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
+                      if (_selectedRole != 'CONDUCTOR')
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _isSignUp = !_isSignUp;
+                            });
+                          },
+                          child: Text(
+                            _isSignUp
+                                ? 'Already have an account? Sign In'
+                                : 'New $_selectedRole? Create an account',
+                            style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            'Conductor accounts are provisioned by Bus Owners in the Owner Portal.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

@@ -49,6 +49,28 @@ class PassengerModel {
   });
 }
 
+class OwnerModel {
+  final String id; // e.g. 'OWNER-1'
+  String name;
+  String email;
+  String phone;
+  String password;
+  String companyName; // e.g. 'St. George Motors Ernakulam'
+  bool isVerified;
+  DateTime registeredAt;
+
+  OwnerModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.password,
+    required this.companyName,
+    this.isVerified = true,
+    required this.registeredAt,
+  });
+}
+
 class BusReviewModel {
   final String id;
   final String busRegNumber;
@@ -357,6 +379,105 @@ class FleetState extends ChangeNotifier {
 
   List<IssuedTicketModel> getTicketsForPassenger(String passengerId) {
     return issuedTickets.where((t) => t.passengerId == passengerId).toList();
+  }
+
+  // Multi-Owner Registry with Isolated Fleet & Company Profiles
+  final List<OwnerModel> registeredOwners = [
+    OwnerModel(
+      id: 'OWNER-1',
+      name: 'George Varghese',
+      email: 'owner@stgeorge.com',
+      phone: '9447012345',
+      password: 'password123',
+      companyName: 'St. George Motors Ernakulam',
+      isVerified: true,
+      registeredAt: DateTime(2026, 10, 1),
+    ),
+  ];
+
+  OwnerModel? authenticateOwner(String identifier, String password) {
+    try {
+      final clean = identifier.trim().toLowerCase();
+      return registeredOwners.firstWhere(
+        (o) =>
+            (o.email.toLowerCase() == clean ||
+             o.phone == clean ||
+             o.id.toLowerCase() == clean ||
+             (clean == 'owner' && o.id == 'OWNER-1')) &&
+            o.password == password,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  OwnerModel? findOwnerByIdOrPhone(String query) {
+    try {
+      final clean = query.trim().toLowerCase();
+      return registeredOwners.firstWhere(
+        (o) =>
+            o.id.toLowerCase() == clean ||
+            o.phone.toLowerCase() == clean ||
+            o.email.toLowerCase() == clean ||
+            o.name.toLowerCase() == clean ||
+            o.companyName.toLowerCase().contains(clean),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  OwnerModel registerOwner({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    required String companyName,
+  }) {
+    final newId = 'OWNER-${registeredOwners.length + 1}';
+    final owner = OwnerModel(
+      id: newId,
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+      companyName: companyName,
+      isVerified: true,
+      registeredAt: DateTime.now(),
+    );
+    registeredOwners.add(owner);
+    notifyListeners();
+    return owner;
+  }
+
+  bool deleteOwner(String ownerId) {
+    final idx = registeredOwners.indexWhere((o) => o.id == ownerId);
+    if (idx != -1) {
+      registeredOwners.removeAt(idx);
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  bool deletePassenger(String passengerId) {
+    final idx = registeredPassengers.indexWhere((p) => p.id == passengerId);
+    if (idx != -1) {
+      registeredPassengers.removeAt(idx);
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  bool deleteConductor(String conductorId) {
+    final idx = conductors.indexWhere((c) => c.id == conductorId);
+    if (idx != -1) {
+      conductors.removeAt(idx);
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   final List<BusModel> buses = [
