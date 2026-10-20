@@ -10,6 +10,7 @@ import routeRoutes from './routes/route.routes';
 import tripRoutes from './routes/trip.routes';
 import ticketRoutes from './routes/ticket.routes';
 import walletRoutes from './routes/wallet.routes';
+import dataRoutes from './routes/data.routes';
 import { setupTrackingSocket } from './sockets/tracking.socket';
 import { errorHandler } from './middlewares/error.middleware';
 
@@ -43,6 +44,10 @@ app.use('/api/trips', tripRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/wallet', walletRoutes);
 
+// Visual Backend Data Explorer & JSON Endpoints
+app.use('/data', dataRoutes);
+app.use('/api/data', dataRoutes);
+
 // Root Welcome Endpoint
 app.get('/', (req, res) => {
   res.json({
@@ -50,6 +55,8 @@ app.get('/', (req, res) => {
     type: 'Final-Year Degree Project',
     apiDocumentation: '/api-docs',
     healthCheck: '/api/health',
+    dataExplorer: 'http://localhost:5001/data',
+    dataJson: 'http://localhost:5001/api/data/json',
     status: 'Operational',
   });
 });
