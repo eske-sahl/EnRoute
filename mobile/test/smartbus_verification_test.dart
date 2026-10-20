@@ -317,7 +317,63 @@ void main() {
       // Anjali's ledger still does NOT have Arjun's transaction
       expect(state.getTransactionsForPassenger(anjali.id).any((tx) => tx.passengerId == newPassenger.id), isFalse);
     });
+
+    test('9. Conductor Dashboard Ticket Scoping & No Preset Tickets', () {
+      final state = FleetState.instance;
+
+      // Verify no preset dummy tickets like TCK-001 or TCK-002 exist in state
+      expect(state.issuedTickets.any((t) => t.id == 'TCK-001'), isFalse,
+          reason: 'Dummy preset ticket TCK-001 must not exist');
+      expect(state.issuedTickets.any((t) => t.id == 'TCK-002'), isFalse,
+          reason: 'Dummy preset ticket TCK-002 must not exist');
+
+      const busA = 'KL 07 CD 4589'; // SpeedWings
+      const busB = 'KL 07 CE 1204'; // Royal Super Express
+
+      // Initially no tickets for busB
+      expect(state.getTicketsForBus(busB).isEmpty, isTrue);
+
+      // Issue 6 tickets specifically for busB
+      for (int i = 1; i <= 6; i++) {
+        state.issueTicket(
+          IssuedTicketModel(
+            id: 'TCK-BUSB-$i',
+            ticketNumber: 'KL-SBK-2010-${1000 + i}',
+            busRegNumber: busB,
+            busName: 'Royal Super Express',
+            conductorId: 'COND-2',
+            conductorName: 'Mathew Thomas',
+            passengerId: 'Unknown',
+            passengerName: 'Passenger $i',
+            boardingStop: 'Ernakulam South',
+            destStop: 'Kottayam Stand',
+            fare: 45.0,
+            category: 'General',
+            paymentMode: 'CASH',
+            cashGiven: 50.0,
+            changeReturned: 5.0,
+            issuedAt: DateTime.now().add(Duration(minutes: i)),
+          ),
+        );
+      }
+
+      // getTicketsForBus returns only busB tickets
+      final busBTickets = state.getTicketsForBus(busB);
+      expect(busBTickets.length, 6);
+      expect(busBTickets.every((t) => t.busRegNumber == busB), isTrue);
+
+      // busA must not contain any busB tickets
+      final busATickets = state.getTicketsForBus(busA);
+      expect(busATickets.any((t) => t.busRegNumber == busB), isFalse);
+
+      // Conductor dashboard takes latest 5 tickets
+      final latest5 = busBTickets.take(5).toList();
+      expect(latest5.length, 5);
+      // Latest ticket issued is at index 0 (TCK-BUSB-6)
+      expect(latest5.first.id, 'TCK-BUSB-6');
+    });
   });
 }
+
 
 

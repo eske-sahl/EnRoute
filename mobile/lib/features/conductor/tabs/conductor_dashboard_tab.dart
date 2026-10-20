@@ -60,6 +60,17 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
     )..repeat(reverse: true);
 
     _initBus();
+    FleetState.instance.addListener(_onFleetChanged);
+  }
+
+  void _onFleetChanged() {
+    if (mounted) {
+      final found = FleetState.instance.getBusByReg(widget.conductor.assignedBusReg);
+      if (found != null) {
+        _bus = found;
+      }
+      setState(() {});
+    }
   }
 
   void _initBus() {
@@ -80,6 +91,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
 
   @override
   void dispose() {
+    FleetState.instance.removeListener(_onFleetChanged);
     _scannerAnimCtrl.dispose();
     _boardingController.dispose();
     _destController.dispose();
@@ -594,7 +606,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
     final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
     final assignedFare = _currentAssignedFare;
     final stageFare = _calculateStageFare();
-    final latestTickets = FleetState.instance.issuedTickets.take(5).toList();
+    final latestTickets = FleetState.instance.getTicketsForBus(_bus.regNumber).take(5).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1533,7 +1545,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Latest Issued Tickets', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Latest Issued Tickets (${_bus.busName})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               Text('${latestTickets.length} recent', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
@@ -1543,7 +1555,11 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
             Container(
               padding: const EdgeInsets.all(24),
               alignment: Alignment.center,
-              child: const Text('No tickets issued yet on this shift.', style: TextStyle(color: Colors.grey)),
+              child: Text(
+                'No tickets issued yet for ${_bus.busName} (${_bus.regNumber}).',
+                style: const TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
             )
           else
             ...latestTickets.map((t) {

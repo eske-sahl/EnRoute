@@ -774,43 +774,6 @@ class FleetState extends ChangeNotifier {
       ),
     ]);
 
-    issuedTickets.addAll([
-      IssuedTicketModel(
-        id: 'TCK-001',
-        ticketNumber: 'KL-SBK-2610-0042',
-        busRegNumber: 'KL 07 CD 4589',
-        busName: 'SpeedWings',
-        conductorId: 'COND-1',
-        conductorName: 'Suresh Kumar',
-        passengerId: 'SBK-KL-987263',
-        passengerName: 'Anjali Nair',
-        boardingStop: 'Aluva Stand',
-        destStop: 'Kizhakkambalam',
-        fare: 18.0,
-        category: 'General',
-        paymentMode: 'SMART_WALLET',
-        issuedAt: DateTime.now().subtract(const Duration(minutes: 35)),
-      ),
-      IssuedTicketModel(
-        id: 'TCK-002',
-        ticketNumber: 'KL-SBK-2610-0043',
-        busRegNumber: 'KL 07 CD 4589',
-        busName: 'SpeedWings',
-        conductorId: 'COND-1',
-        conductorName: 'Suresh Kumar',
-        passengerId: 'SBK-KL-554120',
-        passengerName: 'Rahul Menon',
-        boardingStop: 'Bank Junction',
-        destStop: 'Pattimattom',
-        fare: 5.0,
-        category: 'Student Concession',
-        paymentMode: 'CASH',
-        cashGiven: 10.0,
-        changeReturned: 5.0,
-        issuedAt: DateTime.now().subtract(const Duration(minutes: 20)),
-      ),
-    ]);
-
     walletTransactions.addAll([
       WalletTransactionModel(
         id: 'TX-9041',
@@ -901,7 +864,12 @@ class FleetState extends ChangeNotifier {
 
     if (savedTickets != null) {
       issuedTickets.clear();
-      issuedTickets.addAll(savedTickets.map((e) => IssuedTicketModel.fromJson(e)));
+      issuedTickets.addAll(
+        savedTickets
+            .map((e) => IssuedTicketModel.fromJson(e))
+            .where((t) => !t.id.startsWith('TCK-00')),
+      );
+      await _persistTickets();
     } else {
       await _persistTickets();
     }
@@ -1061,6 +1029,14 @@ class FleetState extends ChangeNotifier {
 
   List<IssuedTicketModel> getTicketsForPassenger(String passengerId) {
     return issuedTickets.where((t) => t.passengerId == passengerId).toList();
+  }
+
+  List<IssuedTicketModel> getTicketsForBus(String busRegNumber) {
+    final clean = busRegNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    return issuedTickets.where((t) {
+      final tBus = t.busRegNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+      return tBus == clean;
+    }).toList();
   }
 
   List<WalletTransactionModel> getTransactionsForPassenger(String passengerId) {
