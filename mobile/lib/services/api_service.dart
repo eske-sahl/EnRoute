@@ -160,4 +160,44 @@ class ApiService {
     }
     return [];
   }
+
+  /// Fetch full backend JSON state
+  static Future<Map<String, dynamic>?> fetchBackendData() async {
+    try {
+      final res = await http.get(Uri.parse('$activeUrl/data/json')).timeout(const Duration(seconds: 3));
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      try {
+        final res = await http.get(Uri.parse('$fallbackUrl/data/json')).timeout(const Duration(seconds: 3));
+        if (res.statusCode == 200) {
+          return jsonDecode(res.body) as Map<String, dynamic>;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  /// Bidirectional sync: send latest frontend state to backend
+  static Future<bool> syncData(Map<String, dynamic> payload) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$activeUrl/data/sync'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      ).timeout(const Duration(seconds: 4));
+      return res.statusCode == 200;
+    } catch (_) {
+      try {
+        final res = await http.post(
+          Uri.parse('$fallbackUrl/data/sync'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        ).timeout(const Duration(seconds: 4));
+        return res.statusCode == 200;
+      } catch (_) {}
+    }
+    return false;
+  }
 }

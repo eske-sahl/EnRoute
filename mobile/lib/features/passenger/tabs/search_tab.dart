@@ -16,8 +16,8 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   // -------------------------------------------------------------------------
   // Inner Tab 1: Route Search State
   // -------------------------------------------------------------------------
-  final _startSearchController = TextEditingController(text: 'Aluva Stand');
-  final _endSearchController = TextEditingController(text: 'Perumbavoor Stand');
+  final _startSearchController = TextEditingController();
+  final _endSearchController = TextEditingController();
   bool _hasSearchedRoute = false;
   List<String> _startSuggestions = [];
   List<String> _endSuggestions = [];
@@ -27,7 +27,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   // -------------------------------------------------------------------------
   // Inner Tab 2: Bus Search by Name or Reg Number State
   // -------------------------------------------------------------------------
-  final _busSearchController = TextEditingController(text: '');
+  final _busSearchController = TextEditingController();
   BusModel? _selectedBus;
 
   // Dynamic stops extracted from all buses registered/modified by owner & conductor

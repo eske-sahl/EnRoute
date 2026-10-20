@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../widgets/passenger_qr_scanner_dialog.dart';
 
 class ConductorDashboardTab extends StatefulWidget {
   final ConductorModel conductor;
@@ -37,12 +38,12 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   String _paymentMode = 'CASH'; // 'SMART_WALLET', 'CASH', 'UPI', 'SPLIT'
 
   // Conductor Fare Assignment Controller (Conductor can edit / adjust directly)
-  final _fareController = TextEditingController(text: '10.0');
+  final _fareController = TextEditingController();
 
   // Cash & Split Payment Controllers
-  final _cashGivenController = TextEditingController(text: '50');
-  final _splitCashController = TextEditingController(text: '10');
-  final _splitUpiController = TextEditingController(text: '10');
+  final _cashGivenController = TextEditingController();
+  final _splitCashController = TextEditingController();
+  final _splitUpiController = TextEditingController();
   bool _isSplitEnabled = false;
 
   // Autocomplete Suggestions for Stops
@@ -76,17 +77,6 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   void _initBus() {
     final found = FleetState.instance.getBusByReg(widget.conductor.assignedBusReg);
     _bus = found ?? FleetState.instance.buses.first;
-
-    // Default stops from bus route schedule
-    if (_bus.stops.isNotEmpty) {
-      _boardingController.text = _bus.stops.first.stopName;
-      _destController.text = _bus.stops.length > 3 ? _bus.stops[3].stopName : _bus.stops.last.stopName;
-    } else {
-      _boardingController.text = _bus.startPoint;
-      _destController.text = _bus.destPoint;
-    }
-
-    _syncFareWithStage();
   }
 
   @override
@@ -250,66 +240,14 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   }
 
   void _showScanPassengerDialog() {
-    final passengers = FleetState.instance.registeredPassengers;
-
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      barrierDismissible: true,
       builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Row(
-                children: [
-                  Icon(Icons.qr_code_scanner, color: AppTheme.primaryGreen),
-                  SizedBox(width: 8),
-                  Text('Simulate QR Code Scan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ],
-              ),
-              const SizedBox(height: 4),
-              const Text('Select a passenger whose personal QR pass is being scanned:',
-                  style: TextStyle(color: Colors.grey, fontSize: 12)),
-              const Divider(height: 20),
-              ...passengers.map((p) {
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
-                      child: const Icon(Icons.person, color: AppTheme.primaryGreen),
-                    ),
-                    title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    subtitle: Text('ID: ${p.id} • ${p.concessionCategory}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('₹${p.walletBalance.toStringAsFixed(1)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 13)),
-                        const Text('Wallet', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _connectPassenger(p);
-                    },
-                  ),
-                );
-              }),
-            ],
-          ),
+        return PassengerQrScannerDialog(
+          onPassengerDetected: (passenger) {
+            _connectPassenger(passenger);
+          },
         );
       },
     );
@@ -881,22 +819,24 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
 
                   // Option A: QR Code Scanner Viewfinder
                   if (_connectionTab == 0) ...[
-                    Container(
-                      height: 140,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF131A22),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.5), width: 2),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Positioned.fill(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Icon(Icons.crop_free, size: 100, color: Colors.white.withValues(alpha: 0.15)),
+                    GestureDetector(
+                      onTap: _showScanPassengerDialog,
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF131A22),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.5), width: 2),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned.fill(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Icon(Icons.crop_free, size: 100, color: Colors.white.withValues(alpha: 0.15)),
+                              ),
                             ),
-                          ),
                           AnimatedBuilder(
                             animation: _scannerAnimCtrl,
                             builder: (context, child) {
@@ -935,7 +875,8 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                  ),
+                  const SizedBox(height: 10),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryGreen,
@@ -1141,6 +1082,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                         onChanged: _onBoardingChanged,
                         decoration: InputDecoration(
                           labelText: 'Boarding Stop',
+                          hintText: 'Type boarding stop (e.g. ${_bus.startPoint.isNotEmpty ? _bus.startPoint : "Aluva Stand"})',
                           prefixIcon: const Icon(Icons.trip_origin, color: AppTheme.primaryGreen),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                         ),
@@ -1192,6 +1134,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                         onChanged: _onDestChanged,
                         decoration: InputDecoration(
                           labelText: 'Destination Stop',
+                          hintText: 'Type destination stop (e.g. ${_bus.destPoint.isNotEmpty ? _bus.destPoint : "Perumbavoor Stand"})',
                           prefixIcon: const Icon(Icons.location_on, color: Colors.red),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                         ),

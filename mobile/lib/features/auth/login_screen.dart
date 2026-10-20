@@ -15,32 +15,17 @@ class _LoginScreenState extends State<LoginScreen> {
   String _selectedRole = 'PASSENGER'; // 'PASSENGER', 'CONDUCTOR', 'OWNER'
   bool _isSignUp = false;
 
-  final _emailController = TextEditingController(text: 'passenger@gmail.com');
-  final _passwordController = TextEditingController(text: 'password123');
-  final _nameController = TextEditingController(text: 'Anjali Nair');
-  final _phoneController = TextEditingController(text: '9847000004');
-  final _companyController = TextEditingController(text: 'St. George Motors Ernakulam');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _companyController = TextEditingController();
 
   void _selectRole(String role) {
     setState(() {
       _selectedRole = role;
-      if (role == 'PASSENGER') {
-        _emailController.text = 'passenger@gmail.com';
-        _nameController.text = 'Anjali Nair';
-        _phoneController.text = '9847000004';
-        _passwordController.text = 'password123';
-      } else if (role == 'CONDUCTOR') {
-        // Owner-provisioned credentials
-        _emailController.text = 'suresh.conductor';
-        _nameController.text = 'Suresh Kumar (Conductor)';
-        _passwordController.text = 'password123';
+      if (role == 'CONDUCTOR') {
         _isSignUp = false;
-      } else {
-        _emailController.text = 'owner@stgeorge.com';
-        _nameController.text = 'George Varghese';
-        _companyController.text = 'St. George Motors Ernakulam';
-        _phoneController.text = '9447012345';
-        _passwordController.text = 'password123';
       }
     });
   }

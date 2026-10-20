@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'storage_service.dart';
+import 'api_service.dart';
 
 int parseTimeToMinutes(String timeStr) {
   try {
@@ -677,22 +678,22 @@ class FleetState extends ChangeNotifier {
         companyName: 'St. George Motors Ernakulam',
         todayCollection: 6420.0,
         ticketsCount: 168,
-        isActive: true,
-        status: 'RUNNING_NOW',
+        isActive: false,
+        status: 'STOPPED / DEPOT',
         isApprovedByAdmin: true,
-        currentStop: 'Pump Junction (Stage 3)',
-        nextStop: 'Kizhakkambalam (~4 mins)',
-        eta: '4 mins',
+        currentStop: 'Depot (Aluva Stand)',
+        nextStop: 'Trip not started',
+        eta: 'Halted',
         ownerName: 'George Varghese',
         ownerPhone: '+91 94470 12345',
         ownerEmail: 'owner@stgeorge.com',
         conductorPhone: '+91 98470 11001',
         conductorEmail: 'suresh@stgeorge.com',
-        isTripActive: true,
-        currentStageIndex: 2,
+        isTripActive: false,
+        currentStageIndex: 0,
         currentLatitude: 10.1076,
         currentLongitude: 76.3516,
-        conductorLocationString: 'Pump Junction, Aluva (Conductor Live GPS)',
+        conductorLocationString: 'Aluva Stand Depot (Resting)',
       ),
       BusModel(
         id: 'BUS-2',
@@ -716,22 +717,22 @@ class FleetState extends ChangeNotifier {
         companyName: 'St. George Motors Ernakulam',
         todayCollection: 7840.0,
         ticketsCount: 202,
-        isActive: true,
-        status: 'RUNNING_NOW',
+        isActive: false,
+        status: 'STOPPED / DEPOT',
         isApprovedByAdmin: true,
-        currentStop: 'Menaka Junction',
-        nextStop: 'Thevara Ferry (~6 mins)',
-        eta: '6 mins',
+        currentStop: 'Depot (Kaloor Stand)',
+        nextStop: 'Trip not started',
+        eta: 'Halted',
         ownerName: 'George Varghese',
         ownerPhone: '+91 94470 12345',
         ownerEmail: 'owner@stgeorge.com',
         conductorPhone: '+91 98470 11002',
         conductorEmail: 'biju@stgeorge.com',
-        isTripActive: true,
-        currentStageIndex: 1,
+        isTripActive: false,
+        currentStageIndex: 0,
         currentLatitude: 9.9816,
         currentLongitude: 76.2750,
-        conductorLocationString: 'Menaka Marine Drive, Ernakulam (Live GPS)',
+        conductorLocationString: 'Kaloor Stand Depot (Resting)',
       ),
       BusModel(
         id: 'BUS-3',
@@ -858,6 +859,12 @@ class FleetState extends ChangeNotifier {
     if (savedBuses != null) {
       buses.clear();
       buses.addAll(savedBuses.map((e) => BusModel.fromJson(e)));
+      for (final b in buses) {
+        b.isTripActive = false;
+        b.isActive = false;
+        b.status = 'STOPPED / DEPOT';
+      }
+      await _persistBuses();
     } else {
       await _persistBuses();
     }
@@ -890,6 +897,117 @@ class FleetState extends ChangeNotifier {
 
     _isStorageLoaded = true;
     notifyListeners();
+
+    // Asynchronously synchronize with backend data store
+    _syncWithBackend();
+  }
+
+  Future<void> _syncWithBackend() async {
+    try {
+      final backend = await ApiService.fetchBackendData();
+      if (backend != null) {
+        // Merge passengers from backend
+        if (backend['passengers'] is List) {
+          final list = backend['passengers'] as List;
+          for (final item in list) {
+            if (item is Map) {
+              final id = item['id']?.toString() ?? '';
+              final idx = registeredPassengers.indexWhere((p) => p.id == id);
+              if (idx == -1) {
+                registeredPassengers.add(PassengerModel(
+                  id: id,
+                  name: item['fullName']?.toString() ?? 'Passenger',
+                  email: item['email']?.toString() ?? '',
+                  phone: item['phoneNumber']?.toString() ?? '',
+                  password: 'password123',
+                  walletBalance: (item['walletBalance'] as num?)?.toDouble() ?? 0.0,
+                  homeStation: item['homeStation']?.toString() ?? 'Aluva Stand',
+                  concessionCategory: item['concessionCategory']?.toString() ?? 'General / Adult Standard',
+                  registeredAt: DateTime.tryParse(item['registeredAt']?.toString() ?? '') ?? DateTime.now(),
+                ));
+              }
+            }
+          }
+          await _persistPassengers();
+        }
+
+        // Merge buses from backend
+        if (backend['buses'] is List) {
+          final list = backend['buses'] as List;
+          for (final item in list) {
+            if (item is Map) {
+              final reg = item['regNumber']?.toString() ?? '';
+              final idx = buses.indexWhere((b) => b.regNumber.toUpperCase() == reg.toUpperCase());
+              if (idx == -1) {
+                buses.add(BusModel(
+                  id: 'BUS-${buses.length + 1}',
+                  ownerId: 'OWNER-1',
+                  regNumber: reg,
+                  busName: item['busName']?.toString() ?? 'Bus',
+                  category: item['category']?.toString() ?? 'Ordinary Bus',
+                  startPoint: item['startPoint']?.toString() ?? 'Aluva Stand',
+                  destPoint: item['destPoint']?.toString() ?? 'Perumbavoor Stand',
+                  routeName: item['route']?.toString() ?? '$reg Route',
+                  stops: [],
+                  companyName: 'St. George Motors Ernakulam',
+                  todayCollection: (item['todayCollection'] as num?)?.toDouble() ?? 0.0,
+                  ticketsCount: (item['ticketsSold'] as num?)?.toInt() ?? 0,
+                  isActive: false,
+                  status: 'STOPPED / DEPOT',
+                  isTripActive: false,
+                ));
+              }
+            }
+          }
+          await _persistBuses();
+        }
+
+        // Push unified state up to backend
+        _pushStateToBackend();
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  void _pushStateToBackend() {
+    ApiService.syncData({
+      'passengers': registeredPassengers.map((p) => {
+        'id': p.id,
+        'fullName': p.name,
+        'email': p.email,
+        'phoneNumber': p.phone,
+        'walletBalance': p.walletBalance,
+        'concessionCategory': p.concessionCategory,
+        'homeStation': p.homeStation,
+        'status': 'ACTIVE',
+        'registeredAt': p.registeredAt.toIso8601String(),
+      }).toList(),
+      'buses': buses.map((b) => {
+        'regNumber': b.regNumber,
+        'busName': b.busName,
+        'category': b.category,
+        'route': b.routeName,
+        'startPoint': b.startPoint,
+        'destPoint': b.destPoint,
+        'seatingCapacity': b.seatingCapacity,
+        'isTripActive': b.isTripActive,
+        'status': b.status,
+        'todayCollection': b.todayCollection,
+        'ticketsSold': b.ticketsCount,
+      }).toList(),
+      'conductors': conductors.map((c) => {
+        'id': c.id,
+        'fullName': c.name,
+        'userId': c.userId,
+        'phoneNumber': c.phone,
+        'licenseNumber': c.licenseNumber,
+        'assignedBusReg': c.assignedBusReg,
+        'assignedBusName': c.assignedBusName,
+        'role': 'ROLE_CONDUCTOR',
+        'status': 'ACTIVE',
+      }).toList(),
+      'tickets': issuedTickets.map((t) => t.toJson()).toList(),
+    });
   }
 
   // Persistence helpers
@@ -971,6 +1089,7 @@ class FleetState extends ChangeNotifier {
       );
       _persistPassengers();
       _persistTransactions();
+      _pushStateToBackend();
       notifyListeners();
     }
   }
@@ -1023,6 +1142,7 @@ class FleetState extends ChangeNotifier {
     );
     registeredPassengers.add(passenger);
     _persistPassengers();
+    _pushStateToBackend();
     notifyListeners();
     return passenger;
   }
@@ -1191,6 +1311,7 @@ class FleetState extends ChangeNotifier {
   void addConductor(ConductorModel conductor) {
     conductors.add(conductor);
     _persistConductors();
+    _pushStateToBackend();
     notifyListeners();
   }
 
@@ -1205,6 +1326,7 @@ class FleetState extends ChangeNotifier {
     bus.sortStops();
     buses.add(bus);
     _persistBuses();
+    _pushStateToBackend();
     notifyListeners();
   }
 
@@ -1240,6 +1362,7 @@ class FleetState extends ChangeNotifier {
         b.sortStops();
       }
       _persistBuses();
+      _pushStateToBackend();
       notifyListeners();
     }
   }
@@ -1295,6 +1418,7 @@ class FleetState extends ChangeNotifier {
     _persistConductors();
     _persistPassengers();
     _persistTransactions();
+    _pushStateToBackend();
     notifyListeners();
   }
 

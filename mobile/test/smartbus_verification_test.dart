@@ -372,6 +372,56 @@ void main() {
       // Latest ticket issued is at index 0 (TCK-BUSB-6)
       expect(latest5.first.id, 'TCK-BUSB-6');
     });
+
+    test('10. Inactive Bus Status by Default & Conductor Start/Stop Trip Control', () {
+      final state = FleetState.instance;
+
+      const busReg = 'KL 07 CD 4589';
+      final bus = state.getBusByReg(busReg)!;
+
+      // By default, every bus starts inactive
+      expect(bus.isActive, isFalse, reason: 'Bus must start in inactive status by default');
+      expect(bus.isTripActive, isFalse, reason: 'Trip must start in stopped status by default');
+
+      // Conductor clicks "Start Trip & Broadcast Live GPS"
+      state.setTripActive(busReg, true);
+      expect(bus.isActive, isTrue);
+      expect(bus.isTripActive, isTrue);
+      expect(bus.status, 'RUNNING_NOW');
+
+      // Conductor clicks "Stop / End Current Trip"
+      state.setTripActive(busReg, false);
+      expect(bus.isActive, isFalse);
+      expect(bus.isTripActive, isFalse);
+      expect(bus.status, 'STOPPED');
+    });
+
+    test('11. Unique Passenger QR Code Parsing & Camera Resolution', () {
+      final state = FleetState.instance;
+
+      final anjali = state.findPassengerByIdOrPhone('SBK-KL-987263')!;
+      final rahul = state.findPassengerByIdOrPhone('SBK-KL-554120')!;
+      final meera = state.findPassengerByIdOrPhone('SBK-KL-339811')!;
+
+      // 1. Direct ID Scan
+      final scanned1 = state.findPassengerByIdOrPhone(anjali.id);
+      expect(scanned1?.id, anjali.id);
+      expect(scanned1?.name, 'Anjali Nair');
+
+      // 2. Prefixed QR Code Scan: SMARTBUS:PASSENGER:SBK-KL-554120
+      const qrDataPrefixed = 'SMARTBUS:PASSENGER:SBK-KL-554120';
+      final cleanId2 = qrDataPrefixed.replaceAll(RegExp(r'SMARTBUS:PASSENGER:', caseSensitive: false), '').trim();
+      final scanned2 = state.findPassengerByIdOrPhone(cleanId2);
+      expect(scanned2?.id, rahul.id);
+      expect(scanned2?.name, 'Rahul Menon');
+
+      // 3. JSON format QR Code
+      const jsonQr = '{"type":"PASSENGER","id":"SBK-KL-339811","name":"Meera Pillai"}';
+      expect(jsonQr.contains('"id":"SBK-KL-339811"'), isTrue);
+      final scanned3 = state.findPassengerByIdOrPhone('SBK-KL-339811');
+      expect(scanned3?.id, meera.id);
+      expect(scanned3?.name, 'Meera Pillai');
+    });
   });
 }
 

@@ -1,0 +1,268 @@
+{
+  "project": "SmartBus Kerala",
+  "version": "1.0.0",
+  "environment": "development",
+  "databaseEngine": "JSON File Persistence & PostgreSQL Dual Layer",
+  "owner": {
+    "id": "OWNER-1",
+    "fullName": "George Varghese",
+    "email": "owner@stgeorge.com",
+    "phoneNumber": "+91 94470 12345",
+    "operatorName": "St. George Motors Ernakulam",
+    "isVerified": true
+  },
+  "passengers": [
+    {
+      "id": "SBK-KL-987263",
+      "fullName": "Anjali Nair",
+      "email": "passenger@gmail.com",
+      "phoneNumber": "9847000004",
+      "walletBalance": 217,
+      "concessionCategory": "General / Adult Standard",
+      "homeStation": "Aluva Stand, Ernakulam",
+      "status": "ACTIVE",
+      "registeredAt": "2026-10-01T00:00:00.000"
+    },
+    {
+      "id": "SBK-KL-554120",
+      "fullName": "Rahul Menon",
+      "email": "rahul@gmail.com",
+      "phoneNumber": "9847000005",
+      "walletBalance": 120,
+      "concessionCategory": "Student Concession",
+      "homeStation": "Perumbavoor Stand",
+      "status": "ACTIVE",
+      "registeredAt": "2026-10-05T00:00:00.000"
+    },
+    {
+      "id": "SBK-KL-339811",
+      "fullName": "Meera Pillai",
+      "email": "meera@gmail.com",
+      "phoneNumber": "9847000006",
+      "walletBalance": 450,
+      "concessionCategory": "General / Adult Standard",
+      "homeStation": "Ernakulam Kaloor",
+      "status": "ACTIVE",
+      "registeredAt": "2026-10-10T00:00:00.000"
+    }
+  ],
+  "conductors": [
+    {
+      "id": "COND-1",
+      "fullName": "Suresh Kumar",
+      "userId": "suresh.conductor",
+      "phoneNumber": "+91 98470 11001",
+      "licenseNumber": "KL-MVD-COND-8941",
+      "assignedBusReg": "KL 07 CD 4589",
+      "assignedBusName": "SpeedWings",
+      "role": "ROLE_CONDUCTOR",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "COND-2",
+      "fullName": "Biju Varghese",
+      "userId": "biju.conductor",
+      "phoneNumber": "+91 98470 11002",
+      "licenseNumber": "KL-MVD-COND-9214",
+      "assignedBusReg": "KL 07 CE 1204",
+      "assignedBusName": "GreenCity Express",
+      "role": "ROLE_CONDUCTOR",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "COND-3",
+      "fullName": "Rajesh M.",
+      "userId": "rajesh.conductor",
+      "phoneNumber": "+91 98470 11003",
+      "licenseNumber": "KL-MVD-COND-7731",
+      "assignedBusReg": "KL 07 BQ 9981",
+      "assignedBusName": "City Rider",
+      "role": "ROLE_CONDUCTOR",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "COND-1792470982423",
+      "fullName": "kutty",
+      "userId": "kutty.c",
+      "phoneNumber": "+91 98470 55009",
+      "licenseNumber": "KL-MVD-COND-6621",
+      "assignedBusReg": "KL71K3286",
+      "assignedBusName": "esKE",
+      "role": "ROLE_CONDUCTOR",
+      "status": "ACTIVE"
+    }
+  ],
+  "buses": [
+    {
+      "regNumber": "KL 07 CD 4589",
+      "busName": "SpeedWings",
+      "category": "Ordinary Bus (Blue-Whiteline)",
+      "route": "Aluva Stand - Perumbavoor Stand (via Kizhakkambalam)",
+      "startPoint": "Aluva Stand",
+      "destPoint": "Perumbavoor Stand",
+      "seatingCapacity": 48,
+      "isTripActive": false,
+      "status": "STOPPED / DEPOT",
+      "todayCollection": 6420,
+      "ticketsSold": 168,
+      "workers": {
+        "driver": "Venu Pillai (Badge #KL4201)",
+        "conductor": "Suresh Kumar",
+        "cleaner": "Mani K."
+      },
+      "timetable": [
+        {
+          "stop": "Aluva Stand",
+          "time": "10:00 AM"
+        },
+        {
+          "stop": "Bank Junction",
+          "time": "10:08 AM"
+        },
+        {
+          "stop": "Pump Junction",
+          "time": "10:15 AM"
+        },
+        {
+          "stop": "Kizhakkambalam",
+          "time": "10:24 AM"
+        },
+        {
+          "stop": "Pattimattom",
+          "time": "10:35 AM"
+        },
+        {
+          "stop": "Perumbavoor Stand",
+          "time": "10:48 AM"
+        }
+      ]
+    },
+    {
+      "regNumber": "KL 07 CE 1204",
+      "busName": "GreenCity Express",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "route": "Ernakulam Kaloor - Thoppumpady (via Menaka)",
+      "startPoint": "Ernakulam Kaloor",
+      "destPoint": "Thoppumpady",
+      "seatingCapacity": 52,
+      "isTripActive": false,
+      "status": "STOPPED / DEPOT",
+      "todayCollection": 7840,
+      "ticketsSold": 202,
+      "workers": {
+        "driver": "Antony Joseph",
+        "conductor": "Biju Varghese",
+        "cleaner": "Saji T."
+      },
+      "timetable": [
+        {
+          "stop": "Kaloor Stand",
+          "time": "10:30 AM"
+        },
+        {
+          "stop": "Menaka Junction",
+          "time": "10:42 AM"
+        },
+        {
+          "stop": "Thevara Ferry",
+          "time": "10:55 AM"
+        },
+        {
+          "stop": "Thoppumpady",
+          "time": "11:15 AM"
+        }
+      ]
+    },
+    {
+      "regNumber": "KL 07 BQ 9981",
+      "busName": "City Rider",
+      "category": "City Bus (Green-Whiteline)",
+      "route": "Vytilla Hub - Kakkanad InfoPark (via Palarivattom)",
+      "startPoint": "Vytilla Hub",
+      "destPoint": "Kakkanad InfoPark",
+      "seatingCapacity": 48,
+      "isTripActive": false,
+      "status": "STOPPED / DEPOT",
+      "todayCollection": 4220,
+      "ticketsSold": 116,
+      "workers": {
+        "driver": "Pradeep Kumar",
+        "conductor": "Rajesh Nair",
+        "cleaner": "Babu N."
+      },
+      "timetable": [
+        {
+          "stop": "Vytilla Hub",
+          "time": "11:00 AM"
+        },
+        {
+          "stop": "Palarivattom Bypass",
+          "time": "11:15 AM"
+        },
+        {
+          "stop": "Kakkanad Stand",
+          "time": "11:30 AM"
+        },
+        {
+          "stop": "InfoPark Express",
+          "time": "11:45 AM"
+        }
+      ]
+    },
+    {
+      "regNumber": "KL71K3286",
+      "busName": "esKE",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "route": "Melattur - Nilambur",
+      "startPoint": "Melattur",
+      "destPoint": "Nilambur",
+      "seatingCapacity": 48,
+      "isTripActive": false,
+      "status": "STOPPED / DEPOT",
+      "todayCollection": 87,
+      "ticketsSold": 2
+    }
+  ],
+  "tickets": [
+    {
+      "id": "TCK-1792471817715",
+      "ticketNumber": "KL-SBK-2010-1003",
+      "busRegNumber": "KL71K3286",
+      "busName": "esKE",
+      "conductorId": "COND-1792470982423",
+      "conductorName": "kutty",
+      "passengerId": "SBK-KL-987263",
+      "passengerName": "Anjali Nair",
+      "boardingStop": "Melattur",
+      "destStop": "Kalikavu",
+      "fare": 33,
+      "category": "General",
+      "paymentMode": "SMART_WALLET",
+      "cashGiven": 0,
+      "changeReturned": 0,
+      "splitCash": 0,
+      "splitUpi": 0,
+      "issuedAt": "2026-10-20T10:20:17.715"
+    },
+    {
+      "id": "TCK-1792471853521",
+      "ticketNumber": "KL-SBK-2010-1004",
+      "busRegNumber": "KL71K3286",
+      "busName": "esKE",
+      "conductorId": "COND-1792470982423",
+      "conductorName": "kutty",
+      "passengerId": "SBK-KL-554120",
+      "passengerName": "Rahul Menon",
+      "boardingStop": "Melattur",
+      "destStop": "Nilambur",
+      "fare": 54,
+      "category": "Student Concession",
+      "paymentMode": "CASH",
+      "cashGiven": 60,
+      "changeReturned": 6,
+      "splitCash": 0,
+      "splitUpi": 0,
+      "issuedAt": "2026-10-20T10:20:53.521"
+    }
+  ]
+}

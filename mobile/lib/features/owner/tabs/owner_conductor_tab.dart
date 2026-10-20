@@ -12,12 +12,12 @@ class OwnerConductorTab extends StatefulWidget {
 
 class _OwnerConductorTabState extends State<OwnerConductorTab> {
   void _showAddConductorModal() {
-    final nameCtrl = TextEditingController(text: 'Anil Varghese');
-    final emailCtrl = TextEditingController(text: 'anil.conductor@stgeorge.com');
-    final userIdCtrl = TextEditingController(text: 'anil.conductor');
-    final passwordCtrl = TextEditingController(text: 'password123');
-    final phoneCtrl = TextEditingController(text: '+91 98470 55009');
-    final licenseCtrl = TextEditingController(text: 'KL-MVD-COND-6621');
+    final nameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final userIdCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final licenseCtrl = TextEditingController();
     
     // Default assigned bus for this owner
     final ownerBuses = FleetState.instance.getBusesForOwner(widget.owner.id);

@@ -30,27 +30,23 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
 
   void _showRegisterBusModal() {
     // Required fields
-    final regCtrl = TextEditingController(text: 'KL 07 DF 8899');
-    final nameCtrl = TextEditingController(text: 'St. Mary Super Express');
+    final regCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
     String selectedCategory = 'Limited Stop Bus (Red-Whiteline)';
 
     // Optional fields
-    final startPointCtrl = TextEditingController(text: 'Aluva Stand');
-    final destPointCtrl = TextEditingController(text: 'Angamaly Stand');
-    final seatsCtrl = TextEditingController(text: '48');
-    final driverCtrl = TextEditingController(text: 'Babu Mathew (Badge #KL7712)');
-    final cleanerCtrl = TextEditingController(text: 'Sunil K.');
+    final startPointCtrl = TextEditingController();
+    final destPointCtrl = TextEditingController();
+    final seatsCtrl = TextEditingController();
+    final driverCtrl = TextEditingController();
+    final cleanerCtrl = TextEditingController();
     final ownerConductors = FleetState.instance.getConductorsForOwner(widget.owner.id);
     String selectedConductor = ownerConductors.isNotEmpty 
         ? ownerConductors.first.name 
         : 'Unassigned';
 
     // Optional intermediate stops
-    List<Map<String, String>> intermediateStops = [
-      {'stop': 'Aluva Stand', 'time': '07:00 AM'},
-      {'stop': 'Bank Junction', 'time': '07:12 AM'},
-      {'stop': 'Angamaly Stand', 'time': '07:35 AM'},
-    ];
+    List<Map<String, String>> intermediateStops = [];
 
     final formKey = GlobalKey<FormState>();
 
