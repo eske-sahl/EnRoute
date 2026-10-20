@@ -1,11 +1,11 @@
 {
-    "name": "mobile",
-    "short_name": "mobile",
+    "name": "EnRoute — Kerala Smart Transit",
+    "short_name": "EnRoute",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#060E18",
+    "theme_color": "#059669",
+    "description": "EnRoute — Smart Transit & Ticketing Ecosystem for Kerala",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

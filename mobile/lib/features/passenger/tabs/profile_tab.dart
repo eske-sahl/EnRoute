@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
+import '../../../widgets/app_settings_section.dart';
 
 class ProfileTab extends StatefulWidget {
   final PassengerModel passenger;
@@ -95,46 +97,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
           const SizedBox(height: 20),
 
-          // App Settings Section
-          const Text('Settings & Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 10),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  secondary: const Icon(Icons.notifications_active_outlined, color: AppTheme.primaryGreen),
-                  title: const Text('Push Notifications', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Ticket receipts & trip updates', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  value: _notificationsEnabled,
-                  onChanged: (val) => setState(() => _notificationsEnabled = val),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const Icon(Icons.radar, color: AppTheme.primaryGreen),
-                  title: const Text('Live Arrival Vibration Alerts', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Vibrate 2 stops before destination', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  value: _arrivalAlertsEnabled,
-                  onChanged: (val) => setState(() => _arrivalAlertsEnabled = val),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.language, color: AppTheme.primaryGreen),
-                  title: const Text('App Language', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: Text('Current: $_selectedLanguage (മലയാളം support)', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    setState(() {
-                      _selectedLanguage = _selectedLanguage == 'English' ? 'മലയാളം (Malayalam)' : 'English';
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Language set to $_selectedLanguage')),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+          // App Settings & Tools Section (Languages, Themes, Share, Rate, Report, Suggest, How to Use)
+          const AppSettingsSection(),
 
           const SizedBox(height: 20),
 
@@ -183,7 +147,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Permanently delete your passenger account, wallet, and history from SmartBus Kerala.',
+                    'Permanently delete your passenger account, wallet, and history from EnRoute.',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                   const SizedBox(height: 12),
@@ -218,7 +182,8 @@ class _ProfileTabState extends State<ProfileTab> {
             icon: const Icon(Icons.logout),
             label: const Text('Sign Out & Return to Login', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

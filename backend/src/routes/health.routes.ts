@@ -10,7 +10,7 @@ const router = Router();
 router.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'success',
-    message: 'SmartBus Kerala API is running',
+    message: 'EnRoute Kerala API is running',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     uptimeSeconds: process.uptime(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 
 class WalletTab extends StatefulWidget {
   final PassengerModel passenger;
@@ -169,7 +170,7 @@ class _WalletTabState extends State<WalletTab> {
                     const SizedBox(height: 6),
                     Text(
                       _selectedFilter == 'ALL'
-                          ? 'This account has no transaction history yet. Recharge your wallet above or travel on SmartBus to view ledger entries.'
+                          ? 'This account has no transaction history yet. Recharge your wallet above or travel on EnRoute to view ledger entries.'
                           : 'No $_selectedFilter transactions found for this account.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
@@ -243,6 +244,8 @@ class _WalletTabState extends State<WalletTab> {
                 ),
               );
             }),
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
+import '../../../widgets/app_settings_section.dart';
 
 class ConductorProfileTab extends StatefulWidget {
   final ConductorModel conductor;
@@ -279,7 +281,22 @@ class _ConductorProfileTabState extends State<ConductorProfileTab> {
                     );
                   },
                 ),
-                const Divider(height: 1),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // App Settings & Tools Section
+          const AppSettingsSection(),
+
+          const SizedBox(height: 20),
+
+          // Actions & Danger Zone
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              children: [
 
                 // 5. Sign Out / Logout Option
                 ListTile(
@@ -300,6 +317,8 @@ class _ConductorProfileTabState extends State<ConductorProfileTab> {
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

@@ -1,5 +1,5 @@
 {
-  "project": "SmartBus Kerala",
+  "project": "EnRoute",
   "version": "1.0.0",
   "environment": "development",
   "databaseEngine": "JSON File Persistence & PostgreSQL Dual Layer",

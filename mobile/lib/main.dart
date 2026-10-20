@@ -7,25 +7,38 @@ import 'features/passenger/passenger_portal.dart';
 import 'features/conductor/conductor_portal.dart';
 import 'features/owner/owner_portal.dart';
 
+import 'services/app_settings_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FleetState.instance.initialize();
-  runApp(const SmartBusKeralaApp());
+  await AppSettingsService.instance.initialize();
+  runApp(const EnRouteApp());
 }
 
-class SmartBusKeralaApp extends StatelessWidget {
-  const SmartBusKeralaApp({super.key});
+class EnRouteApp extends StatelessWidget {
+  const EnRouteApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SmartBus Kerala',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.themeData,
-      home: const AppRootNavigationController(),
+    return ListenableBuilder(
+      listenable: AppSettingsService.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'EnRoute',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: AppSettingsService.instance.themeMode,
+          home: const AppRootNavigationController(),
+        );
+      },
     );
   }
 }
+
+// Backwards compatibility alias for tests
+typedef SmartBusKeralaApp = EnRouteApp;
 
 class AppRootNavigationController extends StatefulWidget {
   const AppRootNavigationController({super.key});
@@ -95,7 +108,7 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('₹${amount.toInt()} added to SmartBus Wallet!'),
+        content: Text('₹${amount.toInt()} added to EnRoute Wallet!'),
         backgroundColor: AppTheme.primaryGreen,
         behavior: SnackBarBehavior.floating,
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 import '../bus_detail_page.dart';
 
 class OwnerBusListTab extends StatefulWidget {
@@ -725,6 +726,8 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                 ),
               );
             }),
+            const SizedBox(height: 10),
+            const AppCreatorFooter(),
           ],
         ),
       ),

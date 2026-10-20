@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 import '../widgets/passenger_qr_scanner_dialog.dart';
 
 class ConductorDashboardTab extends StatefulWidget {
@@ -663,7 +664,58 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
+
+                // Manual Stop Override & Fast Advance Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white24),
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.edit_location_alt_rounded, size: 15, color: AppTheme.accentAmber),
+                        label: const Text(
+                          'Set Stop Manually',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        onPressed: _showManualStopPickerModal,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: const Icon(Icons.fast_forward_rounded, size: 15, color: Colors.greenAccent),
+                      label: const Text(
+                        'Next Stop (+1)',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                      onPressed: () {
+                        FleetState.instance.advanceBusStage(_bus.regNumber);
+                        _initBus();
+                        setState(() {});
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Bus advanced to: ${_bus.currentStop}'),
+                            duration: const Duration(seconds: 1),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppTheme.primaryGreen,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
 
                 // Start/Stop Trip Button
                 ElevatedButton.icon(
@@ -1528,8 +1580,166 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                 ),
               );
             }),
+
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
+    );
+  }
+
+  void _showManualStopPickerModal() {
+    final searchCtrl = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final query = searchCtrl.text.trim().toLowerCase();
+            final allStops = _busSavedPlaces;
+            final filtered = query.isEmpty
+                ? allStops
+                : allStops.where((s) => s.toLowerCase().contains(query)).toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.75,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (context, scrollCtrl) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentAmber.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.edit_location_alt_rounded, color: Colors.amber, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Set Current Stop Manually', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                                Text('Select your stop if GPS is weak or drifting', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      TextField(
+                        controller: searchCtrl,
+                        onChanged: (_) => setModalState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'Search route stop name...',
+                          prefixIcon: const Icon(Icons.search, size: 20),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: filtered.isEmpty
+                            ? const Center(child: Text('No matching stops found on this route schedule.'))
+                            : ListView.builder(
+                                controller: scrollCtrl,
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final stopName = filtered[index];
+                                  final isCurrent = stopName.toLowerCase() == _bus.currentStop.toLowerCase();
+
+                                  return Card(
+                                    color: isCurrent ? AppTheme.primaryGreen.withValues(alpha: 0.15) : null,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color: isCurrent ? AppTheme.primaryGreen : Colors.grey.withValues(alpha: 0.2),
+                                      ),
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: CircleAvatar(
+                                        radius: 14,
+                                        backgroundColor: isCurrent ? AppTheme.primaryGreen : Colors.grey.withValues(alpha: 0.2),
+                                        child: Text(
+                                          '${index + 1}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: isCurrent ? Colors.white : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                      title: Text(
+                                        stopName,
+                                        style: TextStyle(
+                                          fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
+                                          color: isCurrent ? AppTheme.primaryGreen : null,
+                                        ),
+                                      ),
+                                      subtitle: isCurrent
+                                          ? const Text('Current Stop (Broadcasting)', style: TextStyle(fontSize: 11, color: AppTheme.primaryGreen))
+                                          : null,
+                                      trailing: isCurrent
+                                          ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen, size: 20)
+                                          : ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: AppTheme.primaryGreen,
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                minimumSize: Size.zero,
+                                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                              ),
+                                              onPressed: () {
+                                                FleetState.instance.setBusManualCurrentStop(_bus.regNumber, stopName);
+                                                _initBus();
+                                                setState(() {});
+                                                Navigator.pop(ctx);
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Current stop manually set to "$stopName"'),
+                                                    backgroundColor: AppTheme.primaryGreen,
+                                                    behavior: SnackBarBehavior.floating,
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text('Set', style: TextStyle(fontSize: 12, color: Colors.white)),
+                                            ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 

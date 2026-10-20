@@ -1493,6 +1493,29 @@ class FleetState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setBusManualCurrentStop(String busReg, String stopName, {String? nextStopName}) {
+    final bus = getBusByReg(busReg);
+    if (bus == null) return;
+
+    bus.currentStop = stopName;
+    bus.conductorLocationString = '$stopName (Conductor Manual Stop Override)';
+
+    final idx = bus.stops.indexWhere((s) => s.stopName.trim().toLowerCase() == stopName.trim().toLowerCase());
+    if (idx >= 0) {
+      bus.currentStageIndex = idx;
+      if (idx < bus.stops.length - 1) {
+        bus.nextStop = '${bus.stops[idx + 1].stopName} (~3 mins)';
+      } else {
+        bus.nextStop = '${bus.destPoint} (Destination Reached)';
+      }
+    } else if (nextStopName != null) {
+      bus.nextStop = nextStopName;
+    }
+
+    _persistBuses();
+    notifyListeners();
+  }
+
   void setTripActive(String busReg, bool active) {
     final bus = getBusByReg(busReg);
     if (bus != null) {

@@ -84,7 +84,7 @@ class PassengerHomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isOnline ? 'SmartBus Backend Active' : 'Offline / Standalone',
+                  isOnline ? 'EnRoute Backend Active' : 'Offline / Standalone',
                   style: const TextStyle(fontSize: 11, color: Colors.white70),
                 ),
               ],

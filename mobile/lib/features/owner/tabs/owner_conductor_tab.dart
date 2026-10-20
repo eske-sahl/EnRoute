@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 
 class OwnerConductorTab extends StatefulWidget {
   final OwnerModel owner;
@@ -499,6 +500,8 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                 ),
               );
             }),
+            const SizedBox(height: 10),
+            const AppCreatorFooter(),
           ],
         ),
       ),

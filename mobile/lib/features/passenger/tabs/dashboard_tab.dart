@@ -3,6 +3,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 
 class DashboardTab extends StatelessWidget {
   final PassengerModel passenger;
@@ -429,6 +430,8 @@ class DashboardTab extends StatelessWidget {
                 ),
               );
             }),
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

@@ -51,7 +51,7 @@ app.use('/api/data', dataRoutes);
 // Root Welcome Endpoint
 app.get('/', (req, res) => {
   res.json({
-    project: 'SmartBus Kerala',
+    project: 'EnRoute',
     type: 'Final-Year Degree Project',
     apiDocumentation: '/api-docs',
     healthCheck: '/api/health',
@@ -68,7 +68,7 @@ const PORT = process.env.PORT || 5001;
 
 server.listen(PORT, () => {
   console.log(`===============================================`);
-  console.log(`🚍 SmartBus Kerala Backend Server Running`);
+  console.log(`🚍 EnRoute Kerala Backend Server Running`);
   console.log(`🌐 REST API: http://localhost:${PORT}`);
   console.log(`🩺 Health:   http://localhost:${PORT}/api/health`);
   console.log(`📡 Sockets:  ws://localhost:${PORT}/tracking`);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 import '../bus_location_screen.dart';
 
 class SearchTab extends StatefulWidget {
@@ -1061,6 +1062,8 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
               ),
             ),
           ],
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );
@@ -1480,6 +1483,8 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                 );
               }),
           ],
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

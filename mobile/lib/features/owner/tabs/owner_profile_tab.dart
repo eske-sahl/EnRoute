@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
+import '../../../widgets/app_settings_section.dart';
 
 class OwnerProfileTab extends StatefulWidget {
   final OwnerModel owner;
@@ -185,6 +187,11 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
 
           const SizedBox(height: 20),
 
+          // App Settings & Preferences
+          const AppSettingsSection(),
+
+          const SizedBox(height: 20),
+
           // Danger Zone / Account Deletion
           Card(
             shape: RoundedRectangleBorder(
@@ -241,7 +248,8 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
             icon: const Icon(Icons.logout),
             label: const Text('Sign Out of Owner Portal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

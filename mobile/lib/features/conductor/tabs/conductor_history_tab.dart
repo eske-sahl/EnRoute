@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../widgets/app_creator_footer.dart';
 
 class ConductorHistoryTab extends StatefulWidget {
   final ConductorModel conductor;
@@ -392,6 +393,8 @@ class _ConductorHistoryTabState extends State<ConductorHistoryTab> {
                 ),
               );
             }),
+          const SizedBox(height: 10),
+          const AppCreatorFooter(),
         ],
       ),
     );

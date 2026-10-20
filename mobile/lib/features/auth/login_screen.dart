@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
+import '../../widgets/app_creator_footer.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function(String role, String email, String name, String userId) onLoginSuccess;
@@ -104,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final newOwner = FleetState.instance.registerOwner(
           name: name,
-          email: identifier.contains('@') ? identifier : '$phone@smartbus.kerala.gov.in',
+          email: identifier.contains('@') ? identifier : '$phone@enroute.kerala.gov.in',
           phone: phone,
           password: password,
           companyName: company,
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final newPassenger = FleetState.instance.registerPassenger(
         name: name,
         phone: phone,
-        email: identifier.contains('@') ? identifier : '$phone@smartbus.kerala.gov.in',
+        email: identifier.contains('@') ? identifier : '$phone@enroute.kerala.gov.in',
         password: password,
       );
 
@@ -208,16 +209,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'SmartBus Kerala',
+                          'EnRoute',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 26,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             letterSpacing: -0.5,
                           ),
                         ),
                         Text(
-                          'Public Transit Management System',
+                          'Smart Kerala Transit & Live Ticketing',
                           style: TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
@@ -296,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _isSignUp
-                            ? 'Register to start using SmartBus Kerala'
+                            ? 'Register to start using EnRoute'
                             : 'Sign in to access your ${_selectedRole.toLowerCase()} terminal',
                         style: const TextStyle(color: Colors.grey, fontSize: 13),
                       ),
@@ -452,6 +453,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 14),
+                const AppCreatorFooter(),
               ],
             ),
           ),

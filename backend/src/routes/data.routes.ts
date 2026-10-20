@@ -7,7 +7,7 @@ const DATA_FILE_PATH = path.join(__dirname, '../../data/smartbus_state.json');
 
 // Initial baseline seed data
 const initialSeedData = {
-  project: 'SmartBus Kerala',
+  project: 'EnRoute',
   version: '1.0.0',
   environment: 'development',
   databaseEngine: 'JSON File Persistence & PostgreSQL Dual Layer',
@@ -535,7 +535,7 @@ router.get('/', (req: Request, res: Response) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartBus Kerala - Backend Data Management Portal</title>
+  <title>EnRoute Kerala - Backend Data Management Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -794,8 +794,8 @@ router.get('/', (req: Request, res: Response) => {
       <div class="brand">
         <div class="brand-icon">🚍</div>
         <div>
-          <h1>SmartBus Kerala • Backend Portal</h1>
-          <div class="subtitle">Direct CRUD & Live JSON Data Management for Kerala RTC & Private Operators</div>
+          <h1>EnRoute • Backend Portal</h1>
+          <div class="subtitle">Direct CRUD & Live JSON Data Management • Created by Sahl Saleem & Fathima Riyas</div>
         </div>
       </div>
       <div style="display: flex; gap: 12px; align-items: center;">
