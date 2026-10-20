@@ -218,9 +218,9 @@
       "destPoint": "Nilambur",
       "seatingCapacity": 48,
       "isTripActive": false,
-      "status": "STOPPED / DEPOT",
-      "todayCollection": 87,
-      "ticketsSold": 2
+      "status": "STOPPED",
+      "todayCollection": 92,
+      "ticketsSold": 3
     }
   ],
   "tickets": [
