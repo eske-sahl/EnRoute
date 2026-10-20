@@ -1,4 +1,4 @@
-# EnRoute (എൻറൂട്ട്) 🚌✨
+# EnRoute 
 
 A modern, full-stack transit management and ticketing ecosystem designed specifically for Kerala's private and KSRTC bus networks.
 
