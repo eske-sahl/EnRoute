@@ -40,7 +40,9 @@ class _PassengerQrScannerDialogState extends State<PassengerQrScannerDialog> wit
   @override
   void dispose() {
     _animController.dispose();
-    _controller.dispose();
+    try {
+      _controller.dispose();
+    } catch (_) {}
     super.dispose();
   }
 
@@ -229,13 +231,21 @@ class _PassengerQrScannerDialogState extends State<PassengerQrScannerDialog> wit
                       children: [
                         IconButton.filled(
                           style: IconButton.styleFrom(backgroundColor: Colors.white24),
-                          onPressed: () => _controller.toggleTorch(),
+                          onPressed: () async {
+                            try {
+                              await _controller.toggleTorch();
+                            } catch (_) {}
+                          },
                           icon: const Icon(Icons.flash_on, color: Colors.white),
                           tooltip: 'Toggle Flash',
                         ),
                         IconButton.filled(
                           style: IconButton.styleFrom(backgroundColor: Colors.white24),
-                          onPressed: () => _controller.switchCamera(),
+                          onPressed: () async {
+                            try {
+                              await _controller.switchCamera();
+                            } catch (_) {}
+                          },
                           icon: const Icon(Icons.cameraswitch, color: Colors.white),
                           tooltip: 'Flip Camera',
                         ),

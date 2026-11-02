@@ -277,6 +277,207 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
     );
   }
 
+  void _showEditConductorModal(ConductorModel cond) {
+    final nameCtrl = TextEditingController(text: cond.name);
+    final emailCtrl = TextEditingController(text: cond.email);
+    final phoneCtrl = TextEditingController(text: cond.phone);
+    final licenseCtrl = TextEditingController(text: cond.licenseNumber);
+    final passwordCtrl = TextEditingController(text: cond.password);
+
+    final ownerBuses = FleetState.instance.getBusesForOwner(widget.owner.id);
+    String assignedBusReg = cond.assignedBusReg.isNotEmpty ? cond.assignedBusReg : (ownerBuses.isNotEmpty ? ownerBuses.first.regNumber : '');
+
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (modalCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_note, color: AppTheme.primaryGreen),
+                                SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'Edit Conductor Details',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(modalCtx)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // User ID (Fixed login username)
+                      TextFormField(
+                        initialValue: cond.userId,
+                        enabled: false,
+                        decoration: InputDecoration(
+                          labelText: 'User ID (Login Username - Fixed)',
+                          prefixIcon: const Icon(Icons.badge, color: Colors.grey),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Name
+                      TextFormField(
+                        controller: nameCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Conductor Full Name *',
+                          prefixIcon: const Icon(Icons.person, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Phone
+                      TextFormField(
+                        controller: phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Mobile Phone Number',
+                          prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // License
+                      TextFormField(
+                        controller: licenseCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Conductor License / Badge Number',
+                          prefixIcon: const Icon(Icons.assignment, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Password
+                      TextFormField(
+                        controller: passwordCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'App Login Password',
+                          prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Assigned Bus Dropdown
+                      if (ownerBuses.isNotEmpty)
+                        DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          initialValue: ownerBuses.any((b) => b.regNumber == assignedBusReg)
+                              ? assignedBusReg
+                              : ownerBuses.first.regNumber,
+                          decoration: InputDecoration(
+                            labelText: 'Assign to Operating Bus',
+                            prefixIcon: const Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          items: ownerBuses.map((b) {
+                            return DropdownMenuItem<String>(
+                              value: b.regNumber,
+                              child: Text(
+                                '${b.busName} (${b.regNumber})',
+                                style: const TextStyle(fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setModalState(() {
+                                assignedBusReg = val;
+                              });
+                            }
+                          },
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        onPressed: () {
+                          if (!formKey.currentState!.validate()) return;
+
+                          String assignedBusName = cond.assignedBusName;
+                          final matchBus = ownerBuses.where((b) => b.regNumber == assignedBusReg);
+                          if (matchBus.isNotEmpty) {
+                            assignedBusName = matchBus.first.busName;
+                          }
+
+                          cond.name = nameCtrl.text.trim();
+                          cond.email = emailCtrl.text.trim();
+                          cond.phone = phoneCtrl.text.trim();
+                          cond.licenseNumber = licenseCtrl.text.trim();
+                          if (passwordCtrl.text.trim().isNotEmpty) {
+                            cond.password = passwordCtrl.text.trim();
+                          }
+                          cond.assignedBusReg = assignedBusReg;
+                          cond.assignedBusName = assignedBusName;
+
+                          FleetState.instance.updateConductor(cond);
+                          setState(() {});
+                          Navigator.pop(modalCtx);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Conductor ${cond.name} updated successfully!'),
+                              backgroundColor: AppTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: const Text('Save Conductor Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showConductorDetailsModal(ConductorModel cond) {
     showDialog(
       context: context,
@@ -343,6 +544,14 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
             ],
           ),
           actions: [
+            OutlinedButton.icon(
+              icon: const Icon(Icons.edit, size: 16),
+              label: const Text('Edit Details'),
+              onPressed: () {
+                Navigator.pop(context);
+                _showEditConductorModal(cond);
+              },
+            ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Close'),
@@ -381,13 +590,16 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Conductor Crew Directory', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('${ownerConductors.length} active conductors', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Conductor Crew Directory', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('${ownerConductors.length} active conductors', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryGreen,
@@ -491,7 +703,21 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                             ),
                             const Text('Shift Total', style: TextStyle(color: Colors.grey, fontSize: 10)),
                             const SizedBox(height: 4),
-                            const Icon(Icons.arrow_forward_ios, size: 10, color: Colors.grey),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                InkWell(
+                                  onTap: () => _showEditConductorModal(conductor),
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(3),
+                                    child: Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.arrow_forward_ios, size: 10, color: Colors.grey),
+                              ],
+                            ),
                           ],
                         ),
                       ],

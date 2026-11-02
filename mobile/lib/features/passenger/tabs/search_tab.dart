@@ -5,7 +5,8 @@ import '../../../widgets/app_creator_footer.dart';
 import '../bus_location_screen.dart';
 
 class SearchTab extends StatefulWidget {
-  const SearchTab({super.key});
+  final PassengerModel? passenger;
+  const SearchTab({super.key, this.passenger});
 
   @override
   State<SearchTab> createState() => _SearchTabState();
@@ -13,6 +14,17 @@ class SearchTab extends StatefulWidget {
 
 class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMixin {
   late TabController _innerTabCtrl;
+
+  List<String> get _recentTravelledPoints {
+    if (widget.passenger == null) return [];
+    final tickets = FleetState.instance.getTicketsForPassenger(widget.passenger!.id);
+    final points = <String>{};
+    for (final t in tickets) {
+      if (t.boardingStop.trim().isNotEmpty) points.add(t.boardingStop.trim());
+      if (t.destStop.trim().isNotEmpty) points.add(t.destStop.trim());
+    }
+    return points.toList();
+  }
 
   // -------------------------------------------------------------------------
   // Inner Tab 1: Route Search State
@@ -838,30 +850,62 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
 
                   const SizedBox(height: 12),
 
-                  // Popular Stop Quick-Fill Chips
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
+                  // Personalized Recently Travelled Points (or Popular Points if no travels yet)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      'Aluva Stand',
-                      'Perumbavoor Stand',
-                      'Angamaly Stand',
-                      'Ernakulam Kaloor',
-                      'Kakkanad InfoPark',
-                      'Vytilla Hub',
-                    ].map((s) {
-                      return ActionChip(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        label: Text(s, style: const TextStyle(fontSize: 10)),
-                        onPressed: () {
-                          if (_startSearchController.text.isEmpty) {
-                            _selectStartStop(s);
-                          } else {
-                            _selectEndStop(s);
-                          }
-                        },
-                      );
-                    }).toList(),
+                      Row(
+                        children: [
+                          Icon(
+                            _recentTravelledPoints.isNotEmpty ? Icons.history : Icons.explore_outlined,
+                            size: 14,
+                            color: AppTheme.primaryGreen,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            _recentTravelledPoints.isNotEmpty
+                                ? 'Your Recently Travelled Points'
+                                : 'Popular Transit Points',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: (_recentTravelledPoints.isNotEmpty
+                                ? _recentTravelledPoints
+                                : [
+                                    'Aluva Stand',
+                                    'Perumbavoor Stand',
+                                    'Angamaly Stand',
+                                    'Ernakulam Kaloor',
+                                    'Kakkanad InfoPark',
+                                    'Vytilla Hub',
+                                  ])
+                            .map((s) {
+                          return ActionChip(
+                            avatar: _recentTravelledPoints.isNotEmpty
+                                ? const Icon(Icons.history, size: 12, color: AppTheme.primaryGreen)
+                                : const Icon(Icons.place_outlined, size: 12, color: AppTheme.primaryGreen),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            label: Text(s, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
+                            onPressed: () {
+                              if (_startSearchController.text.isEmpty) {
+                                _selectStartStop(s);
+                              } else {
+                                _selectEndStop(s);
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 16),
@@ -1020,7 +1064,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                         ),
 
                         const SizedBox(height: 8),
-                        Text('Route: ${bus.routeName}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                        Text('Route: ${bus.routeName}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85))),
 
                         const Divider(height: 16),
                         Row(
@@ -1257,8 +1301,8 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                       const SizedBox(height: 14),
 
                       // Stops & Timetable in ascending order
-                      const Text('Full Route Timetable (Ascending Order):', 
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      Text('Full Route Timetable (Ascending Order):', 
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
                       const SizedBox(height: 8),
                       if (sortedStops.isEmpty)
                         const Text('No scheduled intermediate stops recorded.', style: TextStyle(color: Colors.grey, fontSize: 12))
@@ -1465,7 +1509,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                           ),
 
                           const SizedBox(height: 8),
-                          Text('Route: ${bus.routeName}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                          Text('Route: ${bus.routeName}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85))),
 
                           const Divider(height: 16),
                           const Row(

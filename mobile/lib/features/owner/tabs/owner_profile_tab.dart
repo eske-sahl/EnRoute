@@ -78,8 +78,15 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Passenger Reviews & Feedback', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              if (fleet.getUnreadReviewsCountForOwner(widget.owner.id) > 0)
+              const Expanded(
+                child: Text(
+                  'Passenger Reviews & Feedback',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (fleet.getUnreadReviewsCountForOwner(widget.owner.id) > 0) ...[
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -91,6 +98,7 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 10),
@@ -452,7 +460,7 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
     return ListTile(
       leading: Icon(icon, color: AppTheme.primaryGreen, size: 20),
       title: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-      subtitle: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
+      subtitle: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
     );
   }
 }

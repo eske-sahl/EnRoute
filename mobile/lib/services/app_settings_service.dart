@@ -424,7 +424,7 @@ class AppSettingsService extends ChangeNotifier {
                   const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    value: category,
+                    initialValue: category,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

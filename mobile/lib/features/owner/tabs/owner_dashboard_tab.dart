@@ -8,11 +8,13 @@ import '../bus_detail_page.dart';
 class OwnerDashboardTab extends StatefulWidget {
   final OwnerModel owner;
   final VoidCallback onNavigateToConductorTab;
+  final VoidCallback? onNavigateToFinancialsTab;
 
   const OwnerDashboardTab({
     super.key,
     required this.owner,
     required this.onNavigateToConductorTab,
+    this.onNavigateToFinancialsTab,
   });
 
   @override
@@ -20,6 +22,8 @@ class OwnerDashboardTab extends StatefulWidget {
 }
 
 class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
+  OwnerTimeframe _selectedTimeframe = OwnerTimeframe.daily;
+
   Color _getCategoryColor(String category) {
     if (category.contains('Red') || category.contains('Limited')) {
       return const Color(0xFFC62828);
@@ -37,55 +41,123 @@ class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
 
     // Filter strictly buses owned by this operator
     final ownerBuses = fleet.getBusesForOwner(widget.owner.id);
-    final totalCollection = fleet.getTotalCollectionForOwner(widget.owner.id);
     final activeBusesCount = fleet.getActiveBusesCountForOwner(widget.owner.id);
-    final totalTicketsSold = fleet.getTotalTicketsSoldForOwner(widget.owner.id);
-    final walletCollection = fleet.getWalletCollectionForOwner(widget.owner.id);
-    final cashInHand = fleet.getCashInHandForOwner(widget.owner.id);
+    final report = fleet.getProfitReportForOwner(widget.owner.id, _selectedTimeframe);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Top Summary Box
+          // 1. Top Summary & Profit Box
           Container(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: AppTheme.darkCardGradient,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 15,
-                  offset: const Offset(0, 6),
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Timeframe Chips (Daily / Weekly / Monthly / Yearly)
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      _dashboardTimeframePill('Daily', OwnerTimeframe.daily),
+                      _dashboardTimeframePill('Weekly', OwnerTimeframe.weekly),
+                      _dashboardTimeframePill('Monthly', OwnerTimeframe.monthly),
+                      _dashboardTimeframePill('Yearly', OwnerTimeframe.yearly),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     Text(
-                      'TODAY\'S TOTAL FLEET COLLECTION',
-                      style: TextStyle(color: Colors.white60, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold),
+                      '${report.timeframeLabel.toUpperCase()} FLEET PROFIT & REVENUE',
+                      style: const TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.1, fontWeight: FontWeight.bold),
                     ),
-                    Row(
-                      children: [
-                        Icon(Icons.circle, color: Colors.greenAccent, size: 8),
-                        SizedBox(width: 6),
-                        Text('LIVE RECONCILIATION', style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.greenAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                      ),
+                      child: Text(
+                        '${report.profitMarginPercent.toStringAsFixed(1)}% NET MARGIN',
+                        style: const TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 4),
                 Text(
-                  currency.format(totalCollection),
-                  style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: AppTheme.accentAmber),
+                  report.periodLabel,
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
                 ),
+                const SizedBox(height: 12),
+
+                // Revenue and Net Profit display
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Gross Revenue', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              currency.format(report.grossRevenue),
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text('Net Operator Profit', style: TextStyle(color: AppTheme.accentAmber, fontSize: 11, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              currency.format(report.netProfit),
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.accentAmber),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
                 const SizedBox(height: 16),
                 const Divider(color: Colors.white12),
                 const SizedBox(height: 12),
@@ -93,10 +165,39 @@ class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _metricItem('Active Buses', '$activeBusesCount', Colors.white),
-                    _metricItem('Tickets Sold', '$totalTicketsSold', Colors.white),
-                    _metricItem('Wallet (Direct)', currency.format(walletCollection), AppTheme.accentAmber),
-                    _metricItem('Cash In Hand', currency.format(cashInHand), Colors.greenAccent),
+                    _metricItem('Tickets Sold', '${report.totalTickets}', Colors.white),
+                    _metricItem('Operating Cost', currency.format(report.totalExpenses), Colors.redAccent.shade100),
+                    _metricItem('Net Profit', currency.format(report.netProfit), AppTheme.accentAmber),
                   ],
+                ),
+                const SizedBox(height: 14),
+
+                // Button linking to Full Profit & Financials Statement
+                InkWell(
+                  onTap: widget.onNavigateToFinancialsTab,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.pie_chart_outline, size: 15, color: Colors.greenAccent),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'View Fuel, Wages & Bus-by-Bus P&L Statement →',
+                            style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -105,11 +206,15 @@ class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
           const SizedBox(height: 24),
 
           // 2. Bus List Title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
               const Text('Operating Fleet Overview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: 8,
@@ -189,96 +294,103 @@ class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Stack(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: bus.isActive
-                                            ? AppTheme.primaryGreen.withValues(alpha: 0.1)
-                                            : Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        Icons.directions_bus,
-                                        color: bus.isActive ? AppTheme.primaryGreen : Colors.grey.shade600,
-                                        size: 26,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      right: 0,
-                                      bottom: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Stack(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: bus.isActive
+                                              ? AppTheme.primaryGreen.withValues(alpha: 0.1)
+                                              : Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Icon(
-                                          bus.isActive ? Icons.check_circle : Icons.cancel,
-                                          color: bus.isActive ? Colors.green : Colors.red,
-                                          size: 13,
+                                          Icons.directions_bus,
+                                          color: bus.isActive ? AppTheme.primaryGreen : Colors.grey.shade600,
+                                          size: 26,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          bus.busName,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        // Active / Inactive Badge with Icon
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: bus.isActive ? Colors.green.shade50 : Colors.red.shade50,
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(
-                                              color: bus.isActive ? Colors.green.shade300 : Colors.red.shade300,
-                                              width: 1,
-                                            ),
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                bus.isActive ? Icons.sensors : Icons.power_settings_new,
-                                                size: 11,
-                                                color: bus.isActive ? Colors.green.shade700 : Colors.red.shade700,
-                                              ),
-                                              const SizedBox(width: 3),
-                                              Text(
-                                                bus.isActive ? 'ACTIVE' : 'INACTIVE',
-                                                style: TextStyle(
-                                                  color: bus.isActive ? Colors.green.shade800 : Colors.red.shade800,
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 0.4,
+                                          child: Icon(
+                                            bus.isActive ? Icons.check_circle : Icons.cancel,
+                                            color: bus.isActive ? Colors.green : Colors.red,
+                                            size: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Wrap(
+                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          children: [
+                                            Text(
+                                              bus.busName,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                            // Active / Inactive Badge with Icon
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: bus.isActive ? Colors.green.shade50 : Colors.red.shade50,
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: bus.isActive ? Colors.green.shade300 : Colors.red.shade300,
+                                                  width: 1,
                                                 ),
                                               ),
-                                            ],
-                                          ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    bus.isActive ? Icons.sensors : Icons.power_settings_new,
+                                                    size: 11,
+                                                    color: bus.isActive ? Colors.green.shade700 : Colors.red.shade700,
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    bus.isActive ? 'ACTIVE' : 'INACTIVE',
+                                                    style: TextStyle(
+                                                      color: bus.isActive ? Colors.green.shade800 : Colors.red.shade800,
+                                                      fontSize: 9,
+                                                      fontWeight: FontWeight.bold,
+                                                      letterSpacing: 0.4,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          bus.regNumber,
+                                          style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      bus.regNumber,
-                                      style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -363,12 +475,50 @@ class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
   }
 
   Widget _metricItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
-      ],
+    return Expanded(
+      child: Column(
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dashboardTimeframePill(String label, OwnerTimeframe tf) {
+    final isSelected = _selectedTimeframe == tf;
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          setState(() {
+            _selectedTimeframe = tf;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? Colors.white : Colors.white70,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'tabs/dashboard_tab.dart';
 import 'tabs/search_tab.dart';
 import 'tabs/wallet_tab.dart';
 import 'tabs/profile_tab.dart';
+import 'widgets/passenger_ai_sheet.dart';
 
 class PassengerPortal extends StatefulWidget {
   final PassengerModel passenger;
@@ -37,7 +38,7 @@ class _PassengerPortalState extends State<PassengerPortal> {
       ),
 
       // Tab 2: Bus Search (with 2 inner tabs: Route Search & Bus by Reg No)
-      const SearchTab(),
+      SearchTab(passenger: widget.passenger),
 
       // Tab 3: Wallet Details (All transactions, recharge, upi, cash, travel history)
       WalletTab(
@@ -93,6 +94,8 @@ class _PassengerPortalState extends State<PassengerPortal> {
         ],
       ),
       body: tabs[_selectedTabIndex],
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: _buildMetaStyleAiButton(context),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedTabIndex,
         onDestinationSelected: (index) {
@@ -123,6 +126,89 @@ class _PassengerPortalState extends State<PassengerPortal> {
             label: 'Profile',
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMetaStyleAiButton(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6, right: 2),
+      child: Material(
+        key: const Key('passenger_ai_floating_button'),
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        elevation: 6,
+        shadowColor: const Color(0xFF0072FF).withValues(alpha: 0.45),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => PassengerAiSheet.show(context, passenger: widget.passenger),
+          child: Tooltip(
+            message: 'Ask EnRoute AI Assistant',
+            child: Container(
+              width: 52,
+              height: 52,
+              padding: const EdgeInsets.all(2.5),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: SweepGradient(
+                  colors: [
+                    Color(0xFF00C6FF),
+                    Color(0xFF0072FF),
+                    Color(0xFF8E2DE2),
+                    Color(0xFFF355DA),
+                    Color(0xFF00C6FF),
+                  ],
+                ),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark ? const Color(0xFF1B222A) : Colors.white,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [Color(0xFF00C6FF), Color(0xFF8E2DE2)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds),
+                      child: const Icon(
+                        Icons.auto_awesome,
+                        size: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Positioned(
+                      right: 3,
+                      bottom: 3,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'AI',
+                          style: TextStyle(
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

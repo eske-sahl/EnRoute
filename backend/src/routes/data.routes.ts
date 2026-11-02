@@ -464,12 +464,12 @@ router.put('/conductors/:id', (req: Request, res: Response) => {
   const c = data.conductors[idx];
   data.conductors[idx] = {
     ...c,
-    fullName: req.body.fullName || c.fullName,
-    phoneNumber: req.body.phoneNumber || c.phoneNumber,
-    licenseNumber: req.body.licenseNumber || c.licenseNumber,
-    assignedBusReg: req.body.assignedBusReg || c.assignedBusReg,
-    assignedBusName: req.body.assignedBusName || c.assignedBusName,
-    status: req.body.status || c.status,
+    fullName: req.body.fullName !== undefined ? req.body.fullName : c.fullName,
+    phoneNumber: req.body.phoneNumber !== undefined ? req.body.phoneNumber : c.phoneNumber,
+    licenseNumber: req.body.licenseNumber !== undefined ? req.body.licenseNumber : c.licenseNumber,
+    assignedBusReg: req.body.assignedBusReg !== undefined ? req.body.assignedBusReg : c.assignedBusReg,
+    assignedBusName: req.body.assignedBusName !== undefined ? req.body.assignedBusName : c.assignedBusName,
+    status: req.body.status !== undefined ? req.body.status : c.status,
   };
 
   saveState(data);
@@ -1268,6 +1268,54 @@ router.get('/', (req: Request, res: Response) => {
     </div>
   </div>
 
+  <!-- Edit Conductor Modal -->
+  <div class="modal-overlay" id="modal-edit-cond">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit Conductor Details</h3>
+        <button class="btn btn-sm" style="background:transparent;" onclick="closeModal('modal-edit-cond')">✕</button>
+      </div>
+      <form onsubmit="submitEditConductor(event)">
+        <input type="hidden" id="edit-c-id">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="edit-c-name" class="form-input" required placeholder="e.g. Anil Varghese">
+        </div>
+        <div class="form-group">
+          <label>User ID (Conductor Login Username)</label>
+          <input type="text" id="edit-c-user" class="form-input" disabled style="opacity:0.75; cursor:not-allowed;">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="edit-c-phone" class="form-input" placeholder="+91 98470 XXXXX">
+        </div>
+        <div class="form-group">
+          <label>Conductor License Number</label>
+          <input type="text" id="edit-c-lic" class="form-input" placeholder="KL-MVD-COND-XXXX">
+        </div>
+        <div class="form-group">
+          <label>Assigned Bus Registration</label>
+          <input type="text" id="edit-c-bus" class="form-input" placeholder="e.g. KL 07 CD 4589" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group">
+          <label>Assigned Bus Display Name</label>
+          <input type="text" id="edit-c-busname" class="form-input" placeholder="e.g. St. Antony Fast Passenger">
+        </div>
+        <div class="form-group">
+          <label>Duty Status</label>
+          <select id="edit-c-status" class="form-input">
+            <option value="ACTIVE">ACTIVE / ON DUTY</option>
+            <option value="OFF_DUTY">OFF DUTY / LEAVE</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm" style="background:#374151;" onclick="closeModal('modal-edit-cond')">Cancel</button>
+          <button type="submit" class="btn">Save Conductor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" class="toast">Action completed successfully</div>
 
   <script>
@@ -1451,6 +1499,44 @@ router.get('/', (req: Request, res: Response) => {
         closeModal('modal-add-cond');
         showToast('Conductor created successfully!');
         setTimeout(() => location.reload(), 500);
+      }
+    }
+
+    function openEditConductorModal(c) {
+      document.getElementById('edit-c-id').value = c.id || '';
+      document.getElementById('edit-c-name').value = c.fullName || '';
+      document.getElementById('edit-c-user').value = c.userId || '';
+      document.getElementById('edit-c-phone').value = c.phoneNumber || '';
+      document.getElementById('edit-c-lic').value = c.licenseNumber || '';
+      document.getElementById('edit-c-bus').value = c.assignedBusReg || '';
+      document.getElementById('edit-c-busname').value = c.assignedBusName || '';
+      document.getElementById('edit-c-status').value = c.status || 'ACTIVE';
+      openModal('modal-edit-cond');
+    }
+
+    async function submitEditConductor(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-c-id').value;
+      const payload = {
+        fullName: document.getElementById('edit-c-name').value,
+        phoneNumber: document.getElementById('edit-c-phone').value,
+        licenseNumber: document.getElementById('edit-c-lic').value,
+        assignedBusReg: document.getElementById('edit-c-bus').value,
+        assignedBusName: document.getElementById('edit-c-busname').value,
+        status: document.getElementById('edit-c-status').value
+      };
+      const res = await fetch('/api/data/conductors/' + encodeURIComponent(id), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-edit-cond');
+        showToast('Conductor details updated successfully!');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert('Failed to update conductor: ' + (err.message || 'Server error'));
       }
     }
 

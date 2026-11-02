@@ -366,6 +366,9 @@ class BusModel {
   double currentLongitude;
   String conductorLocationString;
 
+  // Stop-to-Stop Fare Chart Matrix
+  Map<String, double> customFareChart;
+
   BusModel({
     required this.id,
     this.ownerId = 'OWNER-1',
@@ -399,8 +402,92 @@ class BusModel {
     this.currentLatitude = 10.1076,
     this.currentLongitude = 76.3516,
     this.conductorLocationString = 'Near Pump Junction, Aluva (Conductor Device GPS)',
-  }) {
+    Map<String, double>? customFareChart,
+  }) : customFareChart = customFareChart ?? {} {
     sortStops();
+    initDefaultFareChart();
+  }
+
+  void initDefaultFareChart({bool force = false}) {
+    if (customFareChart.isEmpty || force) {
+      customFareChart.clear();
+      final all = allRouteStops;
+      for (int i = 0; i < all.length; i++) {
+        for (int j = i + 1; j < all.length; j++) {
+          final diff = (j - i).abs();
+          double f = 10.0;
+          if (diff == 1) {
+            f = 10.0;
+          } else if (diff == 2) {
+            f = 14.0;
+          } else if (diff == 3) {
+            f = 18.0;
+          } else if (diff == 4) {
+            f = 22.0;
+          } else {
+            f = 10.0 + (diff * 4.0);
+          }
+          final k1 = '${all[i].trim().toLowerCase()}->${all[j].trim().toLowerCase()}';
+          final k2 = '${all[j].trim().toLowerCase()}->${all[i].trim().toLowerCase()}';
+          customFareChart[k1] = f;
+          customFareChart[k2] = f;
+        }
+      }
+    }
+  }
+
+  List<String> get allRouteStops {
+    final list = <String>[];
+    if (startPoint.trim().isNotEmpty) list.add(startPoint.trim());
+    for (final s in stops) {
+      if (s.stopName.trim().isNotEmpty && !list.contains(s.stopName.trim())) {
+        list.add(s.stopName.trim());
+      }
+    }
+    if (destPoint.trim().isNotEmpty && !list.contains(destPoint.trim())) {
+      list.add(destPoint.trim());
+    }
+    return list;
+  }
+
+  double getFareFor(String fromStop, String toStop, {bool isStudent = false}) {
+    if (isStudent) return 5.0; // Kerala Student Concession fixed at ₹5
+    final cleanFrom = fromStop.trim().toLowerCase();
+    final cleanTo = toStop.trim().toLowerCase();
+    if (cleanFrom.isEmpty || cleanTo.isEmpty || cleanFrom == cleanTo) return 10.0;
+
+    final key1 = '$cleanFrom->$cleanTo';
+    final key2 = '$cleanTo->$cleanFrom';
+    if (customFareChart.containsKey(key1)) return customFareChart[key1]!;
+    if (customFareChart.containsKey(key2)) return customFareChart[key2]!;
+
+    final all = allRouteStops;
+    int fromIdx = all.indexWhere((s) => s.trim().toLowerCase() == cleanFrom);
+    int toIdx = all.indexWhere((s) => s.trim().toLowerCase() == cleanTo);
+
+    if (fromIdx != -1 && toIdx != -1) {
+      int diff = (toIdx - fromIdx).abs();
+      if (diff <= 1) return 10.0;
+      if (diff == 2) return 14.0;
+      if (diff == 3) return 18.0;
+      if (diff == 4) return 22.0;
+      return 10.0 + (diff * 4.0);
+    }
+    return 14.0;
+  }
+
+  void setCustomFare(String fromStop, String toStop, double fare) {
+    final cleanFrom = fromStop.trim().toLowerCase();
+    final cleanTo = toStop.trim().toLowerCase();
+    customFareChart['$cleanFrom->$cleanTo'] = fare;
+    customFareChart['$cleanTo->$cleanFrom'] = fare;
+  }
+
+  void removeCustomFare(String fromStop, String toStop) {
+    final cleanFrom = fromStop.trim().toLowerCase();
+    final cleanTo = toStop.trim().toLowerCase();
+    customFareChart.remove('$cleanFrom->$cleanTo');
+    customFareChart.remove('$cleanTo->$cleanFrom');
   }
 
   void sortStops() {
@@ -444,6 +531,7 @@ class BusModel {
     'currentLatitude': currentLatitude,
     'currentLongitude': currentLongitude,
     'conductorLocationString': conductorLocationString,
+    'customFareChart': customFareChart,
   };
 
   factory BusModel.fromJson(Map<String, dynamic> json) => BusModel(
@@ -482,6 +570,8 @@ class BusModel {
     currentLatitude: (json['currentLatitude'] as num?)?.toDouble() ?? 10.0,
     currentLongitude: (json['currentLongitude'] as num?)?.toDouble() ?? 76.0,
     conductorLocationString: (json['conductorLocationString'] as String?) ?? '',
+    customFareChart: (json['customFareChart'] as Map?)
+        ?.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
   );
 }
 
@@ -542,6 +632,96 @@ class ConductorModel {
     assignedBusName: (json['assignedBusName'] as String?) ?? '',
     todayCollection: (json['todayCollection'] as num?)?.toDouble() ?? 0.0,
   );
+}
+
+enum OwnerTimeframe { daily, weekly, monthly, yearly }
+
+class BusProfitBreakdown {
+  final String busRegNumber;
+  final String busName;
+  final String category;
+  final String routeName;
+  final String conductorName;
+  final String driverName;
+  final bool isActive;
+  final double grossRevenue;
+  final double fuelExpense; // 42%
+  final double crewWages; // 24%
+  final double maintenanceReserve; // 8%
+  final double roadTaxAndPermits; // 5%
+  final double totalExpenses; // 79%
+  final double netProfit; // 21%
+  final double profitMarginPercent; // 21.0%
+  final int ticketsCount;
+  final int tripsCount;
+  final double avgTicketFare;
+  final String statusBadge;
+
+  const BusProfitBreakdown({
+    required this.busRegNumber,
+    required this.busName,
+    required this.category,
+    required this.routeName,
+    required this.conductorName,
+    required this.driverName,
+    required this.isActive,
+    required this.grossRevenue,
+    required this.fuelExpense,
+    required this.crewWages,
+    required this.maintenanceReserve,
+    required this.roadTaxAndPermits,
+    required this.totalExpenses,
+    required this.netProfit,
+    required this.profitMarginPercent,
+    required this.ticketsCount,
+    required this.tripsCount,
+    required this.avgTicketFare,
+    required this.statusBadge,
+  });
+}
+
+class OwnerProfitReport {
+  final OwnerTimeframe timeframe;
+  final String timeframeLabel;
+  final String periodLabel;
+  final double grossRevenue;
+  final double fuelExpense;
+  final double crewWages;
+  final double maintenanceReserve;
+  final double roadTaxAndPermits;
+  final double totalExpenses;
+  final double netProfit;
+  final double profitMarginPercent;
+  final int totalTickets;
+  final int totalTrips;
+  final double walletRevenue;
+  final double cashRevenue;
+  final double upiRevenue;
+  final double avgRevenuePerBus;
+  final double avgRevenuePerTrip;
+  final List<BusProfitBreakdown> busBreakdowns;
+
+  const OwnerProfitReport({
+    required this.timeframe,
+    required this.timeframeLabel,
+    required this.periodLabel,
+    required this.grossRevenue,
+    required this.fuelExpense,
+    required this.crewWages,
+    required this.maintenanceReserve,
+    required this.roadTaxAndPermits,
+    required this.totalExpenses,
+    required this.netProfit,
+    required this.profitMarginPercent,
+    required this.totalTickets,
+    required this.totalTrips,
+    required this.walletRevenue,
+    required this.cashRevenue,
+    required this.upiRevenue,
+    required this.avgRevenuePerBus,
+    required this.avgRevenuePerTrip,
+    required this.busBreakdowns,
+  });
 }
 
 class FleetState extends ChangeNotifier {
@@ -1315,6 +1495,165 @@ class FleetState extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool updateConductor(ConductorModel updated) {
+    final idx = conductors.indexWhere((c) => c.id == updated.id);
+    if (idx != -1) {
+      conductors[idx] = updated;
+      for (final bus in buses) {
+        if (bus.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() ==
+            updated.assignedBusReg.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase()) {
+          bus.conductorName = updated.name;
+          bus.conductorPhone = updated.phone;
+          bus.conductorEmail = updated.email;
+        }
+      }
+      _persistConductors();
+      _persistBuses();
+      _pushStateToBackend();
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  static String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    if (month >= 1 && month <= 12) return months[month - 1];
+    return '';
+  }
+
+  OwnerProfitReport getProfitReportForOwner(String ownerId, OwnerTimeframe timeframe) {
+    final ownerBuses = getBusesForOwner(ownerId);
+    final now = DateTime.now();
+
+    double multiplier = 1.0;
+    String timeframeLabel = 'Daily (Today)';
+    String periodLabel = 'Today, ${now.day} ${_getMonthName(now.month)} ${now.year}';
+
+    switch (timeframe) {
+      case OwnerTimeframe.daily:
+        multiplier = 1.0;
+        timeframeLabel = 'Daily (Today)';
+        periodLabel = 'Today, ${now.day} ${_getMonthName(now.month)} ${now.year}';
+        break;
+      case OwnerTimeframe.weekly:
+        multiplier = 7.0;
+        timeframeLabel = 'Weekly (Last 7 Days)';
+        final weekAgo = now.subtract(const Duration(days: 6));
+        periodLabel = '${weekAgo.day} ${_getMonthName(weekAgo.month)} - ${now.day} ${_getMonthName(now.month)} ${now.year}';
+        break;
+      case OwnerTimeframe.monthly:
+        multiplier = 30.0;
+        timeframeLabel = 'Monthly (Current Month)';
+        periodLabel = '${_getMonthName(now.month)} ${now.year} (30 Days)';
+        break;
+      case OwnerTimeframe.yearly:
+        multiplier = 350.0;
+        timeframeLabel = 'Yearly (Annual FY)';
+        periodLabel = 'FY ${now.year}-${(now.year + 1) % 100} (Annual Schedule)';
+        break;
+    }
+
+    final busBreakdowns = <BusProfitBreakdown>[];
+
+    for (final bus in ownerBuses) {
+      final busTickets = getTicketsForBus(bus.regNumber);
+      final ticketSum = busTickets.fold<double>(0.0, (s, t) => s + t.fare);
+
+      final double busDailyGross = bus.todayCollection > 0
+          ? bus.todayCollection
+          : (ticketSum > 0 ? ticketSum : 5800.0);
+      final int busDailyTickets = bus.ticketsCount > 0
+          ? bus.ticketsCount
+          : (busTickets.isNotEmpty ? busTickets.length : 38);
+
+      final double gross = busDailyGross * multiplier;
+      final int tickets = (busDailyTickets * multiplier).round();
+      final int trips = (tickets > 0 ? (tickets / 36.0).ceil() : (multiplier * 4).round());
+
+      final double fuel = gross * 0.42;
+      final double crew = gross * 0.24;
+      final double maint = gross * 0.08;
+      final double taxPermits = gross * 0.05;
+      final double totalExp = fuel + crew + maint + taxPermits;
+      final double net = gross - totalExp;
+      final double margin = gross > 0 ? (net / gross) * 100 : 0.0;
+      final double avgFare = tickets > 0 ? gross / tickets : 15.0;
+
+      String badge = 'STABLE PROFIT';
+      if (!bus.isActive) {
+        badge = 'DEPOT STANDBY';
+      } else if (margin >= 20.0) {
+        badge = 'HIGH PROFIT';
+      }
+
+      busBreakdowns.add(BusProfitBreakdown(
+        busRegNumber: bus.regNumber,
+        busName: bus.busName,
+        category: bus.category,
+        routeName: bus.routeName,
+        conductorName: bus.conductorName,
+        driverName: bus.driverName,
+        isActive: bus.isActive,
+        grossRevenue: gross,
+        fuelExpense: fuel,
+        crewWages: crew,
+        maintenanceReserve: maint,
+        roadTaxAndPermits: taxPermits,
+        totalExpenses: totalExp,
+        netProfit: net,
+        profitMarginPercent: margin,
+        ticketsCount: tickets,
+        tripsCount: trips,
+        avgTicketFare: avgFare,
+        statusBadge: badge,
+      ));
+    }
+
+    final double grossRevenue = busBreakdowns.fold(0.0, (s, b) => s + b.grossRevenue);
+    final double fuelExpense = busBreakdowns.fold(0.0, (s, b) => s + b.fuelExpense);
+    final double crewWages = busBreakdowns.fold(0.0, (s, b) => s + b.crewWages);
+    final double maintenanceReserve = busBreakdowns.fold(0.0, (s, b) => s + b.maintenanceReserve);
+    final double roadTaxAndPermits = busBreakdowns.fold(0.0, (s, b) => s + b.roadTaxAndPermits);
+    final double totalExpenses = fuelExpense + crewWages + maintenanceReserve + roadTaxAndPermits;
+    final double netProfit = grossRevenue - totalExpenses;
+    final double profitMarginPercent = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0.0;
+    final int totalTickets = busBreakdowns.fold(0, (s, b) => s + b.ticketsCount);
+    final int totalTrips = busBreakdowns.fold(0, (s, b) => s + b.tripsCount);
+
+    final double walletRevenue = grossRevenue * 0.65;
+    final double cashRevenue = grossRevenue * 0.25;
+    final double upiRevenue = grossRevenue * 0.10;
+
+    final double avgRevenuePerBus = ownerBuses.isNotEmpty ? grossRevenue / ownerBuses.length : 0.0;
+    final double avgRevenuePerTrip = totalTrips > 0 ? grossRevenue / totalTrips : 0.0;
+
+    return OwnerProfitReport(
+      timeframe: timeframe,
+      timeframeLabel: timeframeLabel,
+      periodLabel: periodLabel,
+      grossRevenue: grossRevenue,
+      fuelExpense: fuelExpense,
+      crewWages: crewWages,
+      maintenanceReserve: maintenanceReserve,
+      roadTaxAndPermits: roadTaxAndPermits,
+      totalExpenses: totalExpenses,
+      netProfit: netProfit,
+      profitMarginPercent: profitMarginPercent,
+      totalTickets: totalTickets,
+      totalTrips: totalTrips,
+      walletRevenue: walletRevenue,
+      cashRevenue: cashRevenue,
+      upiRevenue: upiRevenue,
+      avgRevenuePerBus: avgRevenuePerBus,
+      avgRevenuePerTrip: avgRevenuePerTrip,
+      busBreakdowns: busBreakdowns,
+    );
+  }
+
   // Global / General Fleet Queries
   double get totalCollection => buses.fold(0.0, (sum, b) => sum + b.todayCollection);
   int get totalTicketsSold => buses.fold(0, (sum, b) => sum + b.ticketsCount);
@@ -1531,4 +1870,123 @@ class FleetState extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void setBusStopFare(String busReg, String fromStop, String toStop, double fare) {
+    final bus = getBusByReg(busReg);
+    if (bus != null) {
+      bus.setCustomFare(fromStop, toStop, fare);
+      _persistBuses();
+      notifyListeners();
+    }
+  }
+
+  void removeBusStopFare(String busReg, String fromStop, String toStop) {
+    final bus = getBusByReg(busReg);
+    if (bus != null) {
+      bus.removeCustomFare(fromStop, toStop);
+      _persistBuses();
+      notifyListeners();
+    }
+  }
+
+  LoginResult authenticateUnifiedUser({required String identifier, required String password}) {
+    final clean = identifier.trim();
+    final cleanLower = clean.toLowerCase();
+    final cleanPass = password.trim();
+
+    if (clean.isEmpty || cleanPass.isEmpty) {
+      return LoginResult(success: false, errorMessage: 'Please enter your ID/Mobile/Email and password.');
+    }
+
+    // 1. Conductor Authentication: Must enter their assigned Conductor User ID (e.g. 'suresh.conductor')
+    final conductor = conductors.firstWhere(
+      (c) => c.userId.toLowerCase() == cleanLower || c.id.toLowerCase() == cleanLower,
+      orElse: () => ConductorModel(
+        id: '',
+        userId: '',
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        licenseNumber: '',
+        assignedBusReg: '',
+        assignedBusName: '',
+      ),
+    );
+    if (conductor.id.isNotEmpty) {
+      if (conductor.password == cleanPass) {
+        return LoginResult(success: true, role: 'CONDUCTOR', userModel: conductor);
+      } else {
+        return LoginResult(success: false, errorMessage: 'Incorrect password for Conductor ${conductor.name}.');
+      }
+    }
+
+    // 2. Owner Authentication: Can log in with Owner ID, Phone Number, or Email
+    final owner = registeredOwners.firstWhere(
+      (o) =>
+          o.id.toLowerCase() == cleanLower ||
+          o.email.toLowerCase() == cleanLower ||
+          o.phone.replaceAll(' ', '').contains(clean) ||
+          clean.replaceAll(' ', '') == o.phone.replaceAll(' ', ''),
+      orElse: () => OwnerModel(
+        id: '',
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        companyName: '',
+        registeredAt: DateTime.now(),
+      ),
+    );
+    if (owner.id.isNotEmpty) {
+      if (owner.password == cleanPass) {
+        return LoginResult(success: true, role: 'OWNER', userModel: owner);
+      } else {
+        return LoginResult(success: false, errorMessage: 'Incorrect password for Owner ${owner.name}.');
+      }
+    }
+
+    // 3. Passenger Authentication: Can log in with Passenger ID (e.g. 'SBK-KL-987263'), Email, or Mobile Phone
+    final passenger = registeredPassengers.firstWhere(
+      (p) =>
+          p.id.toLowerCase() == cleanLower ||
+          p.email.toLowerCase() == cleanLower ||
+          p.phone.replaceAll(' ', '').contains(clean) ||
+          clean.replaceAll(' ', '') == p.phone.replaceAll(' ', ''),
+      orElse: () => PassengerModel(
+        id: '',
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        registeredAt: DateTime.now(),
+      ),
+    );
+    if (passenger.id.isNotEmpty) {
+      if (passenger.password == cleanPass) {
+        return LoginResult(success: true, role: 'PASSENGER', userModel: passenger);
+      } else {
+        return LoginResult(success: false, errorMessage: 'Incorrect password for Passenger ${passenger.name}.');
+      }
+    }
+
+    return LoginResult(
+      success: false,
+      errorMessage: 'No account found matching "$clean". Please check credentials or register a new account.',
+    );
+  }
+}
+
+class LoginResult {
+  final bool success;
+  final String? role; // 'CONDUCTOR', 'OWNER', 'PASSENGER'
+  final dynamic userModel;
+  final String? errorMessage;
+
+  LoginResult({
+    required this.success,
+    this.role,
+    this.userModel,
+    this.errorMessage,
+  });
 }

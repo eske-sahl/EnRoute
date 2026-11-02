@@ -220,12 +220,18 @@ class _WalletTabState extends State<WalletTab> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? const Color(0xFF334155)
+                                    : Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 'METHOD: ${tx.type}',
-                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54),
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                ),
                               ),
                             ),
                           ],
@@ -236,7 +242,7 @@ class _WalletTabState extends State<WalletTab> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: isCredit ? Colors.green : Colors.black87,
+                          color: isCredit ? Colors.green : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -260,7 +266,7 @@ class _WalletTabState extends State<WalletTab> {
         selected: isSelected,
         selectedColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
         labelStyle: TextStyle(
-          color: isSelected ? AppTheme.primaryGreen : Colors.black87,
+          color: isSelected ? AppTheme.primaryGreen : Theme.of(context).colorScheme.onSurface,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           fontSize: 12,
         ),

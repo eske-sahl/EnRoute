@@ -274,7 +274,9 @@ class DashboardTab extends StatelessWidget {
                   style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 18),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -286,7 +288,6 @@ class DashboardTab extends StatelessWidget {
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text('Add Money'),
                     ),
-                    const SizedBox(width: 12),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
@@ -315,12 +316,14 @@ class DashboardTab extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Personal Digital Pass', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text('Conductor scans this to issue tickets', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Personal Digital Pass', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('Conductor scans this to issue tickets', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.fullscreen, color: AppTheme.primaryGreen),
@@ -347,7 +350,14 @@ class DashboardTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(passenger.id, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.black54)),
+                  Text(
+                    passenger.id,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -359,7 +369,10 @@ class DashboardTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Recent Ticket History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Flexible(
+                child: Text('Recent Ticket History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 8),
               Text('${issuedTickets.length} journeys', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),

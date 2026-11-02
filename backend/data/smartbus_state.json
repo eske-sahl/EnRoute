@@ -17,7 +17,7 @@
       "fullName": "Anjali Nair",
       "email": "passenger@gmail.com",
       "phoneNumber": "9847000004",
-      "walletBalance": 217,
+      "walletBalance": 187,
       "concessionCategory": "General / Adult Standard",
       "homeStation": "Aluva Stand, Ernakulam",
       "status": "ACTIVE",
@@ -103,8 +103,8 @@
       "seatingCapacity": 48,
       "isTripActive": false,
       "status": "STOPPED / DEPOT",
-      "todayCollection": 6420,
-      "ticketsSold": 168,
+      "todayCollection": 6450,
+      "ticketsSold": 169,
       "workers": {
         "driver": "Venu Pillai (Badge #KL4201)",
         "conductor": "Suresh Kumar",
@@ -218,12 +218,32 @@
       "destPoint": "Nilambur",
       "seatingCapacity": 48,
       "isTripActive": false,
-      "status": "STOPPED",
+      "status": "STOPPED / DEPOT",
       "todayCollection": 92,
       "ticketsSold": 3
     }
   ],
   "tickets": [
+    {
+      "id": "TCK-1793641140787",
+      "ticketNumber": "KL-SBK-0211-1004",
+      "busRegNumber": "KL 07 CD 4589",
+      "busName": "SpeedWings",
+      "conductorId": "COND-1",
+      "conductorName": "Suresh Kumar",
+      "passengerId": "SBK-KL-987263",
+      "passengerName": "Anjali Nair",
+      "boardingStop": "Aluva Stand",
+      "destStop": "Perumbavoor Stand",
+      "fare": 30,
+      "category": "General",
+      "paymentMode": "SMART_WALLET",
+      "cashGiven": 0,
+      "changeReturned": 0,
+      "splitCash": 0,
+      "splitUpi": 0,
+      "issuedAt": "2026-11-02T23:09:00.787"
+    },
     {
       "id": "TCK-1792471817715",
       "ticketNumber": "KL-SBK-2010-1003",

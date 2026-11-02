@@ -18,7 +18,7 @@ class AppSettingsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              settings.t('theme') + ' & ' + settings.t('language'),
+              '${settings.t('theme')} & ${settings.t('language')}',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 10),
@@ -49,7 +49,7 @@ class AppSettingsSection extends StatelessWidget {
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     value: isDark,
-                    activeColor: AppTheme.primaryGreen,
+                    activeThumbColor: AppTheme.primaryGreen,
                     onChanged: (val) {
                       settings.toggleTheme();
                     },

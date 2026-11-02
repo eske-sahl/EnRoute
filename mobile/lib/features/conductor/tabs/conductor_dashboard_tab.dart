@@ -135,23 +135,13 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
     });
   }
 
-  // Calculate standard stage fare based on route schedule & Kerala tariff rules
+  // Calculate standard stage fare based on conductor's fare chart & Kerala tariff rules
   double _calculateStageFare() {
-    if (_category == 'Student Concession') {
-      return 5.0; // Kerala Student Concession fixed at ₹5
-    }
-
-    // General Tariff
-    int bIndex = _bus.stops.indexWhere((s) => s.stopName.toLowerCase() == _boardingController.text.trim().toLowerCase());
-    int dIndex = _bus.stops.indexWhere((s) => s.stopName.toLowerCase() == _destController.text.trim().toLowerCase());
-
-    if (bIndex == -1) bIndex = 0;
-    if (dIndex == -1) dIndex = _bus.stops.length > 1 ? _bus.stops.length - 1 : 1;
-
-    int stages = (dIndex - bIndex).abs();
-    if (stages == 0) stages = 1;
-
-    return (10.0 + (stages - 1) * 3.5).clamp(10.0, 75.0);
+    return _bus.getFareFor(
+      _boardingController.text,
+      _destController.text,
+      isStudent: _category == 'Student Concession',
+    );
   }
 
   void _syncFareWithStage() {
@@ -807,7 +797,9 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
-                                color: _connectionTab == 0 ? Colors.white : Colors.transparent,
+                                color: _connectionTab == 0
+                                    ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : Colors.white)
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: _connectionTab == 0
                                     ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)]
@@ -824,7 +816,9 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: _connectionTab == 0 ? FontWeight.bold : FontWeight.normal,
-                                      color: _connectionTab == 0 ? Colors.black87 : Colors.grey,
+                                      color: _connectionTab == 0
+                                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+                                          : Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -838,7 +832,9 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
-                                color: _connectionTab == 1 ? Colors.white : Colors.transparent,
+                                color: _connectionTab == 1
+                                    ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : Colors.white)
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: _connectionTab == 1
                                     ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)]
@@ -855,7 +851,9 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: _connectionTab == 1 ? FontWeight.bold : FontWeight.normal,
-                                      color: _connectionTab == 1 ? Colors.black87 : Colors.grey,
+                                      color: _connectionTab == 1
+                                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+                                          : Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -1157,17 +1155,20 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                             itemCount: _boardingSuggestions.length,
                             itemBuilder: (ctx, i) {
                               final place = _boardingSuggestions[i];
-                              return ListTile(
-                                dense: true,
-                                leading: const Icon(Icons.place, size: 16, color: AppTheme.primaryGreen),
-                                title: Text(place, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                                onTap: () {
-                                  setState(() {
-                                    _boardingController.text = place;
-                                    _showBoardingSuggestions = false;
-                                    _syncFareWithStage();
-                                  });
-                                },
+                              return Material(
+                                color: Colors.transparent,
+                                child: ListTile(
+                                  dense: true,
+                                  leading: const Icon(Icons.place, size: 16, color: AppTheme.primaryGreen),
+                                  title: Text(place, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                                  onTap: () {
+                                    setState(() {
+                                      _boardingController.text = place;
+                                      _showBoardingSuggestions = false;
+                                      _syncFareWithStage();
+                                    });
+                                  },
+                                ),
                               );
                             },
                           ),
@@ -1209,17 +1210,20 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                             itemCount: _destSuggestions.length,
                             itemBuilder: (ctx, i) {
                               final place = _destSuggestions[i];
-                              return ListTile(
-                                dense: true,
-                                leading: const Icon(Icons.place, size: 16, color: Colors.red),
-                                title: Text(place, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                                onTap: () {
-                                  setState(() {
-                                    _destController.text = place;
-                                    _showDestSuggestions = false;
-                                    _syncFareWithStage();
-                                  });
-                                },
+                              return Material(
+                                color: Colors.transparent,
+                                child: ListTile(
+                                  dense: true,
+                                  leading: const Icon(Icons.place, size: 16, color: Colors.red),
+                                  title: Text(place, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                                  onTap: () {
+                                    setState(() {
+                                      _destController.text = place;
+                                      _showDestSuggestions = false;
+                                      _syncFareWithStage();
+                                    });
+                                  },
+                                ),
                               );
                             },
                           ),
@@ -1540,7 +1544,14 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Latest Issued Tickets (${_bus.busName})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Flexible(
+                child: Text(
+                  'Latest Issued Tickets (${_bus.busName})',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               Text('${latestTickets.length} recent', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
@@ -1774,14 +1785,22 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
             ),
             child: Column(
               children: [
-                Icon(icon, size: 18, color: isSelected ? Colors.white : Colors.black87),
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected
+                      ? Colors.white
+                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   label,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Colors.white : Colors.black87,
+                    color: isSelected
+                        ? Colors.white
+                        : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
                   ),
                 ),
               ],

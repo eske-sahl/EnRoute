@@ -17,3 +17,5 @@ mobile/.pub/
 .idea/
 .vscode/
 *.log
+*.apk
+*.aab

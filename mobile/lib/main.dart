@@ -7,6 +7,7 @@ import 'features/passenger/passenger_portal.dart';
 import 'features/conductor/conductor_portal.dart';
 import 'features/owner/owner_portal.dart';
 
+import 'features/splash/splash_screen.dart';
 import 'services/app_settings_service.dart';
 
 void main() async {
@@ -17,7 +18,8 @@ void main() async {
 }
 
 class EnRouteApp extends StatelessWidget {
-  const EnRouteApp({super.key});
+  final bool showSplashFirst;
+  const EnRouteApp({super.key, this.showSplashFirst = true});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class EnRouteApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: AppSettingsService.instance.themeMode,
-          home: const AppRootNavigationController(),
+          home: AppRootNavigationController(showSplashFirst: showSplashFirst),
         );
       },
     );
@@ -41,14 +43,16 @@ class EnRouteApp extends StatelessWidget {
 typedef SmartBusKeralaApp = EnRouteApp;
 
 class AppRootNavigationController extends StatefulWidget {
-  const AppRootNavigationController({super.key});
+  final bool showSplashFirst;
+  const AppRootNavigationController({super.key, this.showSplashFirst = true});
 
   @override
   State<AppRootNavigationController> createState() => _AppRootNavigationControllerState();
 }
 
 class _AppRootNavigationControllerState extends State<AppRootNavigationController> {
-  // Authentication State
+  // Splash & Authentication State
+  late bool _showingSplash;
   bool _isLoggedIn = false; // Starts at Login Page as requested
   String _userRole = 'PASSENGER'; // 'PASSENGER', 'CONDUCTOR', 'OWNER'
   String _userEmail = 'passenger@gmail.com';
@@ -59,6 +63,7 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
   @override
   void initState() {
     super.initState();
+    _showingSplash = widget.showSplashFirst;
     _pingBackend();
   }
 
@@ -120,7 +125,18 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
     return ListenableBuilder(
       listenable: FleetState.instance,
       builder: (context, _) {
-        // 1. Initial State: User sees Login Page
+        // 0. Initial State: Show Splash Screen if first entry
+        if (_showingSplash) {
+          return SplashScreen(
+            onFinish: () {
+              setState(() {
+                _showingSplash = false;
+              });
+            },
+          );
+        }
+
+        // 1. User sees Login Page
         if (!_isLoggedIn) {
           return LoginScreen(onLoginSuccess: _handleLogin);
         }

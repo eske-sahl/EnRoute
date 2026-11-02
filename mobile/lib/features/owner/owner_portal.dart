@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
 import 'tabs/owner_dashboard_tab.dart';
+import 'tabs/owner_financials_tab.dart';
 import 'tabs/owner_bus_list_tab.dart';
 import 'tabs/owner_conductor_tab.dart';
 import 'tabs/owner_profile_tab.dart';
@@ -25,7 +26,13 @@ class _OwnerPortalState extends State<OwnerPortal> {
 
   void _navigateToConductorTab() {
     setState(() {
-      _selectedTabIndex = 2; // Jump to Conductor tab
+      _selectedTabIndex = 3; // Jump to Conductor tab
+    });
+  }
+
+  void _navigateToFinancialsTab() {
+    setState(() {
+      _selectedTabIndex = 1; // Jump to Profit & Financials tab
     });
   }
 
@@ -36,20 +43,26 @@ class _OwnerPortalState extends State<OwnerPortal> {
       OwnerDashboardTab(
         owner: widget.owner,
         onNavigateToConductorTab: _navigateToConductorTab,
+        onNavigateToFinancialsTab: _navigateToFinancialsTab,
       ),
 
-      // Tab 2: My Buses (Fleet management & + Register Bus)
+      // Tab 2: Profit & Financial Analytics (Daily, Weekly, Monthly, Yearly)
+      OwnerFinancialsTab(
+        owner: widget.owner,
+      ),
+
+      // Tab 3: My Buses (Fleet management & + Register Bus)
       OwnerBusListTab(
         owner: widget.owner,
         onNavigateToConductorTab: _navigateToConductorTab,
       ),
 
-      // Tab 3: Conductor List (Add Conductor credentials)
+      // Tab 4: Conductor List (Add & Edit Conductor credentials)
       OwnerConductorTab(
         owner: widget.owner,
       ),
 
-      // Tab 4: Owner Profile & Settings
+      // Tab 5: Owner Profile & Settings
       OwnerProfileTab(
         owner: widget.owner,
         onLogout: widget.onLogout,
@@ -58,6 +71,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
 
     final titles = [
       'Owner Fleet Dashboard',
+      'Profit & Financial Analytics',
       'My Bus Fleet & Routes',
       'Conductor Directory',
       'Owner Profile & Permits',
@@ -84,7 +98,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
                 tooltip: 'Passenger Reviews',
                 onPressed: () {
                   setState(() {
-                    _selectedTabIndex = 3; // Navigate to Profile / Reviews
+                    _selectedTabIndex = 4; // Navigate to Profile / Reviews
                   });
                 },
               ),
@@ -121,6 +135,11 @@ class _OwnerPortalState extends State<OwnerPortal> {
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard, color: AppTheme.primaryGreen),
             label: 'Dashboard',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics, color: AppTheme.primaryGreen),
+            label: 'Profit & P/L',
           ),
           NavigationDestination(
             icon: Icon(Icons.directions_bus_outlined),

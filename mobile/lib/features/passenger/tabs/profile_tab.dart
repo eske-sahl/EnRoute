@@ -20,10 +20,6 @@ class ProfileTab extends StatefulWidget {
 }
 
 class _ProfileTabState extends State<ProfileTab> {
-  bool _notificationsEnabled = true;
-  bool _arrivalAlertsEnabled = true;
-  String _selectedLanguage = 'English';
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -374,7 +370,7 @@ class _ProfileTabState extends State<ProfileTab> {
     return ListTile(
       leading: Icon(icon, color: AppTheme.primaryGreen, size: 20),
       title: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-      subtitle: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
+      subtitle: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
     );
   }
 }
