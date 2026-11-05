@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
+import '../conductor/conductor_portal.dart';
 
 class BusDetailPage extends StatefulWidget {
   final BusModel bus;
@@ -26,7 +27,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
   late List<BusStopSchedule> _stops;
   late int _seats;
   late String _driver;
+  late String _driverPhone;
   late String _cleaner;
+  late String _cleanerPhone;
   late String _conductor;
   late bool _isActive;
 
@@ -46,7 +49,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
     _stops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
     _seats = widget.bus.seatingCapacity;
     _driver = widget.bus.driverName;
+    _driverPhone = widget.bus.driverPhone;
     _cleaner = widget.bus.cleanerName;
+    _cleanerPhone = widget.bus.cleanerPhone;
     _conductor = widget.bus.conductorName;
     _isActive = widget.bus.isActive;
   }
@@ -83,7 +88,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
     final destCtrl = TextEditingController(text: _destPoint);
     final seatsCtrl = TextEditingController(text: '$_seats');
     final driverCtrl = TextEditingController(text: _driver);
+    final driverPhoneCtrl = TextEditingController(text: _driverPhone);
     final cleanerCtrl = TextEditingController(text: _cleaner);
+    final cleanerPhoneCtrl = TextEditingController(text: _cleanerPhone);
     String selectedCond = _conductor;
     bool editIsActive = _isActive;
 
@@ -354,10 +361,11 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Workers: Driver & Cleaner
+                    // Workers: Driver
                     Row(
                       children: [
                         Expanded(
+                          flex: 3,
                           child: TextField(
                             controller: driverCtrl,
                             decoration: InputDecoration(
@@ -369,11 +377,44 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
+                          flex: 3,
+                          child: TextField(
+                            controller: driverPhoneCtrl,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              labelText: 'Driver Phone (Optional)',
+                              prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen, size: 16),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Workers: Cleaner
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
                           child: TextField(
                             controller: cleanerCtrl,
                             decoration: InputDecoration(
                               labelText: 'Cleaner Name',
                               prefixIcon: const Icon(Icons.cleaning_services, color: AppTheme.primaryGreen, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 3,
+                          child: TextField(
+                            controller: cleanerPhoneCtrl,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              labelText: 'Cleaner Phone (Optional)',
+                              prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen, size: 16),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                           ),
@@ -433,6 +474,14 @@ class _BusDetailPageState extends State<BusDetailPage> {
                           stops: updatedStops,
                         );
 
+                        FleetState.instance.updateBusCrew(
+                          regNumber: widget.bus.regNumber,
+                          driverName: driverCtrl.text.trim().isNotEmpty ? driverCtrl.text.trim() : _driver,
+                          driverPhone: driverPhoneCtrl.text.trim().isNotEmpty ? driverPhoneCtrl.text.trim() : _driverPhone,
+                          cleanerName: cleanerCtrl.text.trim().isNotEmpty ? cleanerCtrl.text.trim() : _cleaner,
+                          cleanerPhone: cleanerPhoneCtrl.text.trim().isNotEmpty ? cleanerPhoneCtrl.text.trim() : _cleanerPhone,
+                        );
+
                         // If conductor was selected, update their assigned bus
                         if (selectedCond != 'Unassigned') {
                           final cIdx = FleetState.instance.conductors.indexWhere((c) => c.name == selectedCond);
@@ -468,6 +517,553 @@ class _BusDetailPageState extends State<BusDetailPage> {
     );
   }
 
+  void _showEditCrewModal() {
+    final dNameCtrl = TextEditingController(text: _driver == 'Unassigned' ? '' : _driver);
+    final dPhoneCtrl = TextEditingController(text: _driverPhone);
+    final cNameCtrl = TextEditingController(text: _cleaner == 'Unassigned' ? '' : _cleaner);
+    final cPhoneCtrl = TextEditingController(text: _cleanerPhone);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.badge, color: AppTheme.primaryGreen),
+                      SizedBox(width: 8),
+                      Text('Assigned Bus Crew & Workers', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(sheetCtx)),
+                ],
+              ),
+              const Text(
+                'Assign primary driver and vehicle attendant/cleaner names and optional phone numbers.',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              // Driver
+              const Text('PRIMARY DRIVER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: dNameCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Driver Name',
+                  hintText: 'e.g. Venu Pillai',
+                  prefixIcon: const Icon(Icons.airline_seat_recline_normal, color: Colors.blue),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: dPhoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Driver Contact Phone (Optional)',
+                  hintText: 'e.g. +91 94470 55112',
+                  prefixIcon: const Icon(Icons.phone, color: Colors.blue),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Cleaner
+              const Text('CLEANER / ATTENDANT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: cNameCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Cleaner Name',
+                  hintText: 'e.g. Manoj Kumar',
+                  prefixIcon: const Icon(Icons.cleaning_services, color: Colors.orange),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: cPhoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Cleaner Contact Phone (Optional)',
+                  hintText: 'e.g. +91 94470 55113',
+                  prefixIcon: const Icon(Icons.phone, color: Colors.orange),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryGreen,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: () {
+                  final newDriver = dNameCtrl.text.trim().isNotEmpty ? dNameCtrl.text.trim() : 'Unassigned';
+                  final newDPhone = dPhoneCtrl.text.trim();
+                  final newCleaner = cNameCtrl.text.trim().isNotEmpty ? cNameCtrl.text.trim() : 'Unassigned';
+                  final newCPhone = cPhoneCtrl.text.trim();
+
+                  FleetState.instance.updateBusCrew(
+                    regNumber: widget.bus.regNumber,
+                    driverName: newDriver,
+                    driverPhone: newDPhone,
+                    cleanerName: newCleaner,
+                    cleanerPhone: newCPhone,
+                  );
+
+                  setState(() {
+                    _syncFromBus();
+                  });
+
+                  Navigator.pop(sheetCtx);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Bus crew details updated successfully.'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: const Text('Save Crew Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _openConductorDetails() {
+    ConductorModel? conductor;
+    try {
+      conductor = FleetState.instance.conductors.firstWhere(
+        (c) =>
+            c.name.trim().toLowerCase() == _conductor.trim().toLowerCase() ||
+            c.assignedBusReg.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() ==
+                widget.bus.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase(),
+      );
+    } catch (_) {}
+
+    conductor ??= ConductorModel(
+      id: 'COND-PROXY-${widget.bus.regNumber}',
+      ownerId: widget.bus.ownerId,
+      name: _conductor != 'Unassigned' ? _conductor : 'Suresh Kumar',
+      email: widget.bus.conductorEmail.isNotEmpty ? widget.bus.conductorEmail : 'conductor@stgeorge.com',
+      userId: '${widget.bus.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase()}.conductor',
+      password: 'cond_${widget.bus.regNumber.length >= 4 ? widget.bus.regNumber.substring(widget.bus.regNumber.length - 4) : "1234"}',
+      phone: widget.bus.conductorPhone.isNotEmpty ? widget.bus.conductorPhone : '+91 98470 11001',
+      licenseNumber: 'KL-07-COND-2024-8891',
+      assignedBusReg: widget.bus.regNumber,
+      assignedBusName: widget.bus.busName,
+      todayCollection: widget.bus.todayCollection,
+    );
+
+    _showConductorDetailsModal(conductor);
+  }
+
+  void _showConductorDetailsModal(ConductorModel cond) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                child: const Icon(Icons.badge, color: AppTheme.primaryGreen),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(cond.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+                    Text('Badge: ${cond.licenseNumber}', style: TextStyle(color: isDark ? Colors.white60 : Colors.grey, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(),
+                _modalRow('Assigned Bus', '${cond.assignedBusName} [${cond.assignedBusReg}]', isDark),
+                _modalRow('Email', cond.email, isDark),
+                _modalRow('Phone Number', cond.phone, isDark),
+                _modalRow('License Number', cond.licenseNumber, isDark),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2B2416) : Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: isDark ? Colors.amber.shade700.withValues(alpha: 0.5) : Colors.amber.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'OWNER ASSIGNED APP LOGIN CREDENTIALS',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: isDark ? Colors.amber.shade300 : Colors.brown.shade800),
+                      ),
+                      const SizedBox(height: 4),
+                      _modalRow('User ID', cond.userId, isDark, true),
+                      _modalRow('Password', cond.password, isDark, true),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _modalRow('Today\'s Collections', '₹${cond.todayCollection.toStringAsFixed(1)}', isDark),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primaryGreen, Colors.teal.shade700],
+                    ),
+                  ),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: const Icon(Icons.swap_horiz, color: Colors.white),
+                    label: const Text(
+                      'Switch to Conductor Portal as Owner',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(dialogCtx);
+                      _confirmSwitchToConductorPortal(cond);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _modalRow(String label, String value, bool isDark, [bool isHighlight = false]) {
+    final valColor = isHighlight
+        ? (isDark ? Colors.amber.shade200 : Colors.brown.shade900)
+        : (isDark ? Colors.white : Colors.black87);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: isDark ? Colors.white60 : Colors.grey.shade600, fontSize: 11)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: valColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmSwitchToConductorPortal(ConductorModel conductor) {
+    showDialog(
+      context: context,
+      builder: (cautionCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 28),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Caution: Switch to Conductor Mode?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'You are currently signed in as Fleet Owner (${widget.bus.ownerName}).',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Entering Conductor Mode grants you active operational ticketing, stage advancement, and live GPS broadcast control for ${widget.bus.busName} (${widget.bus.regNumber}).',
+                style: const TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.shade300),
+                ),
+                child: const Text(
+                  'Caution: All issued tickets and passenger handovers made during this session will reflect in live bus collections.',
+                  style: TextStyle(fontSize: 11, color: Colors.brown, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(cautionCtx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+              icon: const Icon(Icons.login, size: 16, color: Colors.white),
+              label: const Text('Proceed to Conductor Portal', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              onPressed: () {
+                Navigator.pop(cautionCtx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ConductorPortal(
+                      conductor: conductor,
+                      onLogout: () => Navigator.pop(context),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteBus() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.delete_forever, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Delete Bus?'),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to permanently delete "${widget.bus.busName}" (${widget.bus.regNumber}) from your fleet? '
+            'This action cannot be undone. Assigned conductors will be released.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                Navigator.pop(ctx);
+                FleetState.instance.deleteBus(widget.bus.regNumber);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Bus ${widget.bus.busName} (${widget.bus.regNumber}) removed from fleet.'),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                if (widget.onBack != null) {
+                  widget.onBack!();
+                } else {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Delete Bus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLiveGpsRadarHUD(BuildContext context) {
+    final isGpsLive = widget.bus.isLiveGpsActive && widget.bus.isTripActive;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isGpsLive ? Colors.greenAccent.withValues(alpha: 0.6) : Colors.white12,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isGpsLive ? Colors.greenAccent.withValues(alpha: 0.15) : Colors.black26,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: isGpsLive ? Colors.greenAccent : Colors.amber,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: isGpsLive ? Colors.greenAccent.withValues(alpha: 0.8) : Colors.amber.withValues(alpha: 0.8),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isGpsLive ? 'LIVE CONDUCTOR GPS BROADCAST' : 'GPS BROADCAST INACTIVE / IDLE',
+                    style: TextStyle(
+                      color: isGpsLive ? Colors.greenAccent : Colors.amber,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isGpsLive ? Colors.green.withValues(alpha: 0.2) : Colors.white10,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: isGpsLive ? Colors.greenAccent : Colors.white24),
+                ),
+                child: Text(
+                  isGpsLive ? '42 km/h' : 'Standing / Depot',
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.5)),
+                ),
+                child: Icon(
+                  isGpsLive ? Icons.radar : Icons.gps_off,
+                  color: isGpsLive ? AppTheme.accentAmber : Colors.white54,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'APPROACHING NEXT STAGE',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 9, letterSpacing: 1),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${widget.bus.currentStop} ➔ ${widget.bus.nextStop}',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Estimated Arrival: ${widget.bus.eta} • Conductor Device GPS Active',
+                      style: const TextStyle(color: AppTheme.accentAmber, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black38,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Lat: ${widget.bus.currentLatitude.toStringAsFixed(4)}° N, Lon: ${widget.bus.currentLongitude.toStringAsFixed(4)}° E',
+                  style: const TextStyle(color: Colors.white70, fontSize: 10, fontFamily: 'monospace'),
+                ),
+                Row(
+                  children: [
+                    Icon(isGpsLive ? Icons.satellite_alt : Icons.location_disabled, color: isGpsLive ? Colors.greenAccent : Colors.grey, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      isGpsLive ? 'GNSS Lock: 3.2m accuracy' : 'GPS standby',
+                      style: const TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final catColor = _getCategoryColor(_category);
@@ -492,6 +1088,11 @@ class _BusDetailPageState extends State<BusDetailPage> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            tooltip: 'Delete Bus from Fleet',
+            onPressed: _confirmDeleteBus,
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Bus Configuration',
@@ -605,6 +1206,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
                 ],
               ),
             ),
+
+            // Live Conductor GPS Radar Telemetry HUD (Semi-Window)
+            _buildLiveGpsRadarHUD(context),
 
             const SizedBox(height: 18),
 
@@ -771,9 +1375,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
                           ],
                         ),
                         TextButton.icon(
-                          onPressed: _showEditBusModal,
+                          onPressed: _showEditCrewModal,
                           icon: const Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
-                          label: const Text('Reassign', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                          label: const Text('Edit Crew', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -788,11 +1392,24 @@ class _BusDetailPageState extends State<BusDetailPage> {
                       ),
                       title: Text(_conductor, style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: const Text('Conductor • App Login ID assigned by Owner'),
-                      trailing: const Icon(Icons.chevron_right, color: AppTheme.primaryGreen),
-                      onTap: () {
-                        Navigator.pop(context);
-                        widget.onNavigateToConductors();
-                      },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              side: const BorderSide(color: AppTheme.primaryGreen),
+                            ),
+                            onPressed: _openConductorDetails,
+                            child: const Text('More', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_right, color: AppTheme.primaryGreen),
+                        ],
+                      ),
+                      onTap: _openConductorDetails,
                     ),
 
                     const Divider(height: 16),
@@ -805,7 +1422,13 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         child: const Icon(Icons.airline_seat_recline_normal, color: Colors.blue),
                       ),
                       title: Text(_driver, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Primary Driver • Heavy Vehicle License'),
+                      subtitle: Text('Primary Driver • ${_driverPhone.isNotEmpty ? _driverPhone : "Tap to add phone (optional)"}'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryGreen),
+                        tooltip: 'Edit Driver & Cleaner',
+                        onPressed: _showEditCrewModal,
+                      ),
+                      onTap: _showEditCrewModal,
                     ),
 
                     const Divider(height: 16),
@@ -818,12 +1441,60 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         child: const Icon(Icons.cleaning_services, color: Colors.orange),
                       ),
                       title: Text(_cleaner, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Cleaner / Vehicle Attendant'),
+                      subtitle: Text('Cleaner / Vehicle Attendant • ${_cleanerPhone.isNotEmpty ? _cleanerPhone : "Tap to add phone (optional)"}'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryGreen),
+                        tooltip: 'Edit Driver & Cleaner',
+                        onPressed: _showEditCrewModal,
+                      ),
+                      onTap: _showEditCrewModal,
                     ),
                   ],
                 ),
               ),
             ),
+
+            const SizedBox(height: 20),
+
+            // 5. Danger Zone - Delete Bus Option
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Vehicle Fleet Management - Danger Zone', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Permanently delete this bus from your fleet. This action is irreversible and unassigns all associated crew.',
+                    style: TextStyle(color: Colors.grey, fontSize: 11),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _confirmDeleteBus,
+                    icon: const Icon(Icons.delete_forever, size: 18),
+                    label: const Text('Delete Bus from Fleet', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

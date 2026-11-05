@@ -1,18 +1,29 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'storage_service.dart';
 
 class ApiService {
-  /// Base URL: localhost for Web/macOS, or 10.0.2.2 for Android emulator
+  /// Base URL: Dynamic Public Cloud URL or Localhost/10.0.2.2 fallback
   static String get baseUrl {
+    final custom = StorageService.instance.getCustomServerUrl();
+    if (custom != null && custom.trim().isNotEmpty) {
+      final clean = custom.trim();
+      return clean.endsWith('/api') ? clean : (clean.endsWith('/') ? '${clean}api' : '$clean/api');
+    }
     if (kIsWeb) {
       return 'http://localhost:5001/api';
     }
     return 'http://10.0.2.2:5001/api';
   }
 
+  static String? _overrideUrl;
   static String fallbackUrl = 'http://localhost:5001/api';
-  static String activeUrl = kIsWeb ? 'http://localhost:5001/api' : 'http://10.0.2.2:5001/api';
+
+  static String get activeUrl {
+    if (_overrideUrl != null) return _overrideUrl!;
+    return baseUrl;
+  }
 
   /// Health Check
   static Future<Map<String, dynamic>?> asyncCheckHealth() async {
@@ -25,7 +36,7 @@ class ApiService {
       try {
         final res = await http.get(Uri.parse('$fallbackUrl/health')).timeout(const Duration(seconds: 3));
         if (res.statusCode == 200) {
-          activeUrl = fallbackUrl;
+          _overrideUrl = fallbackUrl;
           return jsonDecode(res.body);
         }
       } catch (_) {}

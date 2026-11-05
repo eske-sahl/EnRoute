@@ -340,7 +340,9 @@ class BusModel {
   List<BusStopSchedule> stops;
   int seatingCapacity;
   String driverName;
+  String driverPhone;
   String cleanerName;
+  String cleanerPhone;
   String conductorName;
   String companyName;
   double todayCollection;
@@ -348,6 +350,11 @@ class BusModel {
   bool isActive; // Active or Inactive
   String status; // 'RUNNING_NOW', 'IN_DEPOT', 'MAINTENANCE'
   bool isApprovedByAdmin;
+  String verificationStatus; // 'ADMIN_APPROVED', 'WAITING_FOR_VERIFICATION', 'REJECTED'
+  String chassisNumber;
+  String permitNumber;
+  String fitnessValidity;
+  String insurancePolicyNumber;
   String currentStop;
   String nextStop;
   String eta;
@@ -361,6 +368,7 @@ class BusModel {
 
   // Live Trip & GPS Telemetry (Managed by Conductor)
   bool isTripActive;
+  bool isLiveGpsActive;
   int currentStageIndex;
   double currentLatitude;
   double currentLongitude;
@@ -381,7 +389,9 @@ class BusModel {
     required this.stops,
     this.seatingCapacity = 48,
     this.driverName = 'Unassigned',
+    this.driverPhone = '+91 94470 55112',
     this.cleanerName = 'Unassigned',
+    this.cleanerPhone = '+91 94470 55113',
     this.conductorName = 'Unassigned',
     this.companyName = 'St. George Motors Ernakulam',
     this.todayCollection = 0.0,
@@ -389,6 +399,11 @@ class BusModel {
     this.isActive = true,
     this.status = 'RUNNING_NOW',
     this.isApprovedByAdmin = true,
+    this.verificationStatus = 'ADMIN_APPROVED',
+    this.chassisNumber = 'MB1-420-KL-CHASSIS-8891',
+    this.permitNumber = 'KL/2026/MVD/STAGE/0491',
+    this.fitnessValidity = '28-Dec-2027',
+    this.insurancePolicyNumber = 'NIC-KL-COM-778210',
     this.currentStop = 'Pump Junction',
     this.nextStop = 'Kizhakkambalam (~4 mins)',
     this.eta = '4 mins',
@@ -398,6 +413,7 @@ class BusModel {
     this.conductorPhone = '+91 98470 11001',
     this.conductorEmail = 'suresh@stgeorge.com',
     this.isTripActive = true,
+    this.isLiveGpsActive = true,
     this.currentStageIndex = 2,
     this.currentLatitude = 10.1076,
     this.currentLongitude = 76.3516,
@@ -407,6 +423,8 @@ class BusModel {
     sortStops();
     initDefaultFareChart();
   }
+
+  bool get isWaitingForVerification => verificationStatus == 'WAITING_FOR_VERIFICATION';
 
   void initDefaultFareChart({bool force = false}) {
     if (customFareChart.isEmpty || force) {
@@ -510,7 +528,9 @@ class BusModel {
     'stops': stops.map((s) => s.toJson()).toList(),
     'seatingCapacity': seatingCapacity,
     'driverName': driverName,
+    'driverPhone': driverPhone,
     'cleanerName': cleanerName,
+    'cleanerPhone': cleanerPhone,
     'conductorName': conductorName,
     'companyName': companyName,
     'todayCollection': todayCollection,
@@ -518,6 +538,11 @@ class BusModel {
     'isActive': isActive,
     'status': status,
     'isApprovedByAdmin': isApprovedByAdmin,
+    'verificationStatus': verificationStatus,
+    'chassisNumber': chassisNumber,
+    'permitNumber': permitNumber,
+    'fitnessValidity': fitnessValidity,
+    'insurancePolicyNumber': insurancePolicyNumber,
     'currentStop': currentStop,
     'nextStop': nextStop,
     'eta': eta,
@@ -527,6 +552,7 @@ class BusModel {
     'conductorPhone': conductorPhone,
     'conductorEmail': conductorEmail,
     'isTripActive': isTripActive,
+    'isLiveGpsActive': isLiveGpsActive,
     'currentStageIndex': currentStageIndex,
     'currentLatitude': currentLatitude,
     'currentLongitude': currentLongitude,
@@ -549,7 +575,9 @@ class BusModel {
         [],
     seatingCapacity: (json['seatingCapacity'] as num?)?.toInt() ?? 48,
     driverName: (json['driverName'] as String?) ?? 'Unassigned',
+    driverPhone: (json['driverPhone'] as String?) ?? '+91 94470 55112',
     cleanerName: (json['cleanerName'] as String?) ?? 'Unassigned',
+    cleanerPhone: (json['cleanerPhone'] as String?) ?? '+91 94470 55113',
     conductorName: (json['conductorName'] as String?) ?? 'Unassigned',
     companyName: (json['companyName'] as String?) ?? '',
     todayCollection: (json['todayCollection'] as num?)?.toDouble() ?? 0.0,
@@ -557,6 +585,11 @@ class BusModel {
     isActive: (json['isActive'] as bool?) ?? true,
     status: (json['status'] as String?) ?? 'RUNNING_NOW',
     isApprovedByAdmin: (json['isApprovedByAdmin'] as bool?) ?? true,
+    verificationStatus: (json['verificationStatus'] as String?) ?? 'ADMIN_APPROVED',
+    chassisNumber: (json['chassisNumber'] as String?) ?? 'MB1-420-KL-CHASSIS-8891',
+    permitNumber: (json['permitNumber'] as String?) ?? 'KL/2026/MVD/STAGE/0491',
+    fitnessValidity: (json['fitnessValidity'] as String?) ?? '28-Dec-2027',
+    insurancePolicyNumber: (json['insurancePolicyNumber'] as String?) ?? 'NIC-KL-COM-778210',
     currentStop: (json['currentStop'] as String?) ?? '',
     nextStop: (json['nextStop'] as String?) ?? '',
     eta: (json['eta'] as String?) ?? '',
@@ -566,6 +599,7 @@ class BusModel {
     conductorPhone: (json['conductorPhone'] as String?) ?? '',
     conductorEmail: (json['conductorEmail'] as String?) ?? '',
     isTripActive: (json['isTripActive'] as bool?) ?? false,
+    isLiveGpsActive: (json['isLiveGpsActive'] as bool?) ?? true,
     currentStageIndex: (json['currentStageIndex'] as num?)?.toInt() ?? 0,
     currentLatitude: (json['currentLatitude'] as num?)?.toDouble() ?? 10.0,
     currentLongitude: (json['currentLongitude'] as num?)?.toDouble() ?? 76.0,
@@ -1151,41 +1185,9 @@ class FleetState extends ChangeNotifier {
 
   void _pushStateToBackend() {
     ApiService.syncData({
-      'passengers': registeredPassengers.map((p) => {
-        'id': p.id,
-        'fullName': p.name,
-        'email': p.email,
-        'phoneNumber': p.phone,
-        'walletBalance': p.walletBalance,
-        'concessionCategory': p.concessionCategory,
-        'homeStation': p.homeStation,
-        'status': 'ACTIVE',
-        'registeredAt': p.registeredAt.toIso8601String(),
-      }).toList(),
-      'buses': buses.map((b) => {
-        'regNumber': b.regNumber,
-        'busName': b.busName,
-        'category': b.category,
-        'route': b.routeName,
-        'startPoint': b.startPoint,
-        'destPoint': b.destPoint,
-        'seatingCapacity': b.seatingCapacity,
-        'isTripActive': b.isTripActive,
-        'status': b.status,
-        'todayCollection': b.todayCollection,
-        'ticketsSold': b.ticketsCount,
-      }).toList(),
-      'conductors': conductors.map((c) => {
-        'id': c.id,
-        'fullName': c.name,
-        'userId': c.userId,
-        'phoneNumber': c.phone,
-        'licenseNumber': c.licenseNumber,
-        'assignedBusReg': c.assignedBusReg,
-        'assignedBusName': c.assignedBusName,
-        'role': 'ROLE_CONDUCTOR',
-        'status': 'ACTIVE',
-      }).toList(),
+      'passengers': registeredPassengers.map((p) => p.toJson()).toList(),
+      'buses': buses.map((b) => b.toJson()).toList(),
+      'conductors': conductors.map((c) => c.toJson()).toList(),
       'tickets': issuedTickets.map((t) => t.toJson()).toList(),
     });
   }
@@ -1480,8 +1482,19 @@ class FleetState extends ChangeNotifier {
   bool deleteConductor(String conductorId) {
     final idx = conductors.indexWhere((c) => c.id == conductorId);
     if (idx != -1) {
-      conductors.removeAt(idx);
+      final removed = conductors.removeAt(idx);
+      for (final bus in buses) {
+        if (bus.conductorName == removed.name ||
+            bus.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() ==
+                removed.assignedBusReg.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase()) {
+          bus.conductorName = 'Unassigned';
+          bus.conductorPhone = '';
+          bus.conductorEmail = '';
+        }
+      }
       _persistConductors();
+      _persistBuses();
+      _pushStateToBackend();
       notifyListeners();
       return true;
     }
@@ -1667,6 +1680,93 @@ class FleetState extends ChangeNotifier {
     _persistBuses();
     _pushStateToBackend();
     notifyListeners();
+  }
+
+  bool deleteBus(String regNumber) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final index = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (index != -1) {
+      buses.removeAt(index);
+      // Unassign conductors for this bus
+      for (final c in conductors) {
+        if (c.assignedBusReg.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget) {
+          c.assignedBusReg = 'Unassigned';
+          c.assignedBusName = 'Unassigned';
+        }
+      }
+      _persistBuses();
+      _persistConductors();
+      _pushStateToBackend();
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  void updateBusCrew({
+    required String regNumber,
+    String? driverName,
+    String? driverPhone,
+    String? cleanerName,
+    String? cleanerPhone,
+  }) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final index = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (index != -1) {
+      final b = buses[index];
+      if (driverName != null) b.driverName = driverName;
+      if (driverPhone != null) b.driverPhone = driverPhone;
+      if (cleanerName != null) b.cleanerName = cleanerName;
+      if (cleanerPhone != null) b.cleanerPhone = cleanerPhone;
+      _persistBuses();
+      _pushStateToBackend();
+      notifyListeners();
+    }
+  }
+
+  void approveBusByAdmin(String regNumber) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final index = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (index != -1) {
+      buses[index].verificationStatus = 'ADMIN_APPROVED';
+      buses[index].isApprovedByAdmin = true;
+      _persistBuses();
+      _pushStateToBackend();
+      notifyListeners();
+    }
+  }
+
+  void rejectBusByAdmin(String regNumber) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final index = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (index != -1) {
+      buses[index].verificationStatus = 'REJECTED';
+      buses[index].isApprovedByAdmin = false;
+      _persistBuses();
+      _pushStateToBackend();
+      notifyListeners();
+    }
+  }
+
+  void setLiveGpsBroadcast(String regNumber, bool active) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final index = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (index != -1) {
+      buses[index].isLiveGpsActive = active;
+      _persistBuses();
+      _pushStateToBackend();
+      notifyListeners();
+    }
   }
 
   void updateBus({
@@ -1855,18 +1955,21 @@ class FleetState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setTripActive(String busReg, bool active) {
+  void setTripActive(String busReg, bool active, {bool broadcastGps = true}) {
     final bus = getBusByReg(busReg);
     if (bus != null) {
       bus.isTripActive = active;
+      bus.isLiveGpsActive = active && broadcastGps;
       bus.isActive = active;
       bus.status = active ? 'RUNNING_NOW' : 'STOPPED';
       if (!active) {
         bus.currentStop = 'Trip Completed (At Stand)';
         bus.nextStop = 'Standing at Destination';
         bus.eta = 'Halted';
+        bus.isLiveGpsActive = false;
       }
       _persistBuses();
+      _pushStateToBackend();
       notifyListeners();
     }
   }

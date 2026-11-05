@@ -75,6 +75,8 @@ class BusLocationScreen extends StatelessWidget {
     }
 
     final catColor = _getCategoryColor(category);
+    final fleetBus = FleetState.instance.getBusByReg(busRegNumber);
+    final isGpsLive = fleetBus != null ? (fleetBus.isLiveGpsActive && fleetBus.isTripActive) : true;
 
     return Scaffold(
       appBar: AppBar(
@@ -119,12 +121,21 @@ class BusLocationScreen extends StatelessWidget {
                         Container(
                           width: 10,
                           height: 10,
-                          decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                            color: isGpsLive ? Colors.greenAccent : Colors.amber,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'LIVE GPS BROADCAST ACTIVE (5s pulse)',
-                          style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                        Text(
+                          isGpsLive
+                              ? 'LIVE CONDUCTOR GPS BROADCAST (5s pulse)'
+                              : 'GPS BROADCAST STANDBY / NOT BROADCASTING',
+                          style: TextStyle(
+                            color: isGpsLive ? Colors.greenAccent : Colors.amber,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),

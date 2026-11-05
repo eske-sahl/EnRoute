@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'services/api_service.dart';
 import 'services/fleet_state.dart';
+import 'services/storage_service.dart';
 import 'features/auth/login_screen.dart';
 import 'features/passenger/passenger_portal.dart';
 import 'features/conductor/conductor_portal.dart';
@@ -63,7 +64,20 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
   @override
   void initState() {
     super.initState();
-    _showingSplash = widget.showSplashFirst;
+    // Only show splash on initial launch for new user
+    final hasSeen = StorageService.instance.hasSeenSplash();
+    _showingSplash = widget.showSplashFirst && !hasSeen;
+
+    // Restore persistent session if logged in
+    final session = StorageService.instance.loadUserSession();
+    if (session != null && session['role'] != null && session['role']!.isNotEmpty) {
+      _isLoggedIn = true;
+      _userRole = session['role']!;
+      _userEmail = session['email'] ?? '';
+      _userName = session['name'] ?? '';
+      _userId = session['userId'] ?? '';
+    }
+
     _pingBackend();
   }
 
@@ -85,6 +99,14 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
       _isLoggedIn = true;
     });
 
+    // Persist login session across app restarts
+    StorageService.instance.saveUserSession({
+      'role': role,
+      'email': email,
+      'name': name,
+      'userId': userId,
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Logged in as $_userRole: $name ($userId)'),
@@ -98,6 +120,9 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
     setState(() {
       _isLoggedIn = false;
     });
+
+    // Clear persistent session on explicit logout
+    StorageService.instance.clearUserSession();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -129,6 +154,7 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
         if (_showingSplash) {
           return SplashScreen(
             onFinish: () {
+              StorageService.instance.setSeenSplash(true);
               setState(() {
                 _showingSplash = false;
               });

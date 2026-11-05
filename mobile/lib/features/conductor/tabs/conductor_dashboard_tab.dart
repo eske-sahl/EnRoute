@@ -245,21 +245,111 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   }
 
   void _toggleTrip() {
-    final newActiveState = !_bus.isTripActive;
-    setState(() {
-      FleetState.instance.setTripActive(_bus.regNumber, newActiveState);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          newActiveState
-              ? 'Trip Started! GPS Location Broadcast ACTIVE. Sharing live updates to passengers & owner.'
-              : 'Trip Stopped. Location broadcast paused.',
+    if (_bus.isTripActive) {
+      // Ending trip
+      setState(() {
+        FleetState.instance.setTripActive(_bus.regNumber, false);
+        _initBus();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Trip Ended. Location broadcast paused.'),
+          backgroundColor: Colors.orange.shade800,
+          behavior: SnackBarBehavior.floating,
         ),
-        backgroundColor: newActiveState ? AppTheme.primaryGreen : Colors.orange.shade800,
-        behavior: SnackBarBehavior.floating,
-      ),
+      );
+      return;
+    }
+
+    // Starting trip: Prompt for Device Location Permission (Optional)
+    showDialog(
+      context: context,
+      builder: (locCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          title: const Row(
+            children: [
+              Icon(Icons.location_on, color: AppTheme.primaryGreen, size: 28),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Share Device GPS Location?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Broadcasting your live device GPS location allows passengers and the fleet owner to track this bus in real-time, view ETA countdowns, and see approaching stops.',
+                style: TextStyle(fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: AppTheme.primaryGreen),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Location sharing is optional. You can choose to enable GPS broadcast or start the trip without GPS.',
+                        style: TextStyle(fontSize: 11, color: Colors.green),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(locCtx),
+              child: const Text('Cancel'),
+            ),
+            OutlinedButton(
+              onPressed: () {
+                Navigator.pop(locCtx);
+                setState(() {
+                  FleetState.instance.setTripActive(_bus.regNumber, true, broadcastGps: false);
+                  _initBus();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Trip Started without live GPS broadcast.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Start Without GPS'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+              icon: const Icon(Icons.share_location, size: 16, color: Colors.white),
+              label: const Text('Turn On & Share GPS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              onPressed: () {
+                Navigator.pop(locCtx);
+                setState(() {
+                  FleetState.instance.setTripActive(_bus.regNumber, true, broadcastGps: true);
+                  _initBus();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Trip Started! Live GPS location is now broadcasting to Passengers & Owner.'),
+                    backgroundColor: AppTheme.primaryGreen,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

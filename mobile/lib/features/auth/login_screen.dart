@@ -143,6 +143,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result.success && result.role != null) {
       if (result.role == 'CONDUCTOR') {
         final conductor = result.userModel as ConductorModel;
+        final assignedBus = FleetState.instance.getBusByReg(conductor.assignedBusReg);
+        if (assignedBus != null && assignedBus.isWaitingForVerification) {
+          _showError(
+            'Access Restricted: Assigned bus "${assignedBus.busName}" (${assignedBus.regNumber}) '
+            'is currently WAITING FOR ADMIN VERIFICATION. '
+            'Conductor operations will be activated once the vehicle is approved by Admin.',
+          );
+          return;
+        }
         widget.onLoginSuccess('CONDUCTOR', conductor.email, conductor.name, conductor.id);
       } else if (result.role == 'OWNER') {
         final owner = result.userModel as OwnerModel;

@@ -37,12 +37,22 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
     final nameCtrl = TextEditingController();
     String selectedCategory = 'Limited Stop Bus (Red-Whiteline)';
 
+    // Vehicle Sincerity & MVD Compliance Fields
+    final ownerNameCtrl = TextEditingController(text: widget.owner.name);
+    final ownerPhoneCtrl = TextEditingController(text: widget.owner.phone);
+    final chassisCtrl = TextEditingController(text: 'MB1-420-KL-CHASSIS-${1000 + DateTime.now().millisecond}');
+    final permitCtrl = TextEditingController(text: 'KL/${DateTime.now().year}/MVD/STAGE/${1000 + DateTime.now().millisecond}');
+    final fitnessCtrl = TextEditingController(text: '28-Dec-2027');
+    final insuranceCtrl = TextEditingController(text: 'NIC-KL-COM-${700000 + DateTime.now().millisecond}');
+
     // Optional fields
     final startPointCtrl = TextEditingController();
     final destPointCtrl = TextEditingController();
     final seatsCtrl = TextEditingController();
     final driverCtrl = TextEditingController();
+    final driverPhoneCtrl = TextEditingController();
     final cleanerCtrl = TextEditingController();
+    final cleanerPhoneCtrl = TextEditingController();
     final ownerConductors = FleetState.instance.getConductorsForOwner(widget.owner.id);
     String selectedConductor = ownerConductors.isNotEmpty 
         ? ownerConductors.first.name 
@@ -200,7 +210,124 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
 
                       const SizedBox(height: 20),
 
-                      // Section 2: Optional Information Header
+                      // Section 2: Vehicle Sincerity & MVD Admin Verification Fields
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.amber.shade300),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.verified_user, color: Colors.amber, size: 14),
+                            SizedBox(width: 6),
+                            Text('VEHICLE SINCERITY & MVD ADMIN VERIFICATION',
+                                style: TextStyle(color: Colors.brown, fontSize: 11, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Owner Name
+                      TextFormField(
+                        controller: ownerNameCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Bus Owner Legal Name *',
+                          prefixIcon: const Icon(Icons.person, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          helperText: 'Verified against vehicle registration record',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Owner Name is required';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Owner Phone
+                      TextFormField(
+                        controller: ownerPhoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Owner Contact Phone Number *',
+                          prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          helperText: 'For official MVD communication and verification',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Owner Phone is required';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Chassis / VIN
+                      TextFormField(
+                        controller: chassisCtrl,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          labelText: 'Chassis Number / VIN *',
+                          prefixIcon: const Icon(Icons.confirmation_number, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          helperText: 'Permanent vehicle chassis identification number',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Chassis Number is required';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Stage Carriage Permit Number
+                      TextFormField(
+                        controller: permitCtrl,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          labelText: 'MVD State Carriage Permit Number *',
+                          prefixIcon: const Icon(Icons.assignment, color: AppTheme.primaryGreen),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          helperText: 'Valid Kerala Motor Vehicles Department stage permit',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Permit Number is required';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Fitness Validity & Insurance Policy
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: fitnessCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Fitness Validity (FC) *',
+                                prefixIcon: const Icon(Icons.event_available, color: AppTheme.primaryGreen, size: 18),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'Fitness required' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormField(
+                              controller: insuranceCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Insurance Policy No. *',
+                                prefixIcon: const Icon(Icons.security, color: AppTheme.primaryGreen, size: 18),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'Insurance required' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Section 3: Optional Information Header
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
@@ -345,10 +472,39 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextFormField(
+                              controller: driverPhoneCtrl,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                labelText: 'Driver Phone (Optional)',
+                                prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen, size: 18),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
                               controller: cleanerCtrl,
                               decoration: InputDecoration(
                                 labelText: 'Cleaner (Optional)',
                                 prefixIcon: const Icon(Icons.cleaning_services, color: AppTheme.primaryGreen, size: 18),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormField(
+                              controller: cleanerPhoneCtrl,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                labelText: 'Cleaner Phone (Optional)',
+                                prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryGreen, size: 18),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                               ),
                             ),
@@ -380,12 +536,17 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
 
                       const SizedBox(height: 24),
 
-                      // Submit Button
-                      ElevatedButton(
+                      // Submit Button - Send Request to Admin
+                      ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryGreen,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        icon: const Icon(Icons.send_rounded, color: Colors.white),
+                        label: const Text(
+                          'Send Registration Request to Admin',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
                         ),
                         onPressed: () {
                           if (!formKey.currentState!.validate()) {
@@ -415,20 +576,27 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                             stops: scheduleList,
                             seatingCapacity: seats,
                             driverName: driver,
+                            driverPhone: driverPhoneCtrl.text.trim(),
                             cleanerName: cleaner,
+                            cleanerPhone: cleanerPhoneCtrl.text.trim(),
                             conductorName: selectedConductor,
                             companyName: widget.owner.companyName,
-                            ownerName: widget.owner.name,
-                            ownerPhone: widget.owner.phone,
+                            ownerName: ownerNameCtrl.text.trim().isNotEmpty ? ownerNameCtrl.text.trim() : widget.owner.name,
+                            ownerPhone: ownerPhoneCtrl.text.trim().isNotEmpty ? ownerPhoneCtrl.text.trim() : widget.owner.phone,
                             ownerEmail: widget.owner.email,
                             todayCollection: 0.0,
                             ticketsCount: 0,
                             isActive: true,
                             status: 'RUNNING_NOW',
-                            isApprovedByAdmin: true,
+                            verificationStatus: 'WAITING_FOR_VERIFICATION',
+                            isApprovedByAdmin: false,
+                            chassisNumber: chassisCtrl.text.trim(),
+                            permitNumber: permitCtrl.text.trim(),
+                            fitnessValidity: fitnessCtrl.text.trim(),
+                            insurancePolicyNumber: insuranceCtrl.text.trim(),
                             currentStop: start,
                             nextStop: intermediateStops.length > 1 ? intermediateStops[1]['stop']! : dest,
-                            eta: 'Departing soon',
+                            eta: 'Awaiting Admin Approval',
                           );
 
                           // If conductor is assigned, update their assigned bus
@@ -453,9 +621,9 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 title: const Row(
                                   children: [
-                                    Icon(Icons.verified, color: AppTheme.primaryGreen),
+                                    Icon(Icons.hourglass_top, color: Colors.amber),
                                     SizedBox(width: 8),
-                                    Text('Bus Registered!'),
+                                    Expanded(child: Text('Request Sent to Admin!')),
                                   ],
                                 ),
                                 content: Column(
@@ -465,12 +633,23 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                                     Text('${newBus.busName} (${newBus.regNumber})',
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     const SizedBox(height: 6),
-                                    Text('Category: ${newBus.category}', style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                                    Text('Route: ${newBus.routeName}', style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                                    Text('Owner: ${newBus.ownerName} • Phone: ${newBus.ownerPhone}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                                    Text('Permit No: ${newBus.permitNumber}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                                    Text('Chassis VIN: ${newBus.chassisNumber}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
                                     const SizedBox(height: 10),
-                                    const Text(
-                                      'Authenticity verified & added to your fleet! This bus and its route are now visible in Passenger Search and Conductor Portal.',
-                                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.shade50,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.amber.shade300),
+                                      ),
+                                      child: const Text(
+                                        'Your registration request has been submitted to the Admin Portal. '
+                                        'The vehicle sincerity, owner identity, and MVD permit are currently pending admin verification. '
+                                        'Until verified, this bus will appear as "WAITING FOR VERIFICATION". Conductor access and detailed management will be unlocked once approved.',
+                                        style: TextStyle(color: Colors.brown, fontSize: 11),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -484,7 +663,6 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                             },
                           );
                         },
-                        child: const Text('Save & Register Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       ),
                     ],
                   ),
@@ -576,6 +754,11 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onTap: () async {
+                    if (bus.isWaitingForVerification) {
+                      _showPendingVerificationModal(bus);
+                      return;
+                    }
+
                     if (widget.onManageBus != null) {
                       widget.onManageBus!(bus);
                     } else {
@@ -671,12 +854,28 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.green.shade50,
+                                color: bus.isWaitingForVerification ? Colors.amber.shade50 : Colors.green.shade50,
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: bus.isWaitingForVerification ? Colors.amber.shade400 : Colors.green.shade300,
+                                ),
                               ),
-                              child: const Text(
-                                'ADMIN APPROVED',
-                                style: TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (bus.isWaitingForVerification) ...[
+                                    Icon(Icons.hourglass_top, color: Colors.amber.shade900, size: 11),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Text(
+                                    bus.isWaitingForVerification ? 'WAITING FOR VERIFICATION' : 'ADMIN APPROVED',
+                                    style: TextStyle(
+                                      color: bus.isWaitingForVerification ? Colors.amber.shade900 : Colors.green.shade800,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -739,6 +938,153 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
             const AppCreatorFooter(),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showPendingVerificationModal(BusModel bus) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3B2F10) : Colors.amber.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.hourglass_empty, color: isDark ? Colors.amber.shade300 : Colors.amber.shade900),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Waiting for Verification',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+                    Text(bus.regNumber, style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2C2412) : Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isDark ? Colors.amber.shade700 : Colors.amber.shade300),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline, color: isDark ? Colors.amber.shade300 : Colors.amber.shade900, size: 16),
+                          const SizedBox(width: 6),
+                          Text('MVD ADMIN SINCERITY CHECK',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: isDark ? Colors.amber.shade300 : Colors.amber.shade900)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'This vehicle is pending sincerity, owner verification, and permit inspection by the State Transport Admin Portal. Detailed fleet controls and conductor app login remain locked until verified.',
+                        style: TextStyle(fontSize: 11, color: isDark ? Colors.amber.shade100 : Colors.brown.shade800),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text('SUBMITTED VEHICLE CRITERIA:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.white60 : Colors.grey)),
+                const SizedBox(height: 6),
+                _verificationFieldRow('Bus Name', bus.busName, isDark),
+                _verificationFieldRow('KL Registration Plate', bus.regNumber, isDark),
+                _verificationFieldRow('Owner Legal Name', bus.ownerName, isDark),
+                _verificationFieldRow('Owner Contact Phone', bus.ownerPhone, isDark),
+                _verificationFieldRow('Chassis / VIN Number', bus.chassisNumber, isDark),
+                _verificationFieldRow('MVD Stage Permit No.', bus.permitNumber, isDark),
+                _verificationFieldRow('Fitness Validity (FC)', bus.fitnessValidity, isDark),
+                _verificationFieldRow('Commercial Insurance', bus.insurancePolicyNumber, isDark),
+                const SizedBox(height: 14),
+                // Admin Verification Simulation Action
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'ADMIN PORTAL VERIFICATION ACTION',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: AppTheme.primaryGreen),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Verify ownership sincerity, vehicle chassis VIN, and Kerala stage carriage permit to approve this vehicle.',
+                        style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.grey.shade700),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.verified, size: 16, color: Colors.white),
+                        label: const Text('Proceed & Verify Bus (Admin)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        onPressed: () {
+                          Navigator.pop(dialogCtx);
+                          FleetState.instance.approveBusByAdmin(bus.regNumber);
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Bus ${bus.busName} (${bus.regNumber}) has been verified and approved by Admin! Full access unlocked.'),
+                              backgroundColor: AppTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _verificationFieldRow(String label, String value, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: isDark ? Colors.white60 : Colors.grey.shade600, fontSize: 11)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: isDark ? Colors.white : Colors.black87)),
+        ],
       ),
     );
   }

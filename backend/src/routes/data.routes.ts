@@ -231,6 +231,16 @@ router.post('/sync', (req: Request, res: Response) => {
     }
   }
 
+  // Handle explicit deletions
+  if (Array.isArray(incoming.deletedBusRegs)) {
+    const deletedSet = new Set(incoming.deletedBusRegs.map((r: string) => r.toUpperCase()));
+    current.buses = current.buses.filter((b) => !deletedSet.has(b.regNumber.toUpperCase()));
+  }
+  if (Array.isArray(incoming.deletedConductorIds)) {
+    const deletedCondSet = new Set(incoming.deletedConductorIds);
+    current.conductors = current.conductors.filter((c) => !deletedCondSet.has(c.id));
+  }
+
   // Merge buses
   if (Array.isArray(incoming.buses)) {
     for (const b of incoming.buses) {
