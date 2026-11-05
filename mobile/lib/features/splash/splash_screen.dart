@@ -104,12 +104,16 @@ class _SplashScreenState extends State<SplashScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.asset(
-                              'web/icons/Icon-192.png',
+                              'assets/images/app_logo.png',
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Icon(
-                                Icons.directions_bus,
-                                color: AppTheme.primaryGreen,
-                                size: 20,
+                              errorBuilder: (_, _, _) => Image.asset(
+                                'web/icons/Icon-192.png',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const Icon(
+                                  Icons.directions_bus,
+                                  color: AppTheme.primaryGreen,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
