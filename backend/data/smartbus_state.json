@@ -17,22 +17,28 @@
       "fullName": "Anjali Nair",
       "email": "passenger@gmail.com",
       "phoneNumber": "9847000004",
-      "walletBalance": 220,
+      "walletBalance": 228,
       "concessionCategory": "General / Adult Standard",
       "homeStation": "Aluva Stand, Ernakulam",
       "status": "ACTIVE",
-      "registeredAt": "2026-10-01T00:00:00.000"
+      "registeredAt": "2026-10-01T00:00:00.000",
+      "name": "Anjali Nair",
+      "phone": "9847000004",
+      "password": "password123"
     },
     {
       "id": "SBK-KL-554120",
       "fullName": "Rahul Menon",
       "email": "rahul@gmail.com",
       "phoneNumber": "9847000005",
-      "walletBalance": 120,
+      "walletBalance": 68,
       "concessionCategory": "Student Concession",
       "homeStation": "Perumbavoor Stand",
       "status": "ACTIVE",
-      "registeredAt": "2026-10-05T00:00:00.000"
+      "registeredAt": "2026-10-05T00:00:00.000",
+      "name": "Rahul Menon",
+      "phone": "9847000005",
+      "password": "password123"
     },
     {
       "id": "SBK-KL-339811",
@@ -43,7 +49,10 @@
       "concessionCategory": "General / Adult Standard",
       "homeStation": "Ernakulam Kaloor",
       "status": "ACTIVE",
-      "registeredAt": "2026-10-10T00:00:00.000"
+      "registeredAt": "2026-10-10T00:00:00.000",
+      "name": "Meera Pillai",
+      "phone": "9847000006",
+      "password": "password123"
     }
   ],
   "conductors": [
@@ -56,7 +65,13 @@
       "assignedBusReg": "KL 07 CD 4589",
       "assignedBusName": "SpeedWings",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1",
+      "name": "Suresh Kumar",
+      "email": "suresh@stgeorge.com",
+      "password": "password123",
+      "phone": "+91 98470 11001",
+      "todayCollection": 6504
     },
     {
       "id": "COND-2",
@@ -67,7 +82,13 @@
       "assignedBusReg": "KL 07 CE 1204",
       "assignedBusName": "GreenCity Express",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1",
+      "name": "Biju Varghese",
+      "email": "biju@stgeorge.com",
+      "password": "password123",
+      "phone": "+91 98470 11002",
+      "todayCollection": 7840
     },
     {
       "id": "COND-3",
@@ -78,7 +99,13 @@
       "assignedBusReg": "KL 07 BQ 9981",
       "assignedBusName": "City Rider",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1",
+      "name": "Rajesh M.",
+      "email": "rajesh@stgeorge.com",
+      "password": "password123",
+      "phone": "+91 98470 11003",
+      "todayCollection": 4220
     },
     {
       "id": "COND-1792470982423",
@@ -97,10 +124,16 @@
       "userId": "anu.c",
       "phoneNumber": "9090909090",
       "licenseNumber": "kllk1i91919kol",
-      "assignedBusReg": "KL91K9191",
-      "assignedBusName": "Sahl1",
+      "assignedBusReg": "Unassigned",
+      "assignedBusName": "Unassigned",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1793859552169",
+      "name": "anu",
+      "email": "anu@g.c",
+      "password": "000000",
+      "phone": "9090909090",
+      "todayCollection": 0
     }
   ],
   "buses": [
@@ -112,9 +145,9 @@
       "startPoint": "Aluva Stand",
       "destPoint": "Perumbavoor Stand",
       "seatingCapacity": 48,
-      "isTripActive": true,
-      "status": "RUNNING_NOW",
-      "todayCollection": 6450,
+      "isTripActive": false,
+      "status": "STOPPED / DEPOT",
+      "todayCollection": 6420,
       "ticketsSold": 169,
       "workers": {
         "driver": "Venu Pillai (Badge #KL4201)",
@@ -146,7 +179,95 @@
           "stop": "Perumbavoor Stand",
           "time": "10:48 AM"
         }
-      ]
+      ],
+      "id": "BUS-1",
+      "ownerId": "OWNER-1",
+      "routeName": "Aluva Stand - Perumbavoor Stand (via Kizhakkambalam)",
+      "stops": [
+        {
+          "stopName": "Aluva Stand",
+          "time": "10:00 AM"
+        },
+        {
+          "stopName": "Bank Junction",
+          "time": "10:08 AM"
+        },
+        {
+          "stopName": "Pump Junction",
+          "time": "10:15 AM"
+        },
+        {
+          "stopName": "Kizhakkambalam",
+          "time": "10:24 AM"
+        },
+        {
+          "stopName": "Pattimattom",
+          "time": "10:35 AM"
+        },
+        {
+          "stopName": "Perumbavoor Stand",
+          "time": "10:48 AM"
+        }
+      ],
+      "driverName": "Venu Pillai (Badge #KL4201)",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Mani K.",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Suresh Kumar",
+      "companyName": "St. George Motors Ernakulam",
+      "ticketsCount": 169,
+      "isActive": false,
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Depot (Aluva Stand)",
+      "nextStop": "Trip not started",
+      "eta": "Halted",
+      "ownerName": "George Varghese",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Aluva Stand Depot (Resting)",
+      "customFareChart": {
+        "aluva stand->bank junction": 20,
+        "bank junction->aluva stand": 20,
+        "aluva stand->pump junction": 19,
+        "pump junction->aluva stand": 19,
+        "aluva stand->kizhakkambalam": 18,
+        "kizhakkambalam->aluva stand": 18,
+        "aluva stand->pattimattom": 22,
+        "pattimattom->aluva stand": 22,
+        "aluva stand->perumbavoor stand": 30,
+        "perumbavoor stand->aluva stand": 30,
+        "bank junction->pump junction": 10,
+        "pump junction->bank junction": 10,
+        "bank junction->kizhakkambalam": 14,
+        "kizhakkambalam->bank junction": 14,
+        "bank junction->pattimattom": 18,
+        "pattimattom->bank junction": 18,
+        "bank junction->perumbavoor stand": 22,
+        "perumbavoor stand->bank junction": 22,
+        "pump junction->kizhakkambalam": 10,
+        "kizhakkambalam->pump junction": 10,
+        "pump junction->pattimattom": 14,
+        "pattimattom->pump junction": 14,
+        "pump junction->perumbavoor stand": 18,
+        "perumbavoor stand->pump junction": 18,
+        "kizhakkambalam->pattimattom": 10,
+        "pattimattom->kizhakkambalam": 10,
+        "kizhakkambalam->perumbavoor stand": 14,
+        "perumbavoor stand->kizhakkambalam": 14,
+        "pattimattom->perumbavoor stand": 10,
+        "perumbavoor stand->pattimattom": 10
+      }
     },
     {
       "regNumber": "KL 07 CE 1204",
@@ -182,7 +303,77 @@
           "stop": "Thoppumpady",
           "time": "11:15 AM"
         }
-      ]
+      ],
+      "id": "BUS-2",
+      "ownerId": "OWNER-1",
+      "routeName": "Ernakulam Kaloor - Thoppumpady (via Menaka)",
+      "stops": [
+        {
+          "stopName": "Kaloor Stand",
+          "time": "10:30 AM"
+        },
+        {
+          "stopName": "Menaka Junction",
+          "time": "10:42 AM"
+        },
+        {
+          "stopName": "Thevara Ferry",
+          "time": "10:55 AM"
+        },
+        {
+          "stopName": "Thoppumpady",
+          "time": "11:15 AM"
+        }
+      ],
+      "driverName": "Antony Joseph",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Saji T.",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Biju Varghese",
+      "companyName": "St. George Motors Ernakulam",
+      "ticketsCount": 202,
+      "isActive": false,
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Depot (Kaloor Stand)",
+      "nextStop": "Trip not started",
+      "eta": "Halted",
+      "ownerName": "George Varghese",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11002",
+      "conductorEmail": "biju@stgeorge.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 9.9816,
+      "currentLongitude": 76.275,
+      "conductorLocationString": "Kaloor Stand Depot (Resting)",
+      "customFareChart": {
+        "ernakulam kaloor->kaloor stand": 10,
+        "kaloor stand->ernakulam kaloor": 10,
+        "ernakulam kaloor->menaka junction": 14,
+        "menaka junction->ernakulam kaloor": 14,
+        "ernakulam kaloor->thevara ferry": 18,
+        "thevara ferry->ernakulam kaloor": 18,
+        "ernakulam kaloor->thoppumpady": 22,
+        "thoppumpady->ernakulam kaloor": 22,
+        "kaloor stand->menaka junction": 10,
+        "menaka junction->kaloor stand": 10,
+        "kaloor stand->thevara ferry": 14,
+        "thevara ferry->kaloor stand": 14,
+        "kaloor stand->thoppumpady": 18,
+        "thoppumpady->kaloor stand": 18,
+        "menaka junction->thevara ferry": 10,
+        "thevara ferry->menaka junction": 10,
+        "menaka junction->thoppumpady": 14,
+        "thoppumpady->menaka junction": 14,
+        "thevara ferry->thoppumpady": 10,
+        "thoppumpady->thevara ferry": 10
+      }
     },
     {
       "regNumber": "KL 07 BQ 9981",
@@ -218,7 +409,77 @@
           "stop": "InfoPark Express",
           "time": "11:45 AM"
         }
-      ]
+      ],
+      "id": "BUS-3",
+      "ownerId": "OWNER-1",
+      "routeName": "Vytilla Hub - Kakkanad InfoPark (via Palarivattom)",
+      "stops": [
+        {
+          "stopName": "Vytilla Hub",
+          "time": "11:00 AM"
+        },
+        {
+          "stopName": "Palarivattom Bypass",
+          "time": "11:15 AM"
+        },
+        {
+          "stopName": "Kakkanad Stand",
+          "time": "11:30 AM"
+        },
+        {
+          "stopName": "InfoPark Express",
+          "time": "11:45 AM"
+        }
+      ],
+      "driverName": "Pradeep Kumar",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Babu N.",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Rajesh M.",
+      "companyName": "St. George Motors Ernakulam",
+      "ticketsCount": 116,
+      "isActive": false,
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Vytilla Mobility Hub",
+      "nextStop": "Scheduled at 02:00 PM",
+      "eta": "Resting",
+      "ownerName": "George Varghese",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11003",
+      "conductorEmail": "rajesh@stgeorge.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 9.9678,
+      "currentLongitude": 76.3195,
+      "conductorLocationString": "Vytilla Mobility Hub Depot (Resting)",
+      "customFareChart": {
+        "vytilla hub->palarivattom bypass": 10,
+        "palarivattom bypass->vytilla hub": 10,
+        "vytilla hub->kakkanad stand": 14,
+        "kakkanad stand->vytilla hub": 14,
+        "vytilla hub->infopark express": 18,
+        "infopark express->vytilla hub": 18,
+        "vytilla hub->kakkanad infopark": 22,
+        "kakkanad infopark->vytilla hub": 22,
+        "palarivattom bypass->kakkanad stand": 10,
+        "kakkanad stand->palarivattom bypass": 10,
+        "palarivattom bypass->infopark express": 14,
+        "infopark express->palarivattom bypass": 14,
+        "palarivattom bypass->kakkanad infopark": 18,
+        "kakkanad infopark->palarivattom bypass": 18,
+        "kakkanad stand->infopark express": 10,
+        "infopark express->kakkanad stand": 10,
+        "kakkanad stand->kakkanad infopark": 14,
+        "kakkanad infopark->kakkanad stand": 14,
+        "infopark express->kakkanad infopark": 10,
+        "kakkanad infopark->infopark express": 10
+      }
     },
     {
       "regNumber": "KL71K3286",
@@ -231,7 +492,42 @@
       "isTripActive": false,
       "status": "STOPPED / DEPOT",
       "todayCollection": 92,
-      "ticketsSold": 3
+      "ticketsSold": 3,
+      "id": "BUS-4",
+      "ownerId": "OWNER-1",
+      "routeName": "Melattur - Nilambur",
+      "stops": [],
+      "driverName": "Unassigned",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Unassigned",
+      "companyName": "St. George Motors Ernakulam",
+      "ticketsCount": 3,
+      "isActive": false,
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Pump Junction",
+      "nextStop": "Kizhakkambalam (~4 mins)",
+      "eta": "4 mins",
+      "ownerName": "George Varghese (Owner)",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 2,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Near Pump Junction, Aluva (Conductor Device GPS)",
+      "customFareChart": {
+        "melattur->nilambur": 10,
+        "nilambur->melattur": 10
+      }
     },
     {
       "regNumber": "KL91K9191",
@@ -241,10 +537,45 @@
       "startPoint": "Ferook College",
       "destPoint": "Kozhikkode",
       "seatingCapacity": 48,
-      "isTripActive": true,
-      "status": "RUNNING_NOW",
+      "isTripActive": false,
+      "status": "STOPPED / DEPOT",
       "todayCollection": 0,
-      "ticketsSold": 0
+      "ticketsSold": 0,
+      "id": "BUS-5",
+      "ownerId": "OWNER-1",
+      "routeName": "Ferook College - Kozhikkode",
+      "stops": [],
+      "driverName": "Unassigned",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Unassigned",
+      "companyName": "St. George Motors Ernakulam",
+      "ticketsCount": 0,
+      "isActive": false,
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Pump Junction",
+      "nextStop": "Kizhakkambalam (~4 mins)",
+      "eta": "4 mins",
+      "ownerName": "George Varghese (Owner)",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 2,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Near Pump Junction, Aluva (Conductor Device GPS)",
+      "customFareChart": {
+        "ferook college->kozhikkode": 10,
+        "kozhikkode->ferook college": 10
+      }
     }
   ],
   "tickets": [

@@ -1152,24 +1152,52 @@ class FleetState extends ChangeNotifier {
             if (item is Map) {
               final reg = item['regNumber']?.toString() ?? '';
               final idx = buses.indexWhere((b) => b.regNumber.toUpperCase() == reg.toUpperCase());
-              if (idx == -1) {
-                buses.add(BusModel(
-                  id: 'BUS-${buses.length + 1}',
-                  ownerId: 'OWNER-1',
-                  regNumber: reg,
-                  busName: item['busName']?.toString() ?? 'Bus',
-                  category: item['category']?.toString() ?? 'Ordinary Bus',
-                  startPoint: item['startPoint']?.toString() ?? 'Aluva Stand',
-                  destPoint: item['destPoint']?.toString() ?? 'Perumbavoor Stand',
-                  routeName: item['route']?.toString() ?? '$reg Route',
-                  stops: [],
-                  companyName: 'St. George Motors Ernakulam',
-                  todayCollection: (item['todayCollection'] as num?)?.toDouble() ?? 0.0,
-                  ticketsCount: (item['ticketsSold'] as num?)?.toInt() ?? 0,
-                  isActive: false,
-                  status: 'STOPPED / DEPOT',
-                  isTripActive: false,
-                ));
+              if (idx != -1) {
+                // Sync verification status and admin approval from backend
+                final bStatus = item['verificationStatus']?.toString();
+                final bApproved = item['isApprovedByAdmin'];
+                if (bStatus != null) {
+                  buses[idx].verificationStatus = bStatus;
+                }
+                if (bApproved is bool) {
+                  buses[idx].isApprovedByAdmin = bApproved;
+                }
+                if (item['todayCollection'] != null) {
+                  buses[idx].todayCollection = (item['todayCollection'] as num).toDouble();
+                }
+                if (item['ticketsSold'] != null) {
+                  buses[idx].ticketsCount = (item['ticketsSold'] as num).toInt();
+                }
+                if (item['driverPhone'] != null) buses[idx].driverPhone = item['driverPhone'].toString();
+                if (item['cleanerPhone'] != null) buses[idx].cleanerPhone = item['cleanerPhone'].toString();
+                if (item['chassisNumber'] != null) buses[idx].chassisNumber = item['chassisNumber'].toString();
+                if (item['permitNumber'] != null) buses[idx].permitNumber = item['permitNumber'].toString();
+                if (item['fitnessValidity'] != null) buses[idx].fitnessValidity = item['fitnessValidity'].toString();
+                if (item['insurancePolicyNumber'] != null) buses[idx].insurancePolicyNumber = item['insurancePolicyNumber'].toString();
+              } else {
+                try {
+                  buses.add(BusModel.fromJson(Map<String, dynamic>.from(item)));
+                } catch (_) {
+                  buses.add(BusModel(
+                    id: 'BUS-${buses.length + 1}',
+                    ownerId: (item['ownerId'] as String?) ?? 'OWNER-1',
+                    regNumber: reg,
+                    busName: item['busName']?.toString() ?? 'Bus',
+                    category: item['category']?.toString() ?? 'Ordinary Bus',
+                    startPoint: item['startPoint']?.toString() ?? 'Aluva Stand',
+                    destPoint: item['destPoint']?.toString() ?? 'Perumbavoor Stand',
+                    routeName: item['route']?.toString() ?? '$reg Route',
+                    stops: [],
+                    companyName: 'St. George Motors Ernakulam',
+                    todayCollection: (item['todayCollection'] as num?)?.toDouble() ?? 0.0,
+                    ticketsCount: (item['ticketsSold'] as num?)?.toInt() ?? 0,
+                    isActive: false,
+                    status: 'STOPPED / DEPOT',
+                    isTripActive: false,
+                    verificationStatus: item['verificationStatus']?.toString() ?? 'ADMIN_APPROVED',
+                    isApprovedByAdmin: (item['isApprovedByAdmin'] as bool?) ?? true,
+                  ));
+                }
               }
             }
           }
@@ -1181,6 +1209,11 @@ class FleetState extends ChangeNotifier {
         notifyListeners();
       }
     } catch (_) {}
+  }
+
+  /// Explicit sync trigger for UI (e.g. Pull-to-refresh or Cloud Sync button)
+  Future<void> syncWithBackend() async {
+    await _syncWithBackend();
   }
 
   void _pushStateToBackend() {
@@ -1738,6 +1771,7 @@ class FleetState extends ChangeNotifier {
       buses[index].isApprovedByAdmin = true;
       _persistBuses();
       _pushStateToBackend();
+      ApiService.verifyBus(buses[index].regNumber);
       notifyListeners();
     }
   }
@@ -1752,6 +1786,7 @@ class FleetState extends ChangeNotifier {
       buses[index].isApprovedByAdmin = false;
       _persistBuses();
       _pushStateToBackend();
+      ApiService.rejectBus(buses[index].regNumber);
       notifyListeners();
     }
   }

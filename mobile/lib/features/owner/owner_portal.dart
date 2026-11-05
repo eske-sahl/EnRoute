@@ -46,6 +46,195 @@ class _OwnerPortalState extends State<OwnerPortal> {
     });
   }
 
+  void _showAdminPortalModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+        final pendingBuses = FleetState.instance.buses.where((b) => b.isWaitingForVerification).toList();
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.admin_panel_settings, color: AppTheme.primaryGreen),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Admin & MVD Verification Portal',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+                    const Text('Official State Transport Oversight', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Web Links Card
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E2633) : Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isDark ? Colors.blue.shade800 : Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.language, color: Colors.blue.shade700, size: 16),
+                          const SizedBox(width: 6),
+                          Text('WEB ADMIN PORTAL URL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.blue.shade700)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      SelectableText(
+                        'http://localhost:5001/data',
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.blue.shade300 : Colors.blue.shade900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Open this URL in any web browser to view the visual interactive backend data dashboard, verify buses, manage passengers, and explore live API endpoints.',
+                        style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Pending Verification Requests
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('PENDING REGISTRATION REQUESTS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: pendingBuses.isNotEmpty ? Colors.amber.shade100 : Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${pendingBuses.length} Pending',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: pendingBuses.isNotEmpty ? Colors.amber.shade900 : Colors.green.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                if (pendingBuses.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF14241B) : Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: isDark ? Colors.green.shade800 : Colors.green.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'All fleet buses have been verified and approved by MVD Admin.',
+                            style: TextStyle(fontSize: 11, color: isDark ? Colors.green.shade300 : Colors.green.shade800),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ...pendingBuses.map((bus) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2B2416) : Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isDark ? Colors.amber.shade700 : Colors.amber.shade300),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(bus.busName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              Text(bus.regNumber, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.amber.shade800)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text('Owner: ${bus.ownerName} (${bus.ownerPhone})', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text('Chassis: ${bus.chassisNumber} • Permit: ${bus.permitNumber}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                icon: const Icon(Icons.verified, size: 14, color: Colors.white),
+                                label: const Text('Proceed & Approve', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                                onPressed: () {
+                                  Navigator.pop(dialogCtx);
+                                  FleetState.instance.approveBusByAdmin(bus.regNumber);
+                                  setState(() {});
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Bus ${bus.busName} (${bus.regNumber}) approved! Full access unlocked.'),
+                                      backgroundColor: AppTheme.primaryGreen,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tabs = [
@@ -103,6 +292,12 @@ class _OwnerPortalState extends State<OwnerPortal> {
                 ],
               ),
               actions: [
+                // Admin Verification & Data Portal Button
+                IconButton(
+                  icon: const Icon(Icons.admin_panel_settings),
+                  tooltip: 'Admin Portal & MVD Verification',
+                  onPressed: () => _showAdminPortalModal(context),
+                ),
                 // Reviews Quick Notification Icon
                 Stack(
                   alignment: Alignment.center,

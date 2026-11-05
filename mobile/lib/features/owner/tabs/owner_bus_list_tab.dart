@@ -682,35 +682,63 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
     final activeCount = ownerBuses.where((b) => b.isActive).length;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Top Action Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('My Bus Fleet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('${ownerBuses.length} registered vehicles • $activeCount Active', 
-                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await FleetState.instance.syncWithBackend();
+          setState(() {});
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top Action Bar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('My Bus Fleet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('${ownerBuses.length} registered vehicles • $activeCount Active', 
+                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
                   ),
-                  onPressed: _showRegisterBusModal,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Register New Bus', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.sync, color: AppTheme.primaryGreen),
+                        tooltip: 'Sync Approvals & Fleet with Admin',
+                        onPressed: () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          await FleetState.instance.syncWithBackend();
+                          if (!mounted) return;
+                          setState(() {});
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Fleet state synchronized with State Admin Cloud'),
+                              backgroundColor: AppTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _showRegisterBusModal,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Register New Bus', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 16),
 
@@ -939,8 +967,9 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showPendingVerificationModal(BusModel bus) {
     showDialog(
@@ -1038,6 +1067,39 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                         style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.grey.shade700),
                       ),
                       const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.sync, size: 16),
+                        label: const Text('Check Approval Status with Admin Cloud', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () async {
+                          Navigator.pop(dialogCtx);
+                          await FleetState.instance.syncWithBackend();
+                          if (!mounted) return;
+                          setState(() {});
+                          final updated = FleetState.instance.getBusByReg(bus.regNumber);
+                          if (updated != null && !updated.isWaitingForVerification) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('🎉 Bus ${bus.busName} (${bus.regNumber}) has been APPROVED by State Transport Admin! Full access unlocked.'),
+                                backgroundColor: AppTheme.primaryGreen,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Verification in progress. Awaiting State Transport Admin approval.'),
+                                backgroundColor: Colors.amber,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryGreen,

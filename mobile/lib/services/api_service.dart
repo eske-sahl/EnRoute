@@ -211,4 +211,44 @@ class ApiService {
     }
     return false;
   }
+
+  /// Verify bus on backend by Admin
+  static Future<bool> verifyBus(String regNumber) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$activeUrl/data/buses/${Uri.encodeComponent(regNumber)}/verify'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 4));
+      return res.statusCode == 200;
+    } catch (_) {
+      try {
+        final res = await http.post(
+          Uri.parse('$fallbackUrl/data/buses/${Uri.encodeComponent(regNumber)}/verify'),
+          headers: {'Content-Type': 'application/json'},
+        ).timeout(const Duration(seconds: 4));
+        return res.statusCode == 200;
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  /// Reject bus registration on backend by Admin
+  static Future<bool> rejectBus(String regNumber) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$activeUrl/data/buses/${Uri.encodeComponent(regNumber)}/reject'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 4));
+      return res.statusCode == 200;
+    } catch (_) {
+      try {
+        final res = await http.post(
+          Uri.parse('$fallbackUrl/data/buses/${Uri.encodeComponent(regNumber)}/reject'),
+          headers: {'Content-Type': 'application/json'},
+        ).timeout(const Duration(seconds: 4));
+        return res.statusCode == 200;
+      } catch (_) {}
+    }
+    return false;
+  }
 }

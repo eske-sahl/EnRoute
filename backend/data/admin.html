@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnRoute Kerala • Official State Transport & Data Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0B0F15;
+      --card-bg: #141A23;
+      --card-hover: #1A222F;
+      --border: #232C3A;
+      --accent: #00875A;
+      --accent-hover: #00A36C;
+      --gold: #FFAB00;
+      --danger: #E53935;
+      --text: #F4F6F8;
+      --text-muted: #8C9BAE;
+      --modal-bg: #151C26;
+      --sub-card: #1C2430;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 1440px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-icon {
+      font-size: 32px;
+      background: rgba(0, 135, 90, 0.2);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .subtitle { color: var(--text-muted); font-size: 13px; }
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 163, 108, 0.15);
+      color: #00E676;
+      border: 1px solid #00E676;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .pulse-dot { width: 8px; height: 8px; background: #00E676; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+
+    /* Top Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.2s;
+    }
+    .stat-card.alert {
+      border-color: rgba(255, 171, 0, 0.5);
+      background: rgba(255, 171, 0, 0.05);
+    }
+    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .stat-val { font-size: 28px; font-weight: 800; color: var(--text); }
+    .stat-sub { font-size: 11px; color: var(--accent); }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 18px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: #00E676;
+      border-bottom: 3px solid #00E676;
+    }
+    .badge-counter {
+      background: #FFAB00;
+      color: #000;
+      border-radius: 12px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .search-input {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13px;
+      width: 320px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #C62828; }
+    .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 7px; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
+
+    /* Tables */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: #0E131A;
+      padding: 14px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr.clickable-row {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    tr.clickable-row:hover { background: var(--card-hover); }
+    .tag {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .tag-active { background: rgba(0, 230, 118, 0.15); color: #00E676; border: 1px solid rgba(0, 230, 118, 0.3); }
+    .tag-inactive { background: rgba(255, 171, 0, 0.15); color: var(--gold); border: 1px solid rgba(255, 171, 0, 0.3); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+    .kl-plate {
+      display: inline-flex;
+      align-items: center;
+      background: #FFCC00;
+      color: #000;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 11px;
+      border: 1px solid #000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--modal-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.7);
+    }
+    .modal-card.modal-lg { max-width: 820px; }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Detail View Grids */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .detail-box {
+      background: var(--sub-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .detail-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .detail-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .checklist-card {
+      background: rgba(0, 135, 90, 0.08);
+      border: 1px solid rgba(0, 135, 90, 0.3);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+    }
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 2000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🚍</div>
+        <div>
+          <h1>EnRoute • State Transport & Admin Portal</h1>
+          <div class="subtitle">Vehicle Genuineness Verification, Fleet Oversight & CRUD Terminal • Created by Sahl Saleem & Fathima Riyas</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span class="badge-live"><span class="pulse-dot"></span> Backend Engine Online</span>
+        <button class="btn btn-sm btn-outline" onclick="location.reload()">🔄 Refresh State</button>
+      </div>
+    </header>
+
+    <!-- Top Summary Stats -->
+    <div class="stats-grid">
+      <div class="stat-card" id="cardStatPending" onclick="switchTab('approvals')" style="cursor:pointer;">
+        <div class="stat-label">Pending Bus Approvals</div>
+        <div class="stat-val" id="statPendingCount" style="color:var(--gold);">0</div>
+        <div class="stat-sub" id="statPendingSub">MVD Sincerity Inspection Queue</div>
+      </div>
+      <div class="stat-card" onclick="switchTab('buses')" style="cursor:pointer;">
+        <div class="stat-label">Total Fleet Buses</div>
+        <div class="stat-val" id="statBuses">0</div>
+        <div class="stat-sub" id="statActiveBuses">0 active on Kerala routes</div>
+      </div>
+      <div class="stat-card" onclick="switchTab('passengers')" style="cursor:pointer;">
+        <div class="stat-label">Registered Passengers</div>
+        <div class="stat-val" id="statPassengers">0</div>
+        <div class="stat-sub">Smart Wallet Digital Tariff</div>
+      </div>
+      <div class="stat-card" onclick="switchTab('conductors')" style="cursor:pointer;">
+        <div class="stat-label">Conductors & Crew</div>
+        <div class="stat-val" id="statConductors">0</div>
+        <div class="stat-sub">Active Terminal Badges</div>
+      </div>
+      <div class="stat-card" onclick="switchTab('tickets')" style="cursor:pointer;">
+        <div class="stat-label">Tickets Issued</div>
+        <div class="stat-val" id="statTickets">0</div>
+        <div class="stat-sub">Digital Ledger Audit</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="btn-tab-approvals" onclick="switchTab('approvals')">
+        🛡️ Pending Approvals
+        <span class="badge-counter" id="badgePendingCount">0</span>
+      </button>
+      <button class="tab-btn" id="btn-tab-passengers" onclick="switchTab('passengers')">👥 Passengers</button>
+      <button class="tab-btn" id="btn-tab-buses" onclick="switchTab('buses')">🚌 Fleet & Buses</button>
+      <button class="tab-btn" id="btn-tab-conductors" onclick="switchTab('conductors')">🎫 Conductors</button>
+      <button class="tab-btn" id="btn-tab-tickets" onclick="switchTab('tickets')">🧾 Issued Tickets</button>
+      <button class="tab-btn" id="btn-tab-api" onclick="switchTab('api')">📡 REST API Explorer</button>
+    </div>
+
+    <!-- 1. PENDING APPROVALS TAB -->
+    <div id="tab-approvals">
+      <div class="action-bar">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700;">Kerala MVD Stage Carriage Approval Queue</h2>
+          <p style="font-size: 12px; color: var(--text-muted);">Click any pending bus to inspect submitted VIN Chassis, Route Permits, Fitness certificates, and owner credentials.</p>
+        </div>
+        <input type="text" class="search-input" placeholder="Search registration number or owner..." oninput="filterTable('approvals-table', this.value)">
+      </div>
+
+      <div class="table-container">
+        <table id="approvals-table">
+          <thead>
+            <tr>
+              <th>Registration Plate</th>
+              <th>Bus Name</th>
+              <th>Livery Category</th>
+              <th>Legal Owner</th>
+              <th>Owner Phone</th>
+              <th>MVD Permit #</th>
+              <th>Fitness Validity</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="approvals-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. PASSENGERS TAB -->
+    <div id="tab-passengers" style="display:none;">
+      <div class="action-bar">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700;">Registered Passenger Profiles</h2>
+          <p style="font-size: 12px; color: var(--text-muted);">Click any passenger row to view their complete profile, trip ledger, and wallet details.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" class="search-input" placeholder="Search passenger name, email, or ID..." oninput="filterTable('passengers-table', this.value)">
+          <button class="btn" onclick="openAddPassengerModal()">+ Add New Passenger</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="passengers-table">
+          <thead>
+            <tr>
+              <th>Passenger ID</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Wallet Balance</th>
+              <th>Concession Category</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="passengers-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. BUSES TAB -->
+    <div id="tab-buses" style="display:none;">
+      <div class="action-bar">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700;">Complete Bus Fleet & Route Registry</h2>
+          <p style="font-size: 12px; color: var(--text-muted);">Click any bus to inspect full schedule, assigned crew, live radar status, and sincere permit credentials.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" class="search-input" placeholder="Search bus name or plate number..." oninput="filterTable('buses-table', this.value)">
+          <button class="btn" onclick="openAddBusModal()">+ Register New Bus</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="buses-table">
+          <thead>
+            <tr>
+              <th>Plate Number</th>
+              <th>Bus Name</th>
+              <th>Category</th>
+              <th>Route (Start ➔ Dest)</th>
+              <th>Admin Verification</th>
+              <th>Road Status</th>
+              <th>Collection</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="buses-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. CONDUCTORS TAB -->
+    <div id="tab-conductors" style="display:none;">
+      <div class="action-bar">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700;">Conductors & Crew Directory</h2>
+          <p style="font-size: 12px; color: var(--text-muted);">Click any conductor row to inspect their license credentials, assigned bus, and login identity.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" class="search-input" placeholder="Search conductor name or ID..." oninput="filterTable('conductors-table', this.value)">
+          <button class="btn" onclick="openAddConductorModal()">+ Add New Conductor</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="conductors-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>User ID (Login)</th>
+              <th>Phone</th>
+              <th>Badge / License</th>
+              <th>Assigned Bus</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="conductors-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. TICKETS TAB -->
+    <div id="tab-tickets" style="display:none;">
+      <div class="action-bar">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700;">Issued Digital Tickets & Audit Ledger</h2>
+          <p style="font-size: 12px; color: var(--text-muted);">Click any ticket row to view the full journey breakdown, fare split, and verification token.</p>
+        </div>
+        <input type="text" class="search-input" placeholder="Search ticket number, bus or passenger..." oninput="filterTable('tickets-table', this.value)">
+      </div>
+      <div class="table-container">
+        <table id="tickets-table">
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Bus Plate</th>
+              <th>Passenger</th>
+              <th>Route Stage</th>
+              <th>Fare</th>
+              <th>Payment Mode</th>
+              <th>Issued At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tickets-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. REST API EXPLORER TAB -->
+    <div id="tab-api" style="display:none;">
+      <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:24px;">
+        <h2 style="font-size:18px; margin-bottom:12px;">Interactive REST API Documentation</h2>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Standard endpoints to automate data creation, inspection, editing, and official approval from cURL, Postman, or mobile apps.</p>
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="background:#0D1117; padding:12px 16px; border-radius:10px; font-family:'JetBrains Mono'; font-size:12px;">
+            <span style="color:#00E676; font-weight:bold;">GET</span> <a href="/api/data/json" target="_blank" style="color:white; text-decoration:underline;">/api/data/json</a> - Get complete unified JSON dataset & verification summary
+          </div>
+          <div style="background:#0D1117; padding:12px 16px; border-radius:10px; font-family:'JetBrains Mono'; font-size:12px;">
+            <span style="color:#00E676; font-weight:bold;">POST</span> /api/data/buses/:regNumber/verify - State Transport Admin approval endpoint
+          </div>
+          <div style="background:#0D1117; padding:12px 16px; border-radius:10px; font-family:'JetBrains Mono'; font-size:12px;">
+            <span style="color:var(--danger); font-weight:bold;">POST</span> /api/data/buses/:regNumber/reject - Reject registration request
+          </div>
+          <div style="background:#0D1117; padding:12px 16px; border-radius:10px; font-family:'JetBrains Mono'; font-size:12px;">
+            <span style="color:#29B6F6; font-weight:bold;">POST</span> /api/data/sync - Bidirectional synchronization with mobile devices
+          </div>
+          <div style="background:#0D1117; padding:12px 16px; border-radius:10px; font-family:'JetBrains Mono'; font-size:12px;">
+            <span style="color:#29B6F6; font-weight:bold;">POST</span> /api/data/buses - Register new bus { regNumber, busName, category, ownerName, ownerPhone, chassisNumber, permitNumber }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- 1. MVD SINCERITY & GENUINENESS VERIFICATION MODAL -->
+  <div class="modal-overlay" id="modal-verify-bus">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:22px;">🛡️</span>
+            <h3 style="font-size:18px;">State Transport Sincerity & Genuineness Inspection</h3>
+          </div>
+          <p style="color:var(--text-muted); font-size:12px; margin-top:4px;">Official Kerala Motor Vehicles Department cross-check of vehicle parameters, owner identity & route suitability</p>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-verify-bus')">✕</button>
+      </div>
+
+      <div id="verify-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- 2. PASSENGER DETAIL INSPECTION MODAL -->
+  <div class="modal-overlay" id="modal-view-passenger">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:40px; height:40px; border-radius:50%; background:rgba(0,135,90,0.2); display:flex; align-items:center; justify-content:center; font-size:20px;">👤</div>
+          <div>
+            <h3 id="vp-name">Passenger Name</h3>
+            <span class="mono" id="vp-id" style="font-size:11px; color:var(--text-muted);">SBK-KL-000000</span>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-view-passenger')">✕</button>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <div class="detail-label">Email Address</div>
+          <div class="detail-value" id="vp-email">email@domain.com</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Phone Number</div>
+          <div class="detail-value" id="vp-phone">+91 XXXXX XXXXX</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Transit Wallet Balance</div>
+          <div class="detail-value" id="vp-balance" style="color:#00E676; font-size:16px;">₹0.00</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Concession Category</div>
+          <div class="detail-value" id="vp-cat">General / Standard</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Preferred Home Station</div>
+          <div class="detail-value" id="vp-station">Aluva Stand, Ernakulam</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Account Status</div>
+          <div class="detail-value" id="vp-status"><span class="tag tag-active">ACTIVE</span></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-view-passenger')">Close</button>
+        <button type="button" class="btn btn-sm" id="vp-btn-edit">✏️ Edit Passenger</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. BUS FLEET DETAIL INSPECTION MODAL -->
+  <div class="modal-overlay" id="modal-view-bus">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="kl-plate" id="vb-reg">KL 07 CD 4589</span>
+            <h3 id="vb-name" style="font-size:18px;">Bus Name</h3>
+          </div>
+          <span id="vb-category" style="font-size:12px; color:var(--text-muted);">Ordinary Bus (Blue-Whiteline)</span>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-view-bus')">✕</button>
+      </div>
+
+      <div id="vb-verification-banner" style="margin-bottom:16px;"></div>
+
+      <h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; font-weight:700;">Legal Vehicle Credentials & Sincerity Criteria</h4>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <div class="detail-label">Legal Bus Owner</div>
+          <div class="detail-value" id="vb-owner">George Varghese (+91 94470 12345)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Chassis / VIN Number</div>
+          <div class="detail-value mono" id="vb-chassis">MB1-420-KL-CHASSIS-8891</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">MVD Stage Carriage Permit</div>
+          <div class="detail-value mono" id="vb-permit">KL/2026/MVD/STAGE/0491</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Fitness Certificate (FC) Validity</div>
+          <div class="detail-value" id="vb-fitness">28-Dec-2027</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Commercial Insurance Policy</div>
+          <div class="detail-value mono" id="vb-insurance">NIC-KL-COM-778210</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Seating Capacity</div>
+          <div class="detail-value" id="vb-seats">48 Seats (2x2 High Back)</div>
+        </div>
+      </div>
+
+      <h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; font-weight:700;">Operations, Route & Assigned Crew</h4>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <div class="detail-label">Assigned Route</div>
+          <div class="detail-value" id="vb-route">Aluva Stand ➔ Perumbavoor Stand</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Road Status & GPS</div>
+          <div class="detail-value" id="vb-roadstatus">STOPPED / DEPOT</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Assigned Driver</div>
+          <div class="detail-value" id="vb-driver">Venu Pillai (+91 94470 55112)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Assigned Conductor</div>
+          <div class="detail-value" id="vb-conductor">Suresh Kumar (+91 98470 11001)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Assigned Cleaner</div>
+          <div class="detail-value" id="vb-cleaner">Mani K. (+91 94470 55113)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Today's Collections</div>
+          <div class="detail-value" style="color:#00E676;" id="vb-collection">₹0.00</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-view-bus')">Close</button>
+        <span id="vb-verify-action-slot"></span>
+        <button type="button" class="btn btn-sm" id="vb-btn-edit">✏️ Edit Bus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. CONDUCTOR DETAIL INSPECTION MODAL -->
+  <div class="modal-overlay" id="modal-view-conductor">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,171,0,0.2); display:flex; align-items:center; justify-content:center; font-size:20px;">🎫</div>
+          <div>
+            <h3 id="vc-name">Conductor Name</h3>
+            <span class="mono" id="vc-user" style="font-size:11px; color:var(--gold);">@conductor.id</span>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-view-conductor')">✕</button>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <div class="detail-label">Conductor System ID</div>
+          <div class="detail-value mono" id="vc-id">COND-1</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">MVD Badge / License No.</div>
+          <div class="detail-value mono" id="vc-license">KL-07-COND-2018-8891</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Contact Phone</div>
+          <div class="detail-value" id="vc-phone">+91 98470 11001</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Assigned Vehicle</div>
+          <div class="detail-value" id="vc-bus">SpeedWings (KL 07 CD 4589)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Duty Status</div>
+          <div class="detail-value" id="vc-status"><span class="tag tag-active">ACTIVE / ON DUTY</span></div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">App Login Authority</div>
+          <div class="detail-value" style="color:#00E676;">Verified Conductor PIN Enabled</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-view-conductor')">Close</button>
+        <button type="button" class="btn btn-sm" id="vc-btn-edit">✏️ Edit Conductor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. TICKET DETAIL INSPECTION MODAL -->
+  <div class="modal-overlay" id="modal-view-ticket">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:22px;">🧾</span>
+            <h3 style="font-size:16px;">Digital Ticket Audit Ledger</h3>
+          </div>
+          <span class="mono" id="vt-id" style="font-size:11px; color:var(--text-muted);">KL-SBK-XXXXXXXX</span>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-view-ticket')">✕</button>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <div class="detail-label">Bus Vehicle</div>
+          <div class="detail-value" id="vt-bus">SpeedWings (KL 07 CD 4589)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Passenger</div>
+          <div class="detail-value" id="vt-passenger">Anjali Nair (SBK-KL-987263)</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Boarding Stop</div>
+          <div class="detail-value" id="vt-from">Aluva Stand</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Destination Stop</div>
+          <div class="detail-value" id="vt-to">Perumbavoor Stand</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Fare Collected</div>
+          <div class="detail-value" id="vt-fare" style="color:#00E676; font-size:16px; font-weight:800;">₹22.0</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Payment Mode</div>
+          <div class="detail-value" id="vt-payment"><span class="tag tag-active">SMART_WALLET</span></div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Issued At</div>
+          <div class="detail-value" id="vt-time">10:15 AM</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-label">Digital Status</div>
+          <div class="detail-value"><span class="tag tag-active">VALID / REDEEMED</span></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-view-ticket')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRUD MODALS (Add/Edit Passenger, Bus, Conductor) -->
+
+  <!-- Add Passenger Modal -->
+  <div class="modal-overlay" id="modal-add-passenger">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>+ Add New Passenger</h3>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-add-passenger')">✕</button>
+      </div>
+      <form onsubmit="submitAddPassenger(event)">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="add-p-name" class="form-input" required placeholder="e.g. Arun Kumar">
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="add-p-email" class="form-input" required placeholder="e.g. arun@gmail.com">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="add-p-phone" class="form-input" placeholder="+91 98470 XXXXX">
+        </div>
+        <div class="form-group">
+          <label>Initial Wallet Balance (₹)</label>
+          <input type="number" step="0.5" id="add-p-balance" class="form-input" value="0.0">
+        </div>
+        <div class="form-group">
+          <label>Concession Category</label>
+          <select id="add-p-cat" class="form-input">
+            <option value="General / Adult Standard">General / Adult Standard</option>
+            <option value="Student Concession (₹5 Flat Tariff)">Student Concession (₹5 Flat Tariff)</option>
+            <option value="Senior Citizen (50% Tariff)">Senior Citizen (50% Tariff)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Home Station</label>
+          <input type="text" id="add-p-station" class="form-input" placeholder="e.g. Aluva Stand, Ernakulam">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-add-passenger')">Cancel</button>
+          <button type="submit" class="btn">Create Passenger</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Passenger Modal -->
+  <div class="modal-overlay" id="modal-edit-passenger">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit Passenger</h3>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-edit-passenger')">✕</button>
+      </div>
+      <form onsubmit="submitEditPassenger(event)">
+        <input type="hidden" id="edit-p-id">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="edit-p-name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="edit-p-email" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="edit-p-phone" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Wallet Balance (₹)</label>
+          <input type="number" step="0.5" id="edit-p-balance" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>Concession Category</label>
+          <select id="edit-p-cat" class="form-input">
+            <option value="General / Adult Standard">General / Adult Standard</option>
+            <option value="Student Concession (₹5 Flat Tariff)">Student Concession (₹5 Flat Tariff)</option>
+            <option value="Senior Citizen (50% Tariff)">Senior Citizen (50% Tariff)</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-edit-passenger')">Cancel</button>
+          <button type="submit" class="btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Bus Modal -->
+  <div class="modal-overlay" id="modal-add-bus">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>+ Register New Bus (Admin Console)</h3>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-add-bus')">✕</button>
+      </div>
+      <form onsubmit="submitAddBus(event)">
+        <div class="form-group">
+          <label>Kerala Registration Plate *</label>
+          <input type="text" id="add-b-reg" class="form-input" required placeholder="e.g. KL 07 DF 8899" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group">
+          <label>Bus Display Name *</label>
+          <input type="text" id="add-b-name" class="form-input" required placeholder="e.g. St. Mary Super Express">
+        </div>
+        <div class="form-group">
+          <label>Category & Livery</label>
+          <select id="add-b-cat" class="form-input">
+            <option value="Limited Stop Bus (Red-Whiteline)">Limited Stop Bus (Red-Whiteline)</option>
+            <option value="Ordinary Bus (Blue-Whiteline)">Ordinary Bus (Blue-Whiteline)</option>
+            <option value="City Bus (Green-Whiteline)">City Bus (Green-Whiteline)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Legal Owner Name</label>
+          <input type="text" id="add-b-owner-name" class="form-input" placeholder="e.g. George Varghese">
+        </div>
+        <div class="form-group">
+          <label>Owner Phone</label>
+          <input type="text" id="add-b-owner-phone" class="form-input" placeholder="+91 94470 12345">
+        </div>
+        <div class="form-group">
+          <label>Start Point</label>
+          <input type="text" id="add-b-start" class="form-input" placeholder="e.g. Aluva Stand">
+        </div>
+        <div class="form-group">
+          <label>Destination Point</label>
+          <input type="text" id="add-b-dest" class="form-input" placeholder="e.g. Angamaly Stand">
+        </div>
+        <div class="form-group">
+          <label>Chassis / VIN</label>
+          <input type="text" id="add-b-chassis" class="form-input" placeholder="MB1-420-KL-CHASSIS-XXXX">
+        </div>
+        <div class="form-group">
+          <label>MVD Permit Number</label>
+          <input type="text" id="add-b-permit" class="form-input" placeholder="KL/2026/MVD/STAGE/XXXX">
+        </div>
+        <div class="form-group">
+          <label>Seating Capacity</label>
+          <input type="number" id="add-b-seats" class="form-input" value="48">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-add-bus')">Cancel</button>
+          <button type="submit" class="btn">Register Bus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Bus Modal -->
+  <div class="modal-overlay" id="modal-edit-bus">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit Bus Configuration</h3>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-edit-bus')">✕</button>
+      </div>
+      <form onsubmit="submitEditBus(event)">
+        <input type="hidden" id="edit-b-reg">
+        <div class="form-group">
+          <label>Bus Display Name</label>
+          <input type="text" id="edit-b-name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="edit-b-cat" class="form-input">
+            <option value="Limited Stop Bus (Red-Whiteline)">Limited Stop Bus (Red-Whiteline)</option>
+            <option value="Ordinary Bus (Blue-Whiteline)">Ordinary Bus (Blue-Whiteline)</option>
+            <option value="City Bus (Green-Whiteline)">City Bus (Green-Whiteline)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Driver Name & Contact</label>
+          <input type="text" id="edit-b-driver" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Cleaner Name & Contact</label>
+          <input type="text" id="edit-b-cleaner" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Start Point</label>
+          <input type="text" id="edit-b-start" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Destination Point</label>
+          <input type="text" id="edit-b-dest" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Trip Status</label>
+          <select id="edit-b-active" class="form-input">
+            <option value="false">STOPPED / DEPOT</option>
+            <option value="true">ACTIVE / RUNNING NOW</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-edit-bus')">Cancel</button>
+          <button type="submit" class="btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Conductor Modal -->
+  <div class="modal-overlay" id="modal-add-cond">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>+ Add New Conductor</h3>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-add-cond')">✕</button>
+      </div>
+      <form onsubmit="submitAddConductor(event)">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="add-c-name" class="form-input" required placeholder="e.g. Anil Varghese">
+        </div>
+        <div class="form-group">
+          <label>User ID (Conductor Login) *</label>
+          <input type="text" id="add-c-user" class="form-input" required placeholder="e.g. anil.conductor" style="text-transform:lowercase;">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="add-c-phone" class="form-input" placeholder="+91 98470 XXXXX">
+        </div>
+        <div class="form-group">
+          <label>Conductor License Number</label>
+          <input type="text" id="add-c-lic" class="form-input" placeholder="KL-MVD-COND-XXXX">
+        </div>
+        <div class="form-group">
+          <label>Assigned Bus Registration</label>
+          <input type="text" id="add-c-bus" class="form-input" placeholder="e.g. KL 07 CD 4589">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-add-cond')">Cancel</button>
+          <button type="submit" class="btn">Add Conductor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Conductor Modal -->
+  <div class="modal-overlay" id="modal-edit-cond">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit Conductor Details</h3>
+        <button class="btn btn-sm btn-outline" onclick="closeModal('modal-edit-cond')">✕</button>
+      </div>
+      <form onsubmit="submitEditConductor(event)">
+        <input type="hidden" id="edit-c-id">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="edit-c-name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label>User ID (Login Username)</label>
+          <input type="text" id="edit-c-user" class="form-input" disabled style="opacity:0.75; cursor:not-allowed;">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="edit-c-phone" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Conductor License Number</label>
+          <input type="text" id="edit-c-lic" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Assigned Bus Registration</label>
+          <input type="text" id="edit-c-bus" class="form-input" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group">
+          <label>Assigned Bus Display Name</label>
+          <input type="text" id="edit-c-busname" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Duty Status</label>
+          <select id="edit-c-status" class="form-input">
+            <option value="ACTIVE">ACTIVE / ON DUTY</option>
+            <option value="OFF_DUTY">OFF DUTY / LEAVE</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-sm btn-outline" onclick="closeModal('modal-edit-cond')">Cancel</button>
+          <button type="submit" class="btn">Save Conductor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Action completed successfully</div>
+
+  <script>
+    // Injected Data from Server
+    const SERVER_DATA = /*__STATE_DATA__*/null || { buses: [], passengers: [], conductors: [], tickets: [] };
+
+    let ALL_BUSES = SERVER_DATA.buses || [];
+    let ALL_PASSENGERS = SERVER_DATA.passengers || [];
+    let ALL_CONDUCTORS = SERVER_DATA.conductors || [];
+    let ALL_TICKETS = SERVER_DATA.tickets || [];
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2600);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-tab-' + tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+      ['approvals', 'passengers', 'buses', 'conductors', 'tickets', 'api'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.style.display = (t === tabId) ? 'block' : 'none';
+      });
+    }
+
+    function filterTable(tableId, query) {
+      const q = query.toLowerCase();
+      const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // RENDER TABLES & STATS ON LOAD
+    function renderApp() {
+      const pendingBuses = ALL_BUSES.filter(b => b.verificationStatus === 'WAITING_FOR_VERIFICATION' || b.isApprovedByAdmin === false);
+      const activeBuses = ALL_BUSES.filter(b => b.isTripActive);
+
+      // Top Stats
+      document.getElementById('statPendingCount').innerText = pendingBuses.length;
+      document.getElementById('badgePendingCount').innerText = pendingBuses.length;
+      document.getElementById('statBuses').innerText = ALL_BUSES.length;
+      document.getElementById('statActiveBuses').innerText = activeBuses.length + ' active on Kerala routes';
+      document.getElementById('statPassengers').innerText = ALL_PASSENGERS.length;
+      document.getElementById('statConductors').innerText = ALL_CONDUCTORS.length;
+      document.getElementById('statTickets').innerText = ALL_TICKETS.length;
+
+      const cardPending = document.getElementById('cardStatPending');
+      if (pendingBuses.length > 0) {
+        cardPending.classList.add('alert');
+        document.getElementById('statPendingSub').innerText = '⚠️ Awaiting MVD Sincerity Inspection';
+      } else {
+        cardPending.classList.remove('alert');
+        document.getElementById('statPendingSub').innerText = '✅ All Fleet Authorizations Clear';
+      }
+
+      // Render Tab 1: Pending Approvals
+      const approvalsTbody = document.getElementById('approvals-tbody');
+      if (pendingBuses.length === 0) {
+        approvalsTbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px; color:var(--text-muted);"><div style="font-size:32px; margin-bottom:8px;">✅</div><strong>All Bus Registrations Approved</strong><div style="font-size:12px; margin-top:4px;">When an owner registers a new bus in the Owner Portal, it will appear here for admin sincerity checks.</div></td></tr>';
+      } else {
+        approvalsTbody.innerHTML = pendingBuses.map(b => {
+          return '<tr class="clickable-row" onclick="openVerificationModal(\'' + b.regNumber + '\')">' +
+            '<td><span class="kl-plate">' + b.regNumber + '</span></td>' +
+            '<td><strong>' + b.busName + '</strong></td>' +
+            '<td>' + b.category + '</td>' +
+            '<td><strong>' + (b.ownerName || 'George Varghese') + '</strong></td>' +
+            '<td>' + (b.ownerPhone || '+91 94470 12345') + '</td>' +
+            '<td class="mono" style="font-size:11px;">' + (b.permitNumber || 'KL/2026/MVD/STAGE/0491') + '</td>' +
+            '<td style="font-size:12px;">' + (b.fitnessValidity || '28-Dec-2027') + '</td>' +
+            '<td><span class="tag tag-inactive">⏳ WAITING APPROVAL</span></td>' +
+            '<td onclick="event.stopPropagation();">' +
+              '<button class="btn btn-sm" style="background:#00E676; color:#000; font-weight:700;" onclick="openVerificationModal(\'' + b.regNumber + '\')">🔍 Verify Details</button> ' +
+              '<button class="btn btn-sm btn-outline" onclick="verifyBus(\'' + b.regNumber + '\')">✅ Instant Approve</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      // Render Tab 2: Passengers
+      const passengersTbody = document.getElementById('passengers-tbody');
+      passengersTbody.innerHTML = ALL_PASSENGERS.map(p => {
+        const isStudent = (p.concessionCategory || '').includes('Student');
+        return '<tr class="clickable-row" id="row-passenger-' + p.id + '" onclick="viewPassenger(\'' + p.id + '\')">' +
+          '<td class="mono"><strong>' + p.id + '</strong></td>' +
+          '<td><strong>' + p.fullName + '</strong></td>' +
+          '<td>' + p.email + '</td>' +
+          '<td>' + p.phoneNumber + '</td>' +
+          '<td style="color:#00E676; font-weight:700;">₹' + Number(p.walletBalance || 0).toFixed(1) + '</td>' +
+          '<td><span class="tag ' + (isStudent ? 'tag-inactive' : 'tag-active') + '">' + (p.concessionCategory || 'Standard') + '</span></td>' +
+          '<td><span class="tag tag-active">' + (p.status || 'ACTIVE') + '</span></td>' +
+          '<td onclick="event.stopPropagation();">' +
+            '<button class="btn btn-sm btn-outline" onclick="viewPassenger(\'' + p.id + '\')">🔍 Details</button> ' +
+            '<button class="btn btn-sm" onclick="editPassenger(\'' + p.id + '\')">✏️ Edit</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="deletePassenger(\'' + p.id + '\')">🗑️</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      // Render Tab 3: Buses
+      const busesTbody = document.getElementById('buses-tbody');
+      busesTbody.innerHTML = ALL_BUSES.map(b => {
+        const isPending = b.verificationStatus === 'WAITING_FOR_VERIFICATION' || b.isApprovedByAdmin === false;
+        const regClean = b.regNumber.replace(/\\s+/g, '_');
+        return '<tr class="clickable-row" id="row-bus-' + regClean + '" onclick="viewBus(\'' + b.regNumber + '\')">' +
+          '<td><span class="kl-plate">' + b.regNumber + '</span></td>' +
+          '<td><strong>' + b.busName + '</strong></td>' +
+          '<td>' + b.category + '</td>' +
+          '<td>' + (b.route || (b.startPoint + ' ➔ ' + b.destPoint)) + '</td>' +
+          '<td>' + (isPending
+            ? '<span class="tag tag-inactive" style="background:rgba(255,171,0,0.18);color:#FFB300;border:1px solid #FFB300;">⏳ WAITING APPROVAL</span>'
+            : '<span class="tag tag-active" style="background:rgba(0,230,118,0.18);color:#00E676;border:1px solid #00E676;">🛡️ ADMIN APPROVED</span>') +
+          '</td>' +
+          '<td><span class="tag ' + (b.isTripActive ? 'tag-active' : 'tag-inactive') + '">' + (b.isTripActive ? 'ACTIVE / RUNNING' : 'STOPPED / DEPOT') + '</span></td>' +
+          '<td style="color:#00E676; font-weight:700;">₹' + Number(b.todayCollection || 0).toFixed(1) + '</td>' +
+          '<td onclick="event.stopPropagation();">' +
+            '<button class="btn btn-sm btn-outline" onclick="viewBus(\'' + b.regNumber + '\')">🔍 Details</button> ' +
+            (isPending ? '<button class="btn btn-sm" style="background:#00E676;color:#000;font-weight:700;" onclick="openVerificationModal(\'' + b.regNumber + '\')">🛡️ Verify</button> ' : '') +
+            '<button class="btn btn-sm" onclick="editBus(\'' + b.regNumber + '\')">✏️ Edit</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteBus(\'' + b.regNumber + '\')">🗑️</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      // Render Tab 4: Conductors
+      const conductorsTbody = document.getElementById('conductors-tbody');
+      conductorsTbody.innerHTML = ALL_CONDUCTORS.map(c => {
+        return '<tr class="clickable-row" id="row-cond-' + c.id + '" onclick="viewConductor(\'' + c.id + '\')">' +
+          '<td class="mono"><strong>' + c.id + '</strong></td>' +
+          '<td><strong>' + c.fullName + '</strong></td>' +
+          '<td class="mono" style="color:var(--gold);">' + c.userId + '</td>' +
+          '<td>' + c.phoneNumber + '</td>' +
+          '<td class="mono">' + (c.licenseNumber || 'KL-MVD-COND-XXXX') + '</td>' +
+          '<td><strong>' + (c.assignedBusName || c.assignedBusReg) + '</strong> (' + c.assignedBusReg + ')</td>' +
+          '<td><span class="tag ' + (c.status === 'ACTIVE' ? 'tag-active' : 'tag-inactive') + '">' + (c.status || 'ACTIVE') + '</span></td>' +
+          '<td onclick="event.stopPropagation();">' +
+            '<button class="btn btn-sm btn-outline" onclick="viewConductor(\'' + c.id + '\')">🔍 Details</button> ' +
+            '<button class="btn btn-sm" onclick="editConductor(\'' + c.id + '\')">✏️ Edit</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteConductor(\'' + c.id + '\')">🗑️</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      // Render Tab 5: Tickets
+      const ticketsTbody = document.getElementById('tickets-tbody');
+      if (ALL_TICKETS.length === 0) {
+        ticketsTbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No tickets issued yet. Conductors can issue live tickets from their dashboard.</td></tr>';
+      } else {
+        ticketsTbody.innerHTML = ALL_TICKETS.map(t => {
+          const tId = t.ticketNumber || t.id;
+          return '<tr class="clickable-row" id="row-ticket-' + tId + '" onclick="viewTicket(\'' + tId + '\')">' +
+            '<td class="mono"><strong>' + tId + '</strong></td>' +
+            '<td><strong>' + (t.busName || t.busRegNumber) + '</strong></td>' +
+            '<td>' + (t.passengerName || 'Unknown') + ' (' + (t.passengerId || 'Walk-in') + ')</td>' +
+            '<td>' + (t.boardingStop || 'Origin') + ' ➔ ' + (t.destStop || 'Dest') + '</td>' +
+            '<td style="color:#00E676; font-weight:700;">₹' + Number(t.fare || 0).toFixed(1) + '</td>' +
+            '<td><span class="tag tag-active">' + (t.paymentMode || 'SMART_WALLET') + '</span></td>' +
+            '<td style="font-size:11px;">' + new Date(t.issuedAt || Date.now()).toLocaleTimeString() + '</td>' +
+            '<td onclick="event.stopPropagation();">' +
+              '<button class="btn btn-sm btn-outline" onclick="viewTicket(\'' + tId + '\')">🔍 Details</button> ' +
+              '<button class="btn btn-sm btn-danger" onclick="deleteTicket(\'' + tId + '\')">🗑️</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 1. SINCERITY VERIFICATION & APPROVAL INSPECTION
+    // -------------------------------------------------------------
+    function openVerificationModal(reg) {
+      const bus = ALL_BUSES.find(b => b.regNumber.toUpperCase() === reg.toUpperCase());
+      if (!bus) return alert('Bus not found: ' + reg);
+
+      const isPending = bus.verificationStatus === 'WAITING_FOR_VERIFICATION' || bus.isApprovedByAdmin === false;
+      const ownerName = bus.ownerName || 'George Varghese';
+      const ownerPhone = bus.ownerPhone || '+91 94470 12345';
+      const chassis = bus.chassisNumber || 'MB1-420-KL-CHASSIS-8891';
+      const permit = bus.permitNumber || 'KL/2026/MVD/STAGE/0491';
+      const fitness = bus.fitnessValidity || '28-Dec-2027';
+      const insurance = bus.insurancePolicyNumber || 'NIC-KL-COM-778210';
+
+      const content = '' +
+        '<div style="background: ' + (isPending ? 'rgba(255,171,0,0.1)' : 'rgba(0,230,118,0.1)') + '; border: 1px solid ' + (isPending ? 'rgba(255,171,0,0.4)' : 'rgba(0,230,118,0.4)') + '; border-radius:12px; padding:14px; margin-bottom:18px;">' +
+          '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<div style="display:flex; align-items:center; gap:10px;">' +
+              '<span class="kl-plate">' + bus.regNumber + '</span>' +
+              '<strong style="font-size:16px;">' + bus.busName + '</strong>' +
+            '</div>' +
+            '<span class="tag ' + (isPending ? 'tag-inactive' : 'tag-active') + '">' +
+              (isPending ? '⏳ WAITING FOR MVD VERIFICATION' : '🛡️ OFFICIAL MVD APPROVED') +
+            '</span>' +
+          '</div>' +
+          '<div style="font-size:12px; color:var(--text-muted); margin-top:6px;">' +
+            'Category: ' + bus.category + ' • Route: ' + (bus.route || (bus.startPoint + ' ➔ ' + bus.destPoint)) +
+          '</div>' +
+        '</div>' +
+
+        '<h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; font-weight:700;">Legal Ownership & Operator Sincerity KYC</h4>' +
+        '<div class="detail-grid">' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Legal Vehicle Owner</div>' +
+            '<div class="detail-value">' + ownerName + '</div>' +
+          '</div>' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Owner Contact Mobile</div>' +
+            '<div class="detail-value">' + ownerPhone + ' <span style="color:#00E676; font-size:10px;">(Verified OTP)</span></div>' +
+          '</div>' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Fleet Operator / Company</div>' +
+            '<div class="detail-value">' + (bus.companyName || 'St. George Motors Ernakulam') + '</div>' +
+          '</div>' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Owner Email</div>' +
+            '<div class="detail-value">' + (bus.ownerEmail || 'owner@stgeorge.com') + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; font-weight:700;">MVD Parivahan Regulatory Compliance Checks</h4>' +
+        '<div class="detail-grid">' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Chassis / VIN Number</div>' +
+            '<div class="detail-value mono">' + chassis + '</div>' +
+            '<div style="font-size:10px; color:#00E676; margin-top:3px;">✓ Match with Kerala Vahan 4.0</div>' +
+          '</div>' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">MVD Stage Carriage Permit</div>' +
+            '<div class="detail-value mono">' + permit + '</div>' +
+            '<div style="font-size:10px; color:#00E676; margin-top:3px;">✓ Stage Carriage Route Authorized</div>' +
+          '</div>' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Fitness Certificate (FC) Validity</div>' +
+            '<div class="detail-value">' + fitness + '</div>' +
+            '<div style="font-size:10px; color:#00E676; margin-top:3px;">✓ Road Worthiness Valid</div>' +
+          '</div>' +
+          '<div class="detail-box">' +
+            '<div class="detail-label">Commercial Passenger Insurance</div>' +
+            '<div class="detail-value mono">' + insurance + '</div>' +
+            '<div style="font-size:10px; color:#00E676; margin-top:3px;">✓ Unlimited Passenger Liability Active</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="checklist-card">' +
+          '<div style="font-weight:700; font-size:12px; color:#00E676; margin-bottom:6px;">MVD GENUINENESS VERIFICATION CHECKLIST:</div>' +
+          '<div class="checklist-item">' +
+            '<input type="checkbox" checked disabled>' +
+            '<span>Kerala Registration Plate verified against State Parivahan Registry</span>' +
+          '</div>' +
+          '<div class="checklist-item">' +
+            '<input type="checkbox" checked disabled>' +
+            '<span>Chassis VIN stamped matches motor chassis technical blueprint</span>' +
+          '</div>' +
+          '<div class="checklist-item">' +
+            '<input type="checkbox" checked disabled>' +
+            '<span>Stage Carriage Permit route stations authenticated for public conveyance</span>' +
+          '</div>' +
+          '<div class="checklist-item">' +
+            '<input type="checkbox" checked disabled>' +
+            '<span>Fitness certificate and emission standards certified by Kerala MVD inspector</span>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="modal-actions" style="justify-content:space-between; align-items:center;">' +
+          '<div>' +
+            (isPending
+              ? '<button class="btn btn-danger btn-sm" onclick="rejectBus(\'' + bus.regNumber + '\')">❌ Reject Application</button>'
+              : '<span style="font-size:12px; color:#00E676; font-weight:600;">✓ Authorized for Public Service</span>') +
+          '</div>' +
+          '<div style="display:flex; gap:10px;">' +
+            '<button class="btn btn-sm btn-outline" onclick="closeModal(\'modal-verify-bus\')">Close</button>' +
+            (isPending
+              ? '<button class="btn" style="background:#00E676; color:#000; font-weight:800;" onclick="verifyBus(\'' + bus.regNumber + '\')">✅ Verify & Approve Bus for Active Service</button>'
+              : '<button class="btn btn-sm btn-outline" onclick="verifyBus(\'' + bus.regNumber + '\')">Re-Confirm Approval</button>') +
+          '</div>' +
+        '</div>';
+
+      document.getElementById('verify-modal-content').innerHTML = content;
+      openModal('modal-verify-bus');
+    }
+
+    async function verifyBus(reg) {
+      try {
+        const res = await fetch('/api/data/buses/' + encodeURIComponent(reg) + '/verify', { method: 'POST' });
+        if (res.ok) {
+          showToast('Bus ' + reg + ' verified and approved by State Transport Admin!');
+          closeModal('modal-verify-bus');
+          closeModal('modal-view-bus');
+          setTimeout(() => location.reload(), 600);
+        } else {
+          alert('Failed to verify bus');
+        }
+      } catch (err) {
+        alert('Verification error: ' + err);
+      }
+    }
+
+    async function rejectBus(reg) {
+      if (!confirm('Are you sure you want to REJECT bus registration ' + reg + '?')) return;
+      try {
+        const res = await fetch('/api/data/buses/' + encodeURIComponent(reg) + '/reject', { method: 'POST' });
+        if (res.ok) {
+          showToast('Bus ' + reg + ' rejected');
+          closeModal('modal-verify-bus');
+          setTimeout(() => location.reload(), 600);
+        }
+      } catch (err) {
+        alert('Rejection error: ' + err);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 2. PASSENGER DETAIL MODAL
+    // -------------------------------------------------------------
+    function viewPassenger(id) {
+      const p = ALL_PASSENGERS.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('vp-name').innerText = p.fullName;
+      document.getElementById('vp-id').innerText = p.id;
+      document.getElementById('vp-email').innerText = p.email;
+      document.getElementById('vp-phone').innerText = p.phoneNumber;
+      document.getElementById('vp-balance').innerText = '₹' + Number(p.walletBalance || 0).toFixed(1);
+      document.getElementById('vp-cat').innerText = p.concessionCategory || 'General / Standard';
+      document.getElementById('vp-station').innerText = p.homeStation || 'Aluva Stand, Ernakulam';
+      document.getElementById('vp-btn-edit').onclick = () => {
+        closeModal('modal-view-passenger');
+        openEditPassengerModal(p);
+      };
+      openModal('modal-view-passenger');
+    }
+
+    // -------------------------------------------------------------
+    // 3. BUS FLEET DETAIL MODAL
+    // -------------------------------------------------------------
+    function viewBus(reg) {
+      const b = ALL_BUSES.find(item => item.regNumber.toUpperCase() === reg.toUpperCase());
+      if (!b) return;
+      document.getElementById('vb-reg').innerText = b.regNumber;
+      document.getElementById('vb-name').innerText = b.busName;
+      document.getElementById('vb-category').innerText = b.category;
+      document.getElementById('vb-owner').innerText = (b.ownerName || 'George Varghese') + ' (' + (b.ownerPhone || '+91 94470 12345') + ')';
+      document.getElementById('vb-chassis').innerText = b.chassisNumber || 'MB1-420-KL-CHASSIS-8891';
+      document.getElementById('vb-permit').innerText = b.permitNumber || 'KL/2026/MVD/STAGE/0491';
+      document.getElementById('vb-fitness').innerText = b.fitnessValidity || '28-Dec-2027';
+      document.getElementById('vb-insurance').innerText = b.insurancePolicyNumber || 'NIC-KL-COM-778210';
+      document.getElementById('vb-seats').innerText = (b.seatingCapacity || 48) + ' Seats (Stage Carriage)';
+      document.getElementById('vb-route').innerText = b.route || (b.startPoint + ' ➔ ' + b.destPoint);
+      document.getElementById('vb-roadstatus').innerHTML = b.isTripActive
+        ? '<span class="tag tag-active">ACTIVE / RUNNING NOW</span>'
+        : '<span class="tag tag-inactive">STOPPED / IN DEPOT</span>';
+
+      const driver = b.driverName || (b.workers && b.workers.driver) || 'Assigned Driver';
+      const driverPhone = b.driverPhone || '+91 94470 55112';
+      document.getElementById('vb-driver').innerText = driver + ' (' + driverPhone + ')';
+
+      const cleaner = b.cleanerName || (b.workers && b.workers.cleaner) || 'Assigned Cleaner';
+      const cleanerPhone = b.cleanerPhone || '+91 94470 55113';
+      document.getElementById('vb-cleaner').innerText = cleaner + ' (' + cleanerPhone + ')';
+
+      const cond = b.conductorName || (b.workers && b.workers.conductor) || 'Assigned Conductor';
+      const condPhone = b.conductorPhone || '+91 98470 11001';
+      document.getElementById('vb-conductor').innerText = cond + ' (' + condPhone + ')';
+
+      document.getElementById('vb-collection').innerText = '₹' + Number(b.todayCollection || 0).toFixed(1);
+
+      const isPending = b.verificationStatus === 'WAITING_FOR_VERIFICATION' || b.isApprovedByAdmin === false;
+      const banner = document.getElementById('vb-verification-banner');
+      const actionSlot = document.getElementById('vb-verify-action-slot');
+
+      if (isPending) {
+        banner.innerHTML = '<div style="background:rgba(255,171,0,0.12); border:1px solid rgba(255,171,0,0.4); border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center;">' +
+          '<div>' +
+            '<div style="font-weight:700; color:#FFB300; font-size:12px;">⚠️ SINCERITY VERIFICATION PENDING</div>' +
+            '<div style="font-size:11px; color:var(--text-muted);">Vehicle submitted by owner. Full fleet controls & conductor login remain locked.</div>' +
+          '</div>' +
+          '<button class="btn btn-sm" style="background:#00E676; color:#000; font-weight:700;" onclick="openVerificationModal(\'' + b.regNumber + '\')">' +
+            '🛡️ Verify & Approve Bus' +
+          '</button>' +
+        '</div>';
+        actionSlot.innerHTML = '<button class="btn btn-sm" style="background:#00E676; color:#000; font-weight:700;" onclick="openVerificationModal(\'' + b.regNumber + '\')">🛡️ Sincerity Verification</button>';
+      } else {
+        banner.innerHTML = '<div style="background:rgba(0,230,118,0.1); border:1px solid rgba(0,230,118,0.3); border-radius:10px; padding:10px 14px; display:flex; align-items:center; gap:8px;">' +
+          '<span style="color:#00E676; font-size:16px;">✓</span>' +
+          '<span style="font-size:12px; font-weight:600; color:#00E676;">Verified & Authorized by Kerala Motor Vehicles Department Admin</span>' +
+        '</div>';
+        actionSlot.innerHTML = '';
+      }
+
+      document.getElementById('vb-btn-edit').onclick = () => {
+        closeModal('modal-view-bus');
+        openEditBusModal(b);
+      };
+
+      openModal('modal-view-bus');
+    }
+
+    // -------------------------------------------------------------
+    // 4. CONDUCTOR DETAIL MODAL
+    // -------------------------------------------------------------
+    function viewConductor(id) {
+      const c = ALL_CONDUCTORS.find(item => item.id === id);
+      if (!c) return;
+      document.getElementById('vc-name').innerText = c.fullName;
+      document.getElementById('vc-user').innerText = '@' + c.userId;
+      document.getElementById('vc-id').innerText = c.id;
+      document.getElementById('vc-license').innerText = c.licenseNumber || 'KL-MVD-COND-XXXX';
+      document.getElementById('vc-phone').innerText = c.phoneNumber;
+      document.getElementById('vc-bus').innerText = (c.assignedBusName || c.assignedBusReg) + ' (' + c.assignedBusReg + ')';
+      document.getElementById('vc-status').innerHTML = c.status === 'ACTIVE'
+        ? '<span class="tag tag-active">ACTIVE / ON DUTY</span>'
+        : '<span class="tag tag-inactive">OFF DUTY / LEAVE</span>';
+      document.getElementById('vc-btn-edit').onclick = () => {
+        closeModal('modal-view-conductor');
+        openEditConductorModal(c);
+      };
+      openModal('modal-view-conductor');
+    }
+
+    // -------------------------------------------------------------
+    // 5. TICKET DETAIL MODAL
+    // -------------------------------------------------------------
+    function viewTicket(id) {
+      const t = ALL_TICKETS.find(item => (item.ticketNumber || item.id) === id);
+      if (!t) return;
+      document.getElementById('vt-id').innerText = t.ticketNumber || t.id;
+      document.getElementById('vt-bus').innerText = (t.busName || t.busRegNumber) + ' (' + (t.busRegNumber || '') + ')';
+      document.getElementById('vt-passenger').innerText = (t.passengerName || 'Walk-in Commuter') + ' (' + (t.passengerId || 'General') + ')';
+      document.getElementById('vt-from').innerText = t.boardingStop || 'Stage Point';
+      document.getElementById('vt-to').innerText = t.destStop || 'Destination';
+      document.getElementById('vt-fare').innerText = '₹' + Number(t.fare || 0).toFixed(1);
+      document.getElementById('vt-payment').innerHTML = '<span class="tag tag-active">' + (t.paymentMode || 'SMART_WALLET') + '</span>';
+      document.getElementById('vt-time').innerText = new Date(t.issuedAt || Date.now()).toLocaleTimeString();
+      openModal('modal-view-ticket');
+    }
+
+    // -------------------------------------------------------------
+    // CRUD OPERATIONS
+    // -------------------------------------------------------------
+
+    function openAddPassengerModal() { openModal('modal-add-passenger'); }
+    async function submitAddPassenger(e) {
+      e.preventDefault();
+      const payload = {
+        fullName: document.getElementById('add-p-name').value,
+        email: document.getElementById('add-p-email').value,
+        phoneNumber: document.getElementById('add-p-phone').value,
+        walletBalance: document.getElementById('add-p-balance').value,
+        concessionCategory: document.getElementById('add-p-cat').value,
+        homeStation: document.getElementById('add-p-station').value
+      };
+      const res = await fetch('/api/data/passengers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-add-passenger');
+        showToast('Passenger created successfully!');
+        setTimeout(() => location.reload(), 500);
+      }
+    }
+
+    function editPassenger(id) {
+      const p = ALL_PASSENGERS.find(item => item.id === id);
+      if (p) openEditPassengerModal(p);
+    }
+
+    function openEditPassengerModal(p) {
+      document.getElementById('edit-p-id').value = p.id;
+      document.getElementById('edit-p-name').value = p.fullName;
+      document.getElementById('edit-p-email').value = p.email;
+      document.getElementById('edit-p-phone').value = p.phoneNumber;
+      document.getElementById('edit-p-balance').value = p.walletBalance;
+      document.getElementById('edit-p-cat').value = p.concessionCategory;
+      openModal('modal-edit-passenger');
+    }
+
+    async function submitEditPassenger(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-p-id').value;
+      const payload = {
+        fullName: document.getElementById('edit-p-name').value,
+        email: document.getElementById('edit-p-email').value,
+        phoneNumber: document.getElementById('edit-p-phone').value,
+        walletBalance: document.getElementById('edit-p-balance').value,
+        concessionCategory: document.getElementById('edit-p-cat').value
+      };
+      const res = await fetch('/api/data/passengers/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-edit-passenger');
+        showToast('Passenger updated!');
+        setTimeout(() => location.reload(), 500);
+      }
+    }
+
+    async function deletePassenger(id) {
+      if (!confirm('Are you sure you want to delete passenger ' + id + '?')) return;
+      const res = await fetch('/api/data/passengers/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Passenger deleted');
+        const row = document.getElementById('row-passenger-' + id);
+        if (row) row.remove();
+      }
+    }
+
+    function openAddBusModal() { openModal('modal-add-bus'); }
+    async function submitAddBus(e) {
+      e.preventDefault();
+      const payload = {
+        regNumber: document.getElementById('add-b-reg').value,
+        busName: document.getElementById('add-b-name').value,
+        category: document.getElementById('add-b-cat').value,
+        ownerName: document.getElementById('add-b-owner-name').value,
+        ownerPhone: document.getElementById('add-b-owner-phone').value,
+        startPoint: document.getElementById('add-b-start').value,
+        destPoint: document.getElementById('add-b-dest').value,
+        chassisNumber: document.getElementById('add-b-chassis').value,
+        permitNumber: document.getElementById('add-b-permit').value,
+        seatingCapacity: document.getElementById('add-b-seats').value,
+        verificationStatus: 'WAITING_FOR_VERIFICATION',
+        isApprovedByAdmin: false
+      };
+      const res = await fetch('/api/data/buses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-add-bus');
+        showToast('Bus registered! Pending Admin Sincerity Approval.');
+        setTimeout(() => location.reload(), 500);
+      }
+    }
+
+    function editBus(reg) {
+      const b = ALL_BUSES.find(item => item.regNumber.toUpperCase() === reg.toUpperCase());
+      if (b) openEditBusModal(b);
+    }
+
+    function openEditBusModal(b) {
+      document.getElementById('edit-b-reg').value = b.regNumber;
+      document.getElementById('edit-b-name').value = b.busName;
+      document.getElementById('edit-b-cat').value = b.category;
+      document.getElementById('edit-b-driver').value = b.driverName || (b.workers && b.workers.driver) || '';
+      document.getElementById('edit-b-cleaner').value = b.cleanerName || (b.workers && b.workers.cleaner) || '';
+      document.getElementById('edit-b-start').value = b.startPoint;
+      document.getElementById('edit-b-dest').value = b.destPoint;
+      document.getElementById('edit-b-active').value = b.isTripActive ? 'true' : 'false';
+      openModal('modal-edit-bus');
+    }
+
+    async function submitEditBus(e) {
+      e.preventDefault();
+      const reg = document.getElementById('edit-b-reg').value;
+      const payload = {
+        busName: document.getElementById('edit-b-name').value,
+        category: document.getElementById('edit-b-cat').value,
+        driverName: document.getElementById('edit-b-driver').value,
+        cleanerName: document.getElementById('edit-b-cleaner').value,
+        startPoint: document.getElementById('edit-b-start').value,
+        destPoint: document.getElementById('edit-b-dest').value,
+        isTripActive: document.getElementById('edit-b-active').value === 'true'
+      };
+      const res = await fetch('/api/data/buses/' + encodeURIComponent(reg), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-edit-bus');
+        showToast('Bus updated successfully!');
+        setTimeout(() => location.reload(), 500);
+      }
+    }
+
+    async function deleteBus(reg) {
+      if (!confirm('Are you sure you want to delete bus ' + reg + '?')) return;
+      const res = await fetch('/api/data/buses/' + encodeURIComponent(reg), { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Bus deleted');
+        const row = document.getElementById('row-bus-' + reg.replace(/\\s+/g, '_'));
+        if (row) row.remove();
+      }
+    }
+
+    function openAddConductorModal() { openModal('modal-add-cond'); }
+    async function submitAddConductor(e) {
+      e.preventDefault();
+      const payload = {
+        fullName: document.getElementById('add-c-name').value,
+        userId: document.getElementById('add-c-user').value,
+        phoneNumber: document.getElementById('add-c-phone').value,
+        licenseNumber: document.getElementById('add-c-lic').value,
+        assignedBusReg: document.getElementById('add-c-bus').value
+      };
+      const res = await fetch('/api/data/conductors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-add-cond');
+        showToast('Conductor created successfully!');
+        setTimeout(() => location.reload(), 500);
+      }
+    }
+
+    function editConductor(id) {
+      const c = ALL_CONDUCTORS.find(item => item.id === id);
+      if (c) openEditConductorModal(c);
+    }
+
+    function openEditConductorModal(c) {
+      document.getElementById('edit-c-id').value = c.id || '';
+      document.getElementById('edit-c-name').value = c.fullName || '';
+      document.getElementById('edit-c-user').value = c.userId || '';
+      document.getElementById('edit-c-phone').value = c.phoneNumber || '';
+      document.getElementById('edit-c-lic').value = c.licenseNumber || '';
+      document.getElementById('edit-c-bus').value = c.assignedBusReg || '';
+      document.getElementById('edit-c-busname').value = c.assignedBusName || '';
+      document.getElementById('edit-c-status').value = c.status || 'ACTIVE';
+      openModal('modal-edit-cond');
+    }
+
+    async function submitEditConductor(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-c-id').value;
+      const payload = {
+        fullName: document.getElementById('edit-c-name').value,
+        phoneNumber: document.getElementById('edit-c-phone').value,
+        licenseNumber: document.getElementById('edit-c-lic').value,
+        assignedBusReg: document.getElementById('edit-c-bus').value,
+        assignedBusName: document.getElementById('edit-c-busname').value,
+        status: document.getElementById('edit-c-status').value
+      };
+      const res = await fetch('/api/data/conductors/' + encodeURIComponent(id), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        closeModal('modal-edit-cond');
+        showToast('Conductor details updated successfully!');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert('Failed to update conductor: ' + (err.message || 'Server error'));
+      }
+    }
+
+    async function deleteConductor(id) {
+      if (!confirm('Are you sure you want to delete conductor ' + id + '?')) return;
+      const res = await fetch('/api/data/conductors/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Conductor deleted');
+        const row = document.getElementById('row-cond-' + id);
+        if (row) row.remove();
+      }
+    }
+
+    async function deleteTicket(id) {
+      if (!confirm('Are you sure you want to delete ticket ' + id + '?')) return;
+      const res = await fetch('/api/data/tickets/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Ticket deleted');
+        const row = document.getElementById('row-ticket-' + id);
+        if (row) row.remove();
+      }
+    }
+
+    // Initialize UI on page load
+    window.addEventListener('DOMContentLoaded', renderApp);
+  </script>
+</body>
+</html>
