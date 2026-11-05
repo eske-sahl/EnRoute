@@ -17,7 +17,7 @@
       "fullName": "Anjali Nair",
       "email": "passenger@gmail.com",
       "phoneNumber": "9847000004",
-      "walletBalance": 228,
+      "walletBalance": 220,
       "concessionCategory": "General / Adult Standard",
       "homeStation": "Aluva Stand, Ernakulam",
       "status": "ACTIVE",
@@ -28,7 +28,7 @@
       "fullName": "Rahul Menon",
       "email": "rahul@gmail.com",
       "phoneNumber": "9847000005",
-      "walletBalance": 68,
+      "walletBalance": 120,
       "concessionCategory": "Student Concession",
       "homeStation": "Perumbavoor Stand",
       "status": "ACTIVE",
@@ -90,6 +90,17 @@
       "assignedBusName": "esKE",
       "role": "ROLE_CONDUCTOR",
       "status": "ACTIVE"
+    },
+    {
+      "id": "COND-1793859584008",
+      "fullName": "anu",
+      "userId": "anu.c",
+      "phoneNumber": "9090909090",
+      "licenseNumber": "kllk1i91919kol",
+      "assignedBusReg": "KL91K9191",
+      "assignedBusName": "Sahl1",
+      "role": "ROLE_CONDUCTOR",
+      "status": "ACTIVE"
     }
   ],
   "buses": [
@@ -101,10 +112,10 @@
       "startPoint": "Aluva Stand",
       "destPoint": "Perumbavoor Stand",
       "seatingCapacity": 48,
-      "isTripActive": false,
-      "status": "STOPPED / DEPOT",
-      "todayCollection": 6504,
-      "ticketsSold": 172,
+      "isTripActive": true,
+      "status": "RUNNING_NOW",
+      "todayCollection": 6450,
+      "ticketsSold": 169,
       "workers": {
         "driver": "Venu Pillai (Badge #KL4201)",
         "conductor": "Suresh Kumar",
@@ -221,6 +232,19 @@
       "status": "STOPPED / DEPOT",
       "todayCollection": 92,
       "ticketsSold": 3
+    },
+    {
+      "regNumber": "KL91K9191",
+      "busName": "Sahl1",
+      "category": "Ordinary Bus (Blue-Whiteline)",
+      "route": "Ferook College - Kozhikkode",
+      "startPoint": "Ferook College",
+      "destPoint": "Kozhikkode",
+      "seatingCapacity": 48,
+      "isTripActive": true,
+      "status": "RUNNING_NOW",
+      "todayCollection": 0,
+      "ticketsSold": 0
     }
   ],
   "tickets": [
