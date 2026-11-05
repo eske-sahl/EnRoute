@@ -7,11 +7,13 @@ import '../bus_detail_page.dart';
 class OwnerBusListTab extends StatefulWidget {
   final OwnerModel owner;
   final VoidCallback onNavigateToConductorTab;
+  final Function(BusModel)? onManageBus;
 
   const OwnerBusListTab({
     super.key,
     required this.owner,
     required this.onNavigateToConductorTab,
+    this.onManageBus,
   });
 
   @override
@@ -574,16 +576,20 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BusDetailPage(
-                          bus: bus,
-                          onNavigateToConductors: widget.onNavigateToConductorTab,
+                    if (widget.onManageBus != null) {
+                      widget.onManageBus!(bus);
+                    } else {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BusDetailPage(
+                            bus: bus,
+                            onNavigateToConductors: widget.onNavigateToConductorTab,
+                          ),
                         ),
-                      ),
-                    );
-                    setState(() {});
+                      );
+                      setState(() {});
+                    }
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -707,7 +713,10 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                             Expanded(
                               child: Text(
                                 'Route: ${bus.routeName}',
-                                style: const TextStyle(fontSize: 12, color: Colors.black87),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),

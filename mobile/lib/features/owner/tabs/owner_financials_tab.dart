@@ -111,7 +111,11 @@ class _OwnerFinancialsTabState extends State<OwnerFinancialsTab> {
                     const SizedBox(width: 6),
                     Text(
                       report.periodLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+                      ),
                     ),
                   ],
                 ),
@@ -337,20 +341,24 @@ class _OwnerFinancialsTabState extends State<OwnerFinancialsTab> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Row(
                               children: [
-                                Icon(Icons.savings, color: AppTheme.primaryGreen, size: 22),
-                                SizedBox(width: 10),
+                                const Icon(Icons.savings, color: AppTheme.primaryGreen, size: 22),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Net Retained Owner Profit',
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+                                        ),
                                       ),
-                                      Text(
+                                      const Text(
                                         'Total profit available after all deductions',
                                         style: TextStyle(fontSize: 10, color: Colors.grey),
                                       ),
@@ -785,35 +793,44 @@ class _OwnerFinancialsTabState extends State<OwnerFinancialsTab> {
               ],
             ),
             const Divider(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _busMetric('Gross Collections', currency.format(bus.grossRevenue), Colors.black87),
-                _busMetric('Operating Cost (79%)', currency.format(bus.totalExpenses), Colors.red.shade700),
-                _busMetric('Net Profit (21%)', currency.format(bus.netProfit), AppTheme.primaryGreen, isBold: true),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
+            Builder(builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final grossColor = isDark ? Colors.white : Colors.black87;
+
+              return Column(
                 children: [
-                  Text('Crew: ${bus.driverName} (D) • ${bus.conductorName} (C)',
-                      style: const TextStyle(fontSize: 10, color: Colors.black87)),
-                  Text('${bus.ticketsCount} tickets • ${bus.tripsCount} trips',
-                      style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _busMetric('Gross Collections', currency.format(bus.grossRevenue), grossColor),
+                      _busMetric('Operating Cost (79%)', currency.format(bus.totalExpenses), Colors.red.shade700),
+                      _busMetric('Net Profit (21%)', currency.format(bus.netProfit), AppTheme.primaryGreen, isBold: true),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade200),
+                    ),
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text('Crew: ${bus.driverName} (D) • ${bus.conductorName} (C)',
+                            style: TextStyle(fontSize: 10, color: isDark ? Colors.white70 : Colors.black87)),
+                        Text('${bus.ticketsCount} tickets • ${bus.tripsCount} trips',
+                            style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-            ),
+              );
+            }),
           ],
         ),
       ),

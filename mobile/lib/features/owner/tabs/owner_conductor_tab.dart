@@ -481,7 +481,9 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
   void _showConductorDetailsModal(ConductorModel cond) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
@@ -494,8 +496,8 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cond.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('Badge: ${cond.licenseNumber}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                  Text(cond.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+                  Text('Badge: ${cond.licenseNumber}', style: TextStyle(color: isDark ? Colors.white60 : Colors.grey, fontSize: 11)),
                 ],
               ),
             ],
@@ -505,40 +507,42 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(),
-              _credRow('Assigned Bus', '${cond.assignedBusName} [${cond.assignedBusReg}]'),
-              _credRow('Email', cond.email),
-              _credRow('Phone Number', cond.phone),
-              _credRow('License Number', cond.licenseNumber),
+              _credRow('Assigned Bus', '${cond.assignedBusName} [${cond.assignedBusReg}]', isDark),
+              _credRow('Email', cond.email, isDark),
+              _credRow('Phone Number', cond.phone, isDark),
+              _credRow('License Number', cond.licenseNumber, isDark),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
+                  color: isDark ? const Color(0xFF2B2416) : Colors.amber.shade50,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.amber.shade200),
+                  border: Border.all(color: isDark ? Colors.amber.shade700.withValues(alpha: 0.5) : Colors.amber.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('OWNER ASSIGNED APP LOGIN CREDENTIALS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.brown)),
+                    Text('OWNER ASSIGNED APP LOGIN CREDENTIALS',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: isDark ? Colors.amber.shade300 : Colors.brown.shade800)),
                     const SizedBox(height: 4),
-                    _credRow('User ID', cond.userId),
-                    _credRow('Password', cond.password),
+                    _credRow('User ID', cond.userId, isDark, true),
+                    _credRow('Password', cond.password, isDark, true),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
-              _credRow('Today\'s Collections', '₹${cond.todayCollection.toStringAsFixed(1)}'),
+              _credRow('Today\'s Collections', '₹${cond.todayCollection.toStringAsFixed(1)}', isDark),
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: isDark ? AppTheme.primaryGreen.withValues(alpha: 0.12) : Colors.green.shade50,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: isDark ? AppTheme.primaryGreen.withValues(alpha: 0.3) : Colors.green.shade200),
                 ),
-                child: const Text(
+                child: Text(
                   'Logging into the app with this User ID and Owner-given password opens the Conductor Portal for the assigned bus.',
-                  style: TextStyle(fontSize: 11, color: Colors.green),
+                  style: TextStyle(fontSize: 11, color: isDark ? Colors.green.shade300 : Colors.green.shade800),
                 ),
               ),
             ],
@@ -548,12 +552,12 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
               icon: const Icon(Icons.edit, size: 16),
               label: const Text('Edit Details'),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(dialogCtx);
                 _showEditConductorModal(cond);
               },
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogCtx),
               child: const Text('Close'),
             ),
           ],
@@ -562,14 +566,21 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
     );
   }
 
-  Widget _credRow(String label, String value) {
+  Widget _credRow(String label, String value, [bool isDark = false, bool isHighlight = false]) {
+    Color valColor;
+    if (isHighlight) {
+      valColor = isDark ? Colors.amber.shade200 : Colors.brown.shade900;
+    } else {
+      valColor = isDark ? Colors.white : Colors.black87;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(label, style: TextStyle(color: isDark ? Colors.white60 : Colors.grey, fontSize: 12)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: valColor)),
         ],
       ),
     );
@@ -686,8 +697,14 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
                             children: [
                               Text(conductor.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                               const SizedBox(height: 2),
-                              Text('Assigned: ${conductor.assignedBusName} [${conductor.assignedBusReg}]',
-                                  style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500)),
+                              Text(
+                                'Assigned: ${conductor.assignedBusName} [${conductor.assignedBusReg}]',
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                               const SizedBox(height: 2),
                               Text('User ID: ${conductor.userId} • License: ${conductor.licenseNumber}',
                                   style: const TextStyle(color: Colors.grey, fontSize: 11)),

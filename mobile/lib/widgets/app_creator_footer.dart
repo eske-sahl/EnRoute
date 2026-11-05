@@ -26,7 +26,6 @@ class AppCreatorFooter extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.favorite, size: 10, color: textColor),
                     const SizedBox(width: 5),
                     Text(
                       'Created by Sahl Saleem & Fathima Riyas',

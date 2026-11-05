@@ -8,11 +8,13 @@ import '../../../widgets/app_creator_footer.dart';
 class DashboardTab extends StatelessWidget {
   final PassengerModel passenger;
   final Function(double) onTopUp;
+  final VoidCallback? onViewAllTickets;
 
   const DashboardTab({
     super.key,
     required this.passenger,
     required this.onTopUp,
+    this.onViewAllTickets,
   });
 
   void _showTopUpSheet(BuildContext context) {
@@ -71,11 +73,21 @@ class DashboardTab extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text('${passenger.name} • ${passenger.concessionCategory}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 const SizedBox(height: 20),
-                QrImageView(
-                  data: passenger.id,
-                  version: QrVersions.auto,
-                  size: 220.0,
-                  eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppTheme.primaryGreen),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                  ),
+                  child: QrImageView(
+                    data: passenger.id,
+                    version: QrVersions.auto,
+                    size: 220.0,
+                    backgroundColor: Colors.white,
+                    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+                    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text('ID: ${passenger.id}', style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 15)),
@@ -338,14 +350,17 @@ class DashboardTab extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade200, width: 2),
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300, width: 2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: QrImageView(
                         data: passenger.id,
                         version: QrVersions.auto,
                         size: 150.0,
-                        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppTheme.primaryGreen),
+                        backgroundColor: Colors.white,
+                        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+                        dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black),
                       ),
                     ),
                   ),
@@ -373,7 +388,27 @@ class DashboardTab extends StatelessWidget {
                 child: Text('Recent Ticket History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
               ),
               const SizedBox(width: 8),
-              Text('${issuedTickets.length} journeys', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              if (onViewAllTickets != null)
+                InkWell(
+                  onTap: onViewAllTickets,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'View More (${issuedTickets.length})',
+                          style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        const SizedBox(width: 3),
+                        const Icon(Icons.arrow_forward_ios, size: 11, color: AppTheme.primaryGreen),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Text('${issuedTickets.length} journeys', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 10),
@@ -395,7 +430,7 @@ class DashboardTab extends StatelessWidget {
               ),
             )
           else
-            ...issuedTickets.map((ticket) {
+            ...issuedTickets.take(4).map((ticket) {
               final dateStr = DateFormat('dd MMM, hh:mm a').format(ticket.timestamp);
 
               return Card(

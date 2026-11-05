@@ -5,11 +5,13 @@ import '../../services/fleet_state.dart';
 class BusDetailPage extends StatefulWidget {
   final BusModel bus;
   final VoidCallback onNavigateToConductors;
+  final VoidCallback? onBack;
 
   const BusDetailPage({
     super.key,
     required this.bus,
     required this.onNavigateToConductors,
+    this.onBack,
   });
 
   @override
@@ -131,36 +133,48 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     const SizedBox(height: 16),
 
                     // Immutable Reg Number Display
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.lock, color: Colors.grey, size: 20),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('REGISTRATION NUMBER (LOCKED)', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-                              Text(widget.bus.regNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                            ],
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(6),
+                    Builder(builder: (context) {
+                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withValues(alpha: 0.07) : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lock, color: isDark ? Colors.white60 : Colors.grey, size: 20),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'REGISTRATION NUMBER (LOCKED)',
+                                  style: TextStyle(fontSize: 10, color: isDark ? Colors.white60 : Colors.grey, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  widget.bus.regNumber,
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87),
+                                ),
+                              ],
                             ),
-                            child: const Text('IMMUTABLE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54)),
-                          ),
-                        ],
-                      ),
-                    ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'IMMUTABLE',
+                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.black54),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 14),
 
                     // Active / Inactive Switch
@@ -460,6 +474,16 @@ class _BusDetailPageState extends State<BusDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.maybePop(context);
+            }
+          },
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -697,14 +721,25 @@ class _BusDetailPageState extends State<BusDetailPage> {
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(stop.time, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                                ),
+                                Builder(builder: (context) {
+                                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
+                                    ),
+                                    child: Text(
+                                      stop.time,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ],
                             ),
                           );

@@ -230,7 +230,7 @@ class IssuedTicketModel {
       case 'UPI':
         return 'Dynamic UPI QR Scan';
       case 'SPLIT':
-        return 'Split Payment (Cash + UPI)';
+        return 'ment (Cash + UPI)';
       default:
         return paymentMode;
     }

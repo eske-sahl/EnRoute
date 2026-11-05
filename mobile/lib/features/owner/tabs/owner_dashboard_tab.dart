@@ -9,12 +9,14 @@ class OwnerDashboardTab extends StatefulWidget {
   final OwnerModel owner;
   final VoidCallback onNavigateToConductorTab;
   final VoidCallback? onNavigateToFinancialsTab;
+  final Function(BusModel)? onManageBus;
 
   const OwnerDashboardTab({
     super.key,
     required this.owner,
     required this.onNavigateToConductorTab,
     this.onNavigateToFinancialsTab,
+    this.onManageBus,
   });
 
   @override
@@ -275,16 +277,20 @@ class _OwnerDashboardTabState extends State<OwnerDashboardTab> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BusDetailPage(
-                          bus: bus,
-                          onNavigateToConductors: widget.onNavigateToConductorTab,
+                    if (widget.onManageBus != null) {
+                      widget.onManageBus!(bus);
+                    } else {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BusDetailPage(
+                            bus: bus,
+                            onNavigateToConductors: widget.onNavigateToConductorTab,
+                          ),
                         ),
-                      ),
-                    );
-                    setState(() {});
+                      );
+                      setState(() {});
+                    }
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16),

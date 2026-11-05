@@ -452,6 +452,10 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
 
   Widget _paymentPill(String title, String modeKey, IconData icon) {
     final isSelected = _paymentMode == modeKey;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unselectedBg = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade100;
+    final unselectedColor = isDark ? Colors.white : Colors.black87;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _paymentMode = modeKey),
@@ -459,19 +463,20 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade100,
+            color: isSelected ? AppTheme.primaryGreen : unselectedBg,
             borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: isSelected ? AppTheme.primaryGreen : (isDark ? Colors.white24 : Colors.grey.shade300)),
           ),
           child: Column(
             children: [
-              Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.black54),
+              Icon(icon, size: 16, color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54)),
               const SizedBox(height: 2),
               Text(
                 title,
                 style: TextStyle(
                   fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.white : Colors.black87,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? Colors.white : unselectedColor,
                 ),
               ),
             ],

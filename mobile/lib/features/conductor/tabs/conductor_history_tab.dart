@@ -73,6 +73,8 @@ class _ConductorHistoryTabState extends State<ConductorHistoryTab> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
@@ -92,35 +94,55 @@ class _ConductorHistoryTabState extends State<ConductorHistoryTab> {
             children: [
               Container(
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade200),
+                ),
                 child: Column(
                   children: [
-                    Text(t.ticketNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace', fontSize: 13)),
+                    Text(
+                      t.ticketNumber,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                        fontSize: 13,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(DateFormat('dd MMM yyyy, hh:mm a').format(t.issuedAt), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    Text(
+                      DateFormat('dd MMM yyyy, hh:mm a').format(t.issuedAt),
+                      style: TextStyle(color: isDark ? Colors.white60 : Colors.grey, fontSize: 11),
+                    ),
                     const Divider(height: 16),
-                    _infoRow('Passenger Name', t.passengerName),
-                    _infoRow('Passenger ID', t.passengerId),
-                    _infoRow('Boarding Stop', t.boardingStop),
-                    _infoRow('Destination Stop', t.destStop),
-                    _infoRow('Category', t.category),
-                    _infoRow('Payment Method', t.paymentMode),
+                    _infoRow('Passenger Name', t.passengerName, isDark),
+                    _infoRow('Passenger ID', t.passengerId, isDark),
+                    _infoRow('Boarding Stop', t.boardingStop, isDark),
+                    _infoRow('Destination Stop', t.destStop, isDark),
+                    _infoRow('Category', t.category, isDark),
+                    _infoRow('Payment Method', t.paymentMode, isDark),
                     if (t.paymentMode == 'CASH') ...[
-                      _infoRow('Cash Given', '₹${t.cashGiven.toInt()}'),
-                      _infoRow('Change Returned', '₹${t.changeReturned.toInt()}'),
+                      _infoRow('Cash Given', '₹${t.cashGiven.toInt()}', isDark),
+                      _infoRow('Change Returned', '₹${t.changeReturned.toInt()}', isDark),
                     ],
                     if (t.paymentMode == 'SPLIT') ...[
-                      _infoRow('Split Breakdown', 'Cash: ₹${t.splitCash.toInt()} + UPI: ₹${t.splitUpi.toInt()}'),
+                      _infoRow('Split Breakdown', 'Cash: ₹${t.splitCash.toInt()} + UPI: ₹${t.splitUpi.toInt()}', isDark),
                     ],
-                    _infoRow('Assigned Bus', '${t.busName} (${t.busRegNumber})'),
-                    _infoRow('Conductor', t.conductorName),
+                    _infoRow('Assigned Bus', '${t.busName} (${t.busRegNumber})', isDark),
+                    _infoRow('Conductor', t.conductorName, isDark),
                     const Divider(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('FARE COLLECTED', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text('₹${t.fare.toStringAsFixed(1)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryGreen)),
+                        Text(
+                          'FARE COLLECTED',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
+                        ),
+                        Text(
+                          '₹${t.fare.toStringAsFixed(1)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryGreen),
+                        ),
                       ],
                     ),
                   ],
@@ -140,14 +162,21 @@ class _ConductorHistoryTabState extends State<ConductorHistoryTab> {
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  Widget _infoRow(String label, String value, [bool isDark = false]) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+          Text(label, style: TextStyle(color: isDark ? Colors.white60 : Colors.grey, fontSize: 11)),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
         ],
       ),
     );
@@ -200,7 +229,7 @@ class _ConductorHistoryTabState extends State<ConductorHistoryTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _metricCol('Tickets', '${tickets.length}', Colors.white),
+                    _metricCol('Tickets', '${tickets.length}', Colors.greenAccent),
                     _metricCol('Smart Wallet', currency.format(walletRevenue), AppTheme.accentAmber),
                     _metricCol('Liquid Cash', currency.format(cashRevenue), Colors.greenAccent),
                     _metricCol('UPI QR', currency.format(upiRevenue), Colors.blueAccent),

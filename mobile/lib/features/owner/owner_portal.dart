@@ -6,6 +6,7 @@ import 'tabs/owner_financials_tab.dart';
 import 'tabs/owner_bus_list_tab.dart';
 import 'tabs/owner_conductor_tab.dart';
 import 'tabs/owner_profile_tab.dart';
+import 'bus_detail_page.dart';
 
 class OwnerPortal extends StatefulWidget {
   final OwnerModel owner;
@@ -23,16 +24,25 @@ class OwnerPortal extends StatefulWidget {
 
 class _OwnerPortalState extends State<OwnerPortal> {
   int _selectedTabIndex = 0;
+  BusModel? _selectedBus;
 
   void _navigateToConductorTab() {
     setState(() {
+      _selectedBus = null;
       _selectedTabIndex = 3; // Jump to Conductor tab
     });
   }
 
   void _navigateToFinancialsTab() {
     setState(() {
+      _selectedBus = null;
       _selectedTabIndex = 1; // Jump to Profit & Financials tab
+    });
+  }
+
+  void _onManageBus(BusModel bus) {
+    setState(() {
+      _selectedBus = bus;
     });
   }
 
@@ -44,6 +54,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
         owner: widget.owner,
         onNavigateToConductorTab: _navigateToConductorTab,
         onNavigateToFinancialsTab: _navigateToFinancialsTab,
+        onManageBus: _onManageBus,
       ),
 
       // Tab 2: Profit & Financial Analytics (Daily, Weekly, Monthly, Yearly)
@@ -55,6 +66,7 @@ class _OwnerPortalState extends State<OwnerPortal> {
       OwnerBusListTab(
         owner: widget.owner,
         onNavigateToConductorTab: _navigateToConductorTab,
+        onManageBus: _onManageBus,
       ),
 
       // Tab 4: Conductor List (Add & Edit Conductor credentials)
@@ -80,52 +92,67 @@ class _OwnerPortalState extends State<OwnerPortal> {
     final unreadReviews = FleetState.instance.getUnreadReviewsCountForOwner(widget.owner.id);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(titles[_selectedTabIndex], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('${widget.owner.companyName} • ${widget.owner.name}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
-          ],
-        ),
-        actions: [
-          // Reviews Quick Notification Icon
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.star_rate),
-                tooltip: 'Passenger Reviews',
-                onPressed: () {
-                  setState(() {
-                    _selectedTabIndex = 4; // Navigate to Profile / Reviews
-                  });
-                },
+      appBar: _selectedBus != null
+          ? null
+          : AppBar(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(titles[_selectedTabIndex], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                  Text('${widget.owner.companyName} • ${widget.owner.name}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                ],
               ),
-              if (unreadReviews > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: Text('$unreadReviews', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-                  ),
+              actions: [
+                // Reviews Quick Notification Icon
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.star_rate),
+                      tooltip: 'Passenger Reviews',
+                      onPressed: () {
+                        setState(() {
+                          _selectedBus = null;
+                          _selectedTabIndex = 4; // Navigate to Profile / Reviews
+                        });
+                      },
+                    ),
+                    if (unreadReviews > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                          child: Text('$unreadReviews', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign Out',
-            onPressed: widget.onLogout,
-          ),
-        ],
-      ),
-      body: tabs[_selectedTabIndex],
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Sign Out',
+                  onPressed: widget.onLogout,
+                ),
+              ],
+            ),
+      body: _selectedBus != null
+          ? BusDetailPage(
+              bus: _selectedBus!,
+              onNavigateToConductors: () {
+                setState(() {
+                  _selectedBus = null;
+                  _selectedTabIndex = 3;
+                });
+              },
+              onBack: () => setState(() => _selectedBus = null),
+            )
+          : tabs[_selectedTabIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedTabIndex,
         onDestinationSelected: (index) {
           setState(() {
+            _selectedBus = null;
             _selectedTabIndex = index;
           });
         },

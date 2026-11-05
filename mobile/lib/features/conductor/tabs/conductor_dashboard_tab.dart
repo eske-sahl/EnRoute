@@ -404,6 +404,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
       context: context,
       builder: (ctx) {
         final isUnknown = ticket.passengerId == 'Unknown';
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
 
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -421,48 +422,67 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade200),
                 ),
                 child: Column(
                   children: [
-                    Text(ticket.busName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text(ticket.busRegNumber, style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text(
+                      ticket.busName,
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87),
+                    ),
+                    Text(
+                      ticket.busRegNumber,
+                      style: TextStyle(color: isDark ? Colors.white60 : Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
                     const Divider(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Ticket No:', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                        Text(ticket.ticketNumber, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('Ticket No:', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
+                        Text(
+                          ticket.ticketNumber,
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Passenger Name & ID:', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                        Text('${ticket.passengerName} (${ticket.passengerId})',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                              color: isUnknown ? Colors.brown : AppTheme.primaryGreen,
-                            )),
+                        Text('Passenger Name & ID:', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
+                        Text(
+                          '${ticket.passengerName} (${ticket.passengerId})',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: isUnknown ? (isDark ? Colors.amber.shade300 : Colors.brown) : AppTheme.primaryGreen,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Route:', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                        Text('${ticket.boardingStop} ➔ ${ticket.destStop}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('Route:', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
+                        Text(
+                          '${ticket.boardingStop} ➔ ${ticket.destStop}',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white : Colors.black87),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Type & Category:', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text('Type & Category:', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
                         Text(ticket.category, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppTheme.primaryGreen)),
                       ],
                     ),
@@ -470,8 +490,11 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Payment Mode:', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                        Text(ticket.paymentMode, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('Payment Mode:', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
+                        Text(
+                          ticket.paymentMode,
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white : Colors.black87),
+                        ),
                       ],
                     ),
                     if (ticket.paymentMode == 'CASH' && ticket.changeReturned > 0) ...[
@@ -479,9 +502,11 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Cash Given / Change:', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                          Text('₹${ticket.cashGiven.toInt()} (Return: ₹${ticket.changeReturned.toInt()})',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.orange)),
+                          Text('Cash Given / Change:', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
+                          Text(
+                            '₹${ticket.cashGiven.toInt()} (Return: ₹${ticket.changeReturned.toInt()})',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.orange),
+                          ),
                         ],
                       ),
                     ],
@@ -489,9 +514,14 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('TOTAL ASSIGNED FARE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                        Text('₹${ticket.fare.toStringAsFixed(1)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppTheme.primaryGreen)),
+                        Text(
+                          'TOTAL ASSIGNED FARE',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
+                        ),
+                        Text(
+                          '₹${ticket.fare.toStringAsFixed(1)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppTheme.primaryGreen),
+                        ),
                       ],
                     ),
                   ],
@@ -501,8 +531,15 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isUnknown ? Colors.amber.shade50 : Colors.green.shade50,
+                  color: isUnknown
+                      ? (isDark ? const Color(0xFF2E2415) : Colors.amber.shade50)
+                      : (isDark ? AppTheme.primaryGreen.withValues(alpha: 0.15) : Colors.green.shade50),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isUnknown
+                        ? (isDark ? Colors.amber.shade700.withValues(alpha: 0.5) : Colors.amber.shade200)
+                        : (isDark ? AppTheme.primaryGreen.withValues(alpha: 0.3) : Colors.green.shade200),
+                  ),
                 ),
                 child: Text(
                   isUnknown
@@ -511,7 +548,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: isUnknown ? Colors.brown.shade800 : Colors.green.shade900,
+                    color: isUnknown ? (isDark ? Colors.amber.shade300 : Colors.brown.shade800) : (isDark ? Colors.green.shade300 : Colors.green.shade900),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1031,9 +1068,9 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(_connectedPassenger!.name,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color.fromARGB(255, 1, 18, 32))),
                                       Text('ID: ${_connectedPassenger!.id} • ${_connectedPassenger!.phone}',
-                                          style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                                          style: const TextStyle(color: Color.fromARGB(255, 1, 18, 32), fontSize: 11)),
                                     ],
                                   ),
                                 ],
@@ -1294,14 +1331,14 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                                 Icon(Icons.calculate, color: AppTheme.primaryGreen, size: 20),
                                 SizedBox(width: 6),
                                 Text('Conductor Fare Assignment',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.brown)),
                               ],
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
                               child: Text('Auto-Stage: ₹${stageFare.toStringAsFixed(1)}',
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 83, 83, 83))),
                             ),
                           ],
                         ),
@@ -1396,105 +1433,124 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                   // Cash Details & Split Payment options
                   if (_paymentMode == 'CASH') ...[
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.amber.shade300),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Liquid Cash Handling',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.brown)),
-                              Text('Assigned Fare: ₹${assignedFare.toStringAsFixed(1)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _cashGivenController,
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (_) => setState(() {}),
-                                  decoration: const InputDecoration(
-                                    labelText: 'Cash Given by Passenger',
-                                    prefixText: '₹ ',
-                                    border: OutlineInputBorder(),
-                                    isDense: true,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Builder(builder: (context) {
-                                final given = double.tryParse(_cashGivenController.text.trim()) ?? assignedFare;
-                                final change = (given - assignedFare).clamp(0.0, 9999.0);
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    const Text('Change to Return:', style: TextStyle(fontSize: 10, color: Colors.brown)),
-                                    Text('₹${change.toStringAsFixed(1)}',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
-                                  ],
-                                );
-                              }),
-                            ],
-                          ),
+                    Builder(builder: (context) {
+                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                      final cashBoxBg = isDark ? const Color(0xFF262015) : Colors.amber.shade50;
+                      final cashBoxBorder = isDark ? Colors.amber.shade700.withValues(alpha: 0.5) : Colors.amber.shade300;
+                      final cashBoxHeading = isDark ? Colors.amber.shade200 : Colors.brown.shade800;
+                      final cashBoxSub = isDark ? Colors.amber.shade300 : Colors.brown.shade700;
 
-                          const SizedBox(height: 10),
-                          // Split Payment Toggle: Few as Cash, Few as UPI
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _isSplitEnabled,
-                                activeColor: AppTheme.primaryGreen,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _isSplitEnabled = val ?? false;
-                                    if (_isSplitEnabled) {
-                                      _splitCashController.text = (assignedFare / 2).toStringAsFixed(1);
-                                      _splitUpiController.text = (assignedFare / 2).toStringAsFixed(1);
-                                    }
-                                  });
-                                },
-                              ),
-                              const Expanded(
-                                child: Text('Split Payment: Pay few as Cash & few as UPI',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                              ),
-                            ],
-                          ),
-
-                          if (_isSplitEnabled) ...[
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: cashBoxBg,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: cashBoxBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Liquid Cash Handling',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: cashBoxHeading)),
+                                Text('Assigned Fare: ₹${assignedFare.toStringAsFixed(1)}',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: cashBoxHeading)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
                                 Expanded(
                                   child: TextField(
-                                    controller: _splitCashController,
+                                    controller: _cashGivenController,
                                     keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(labelText: 'Cash (₹)', border: OutlineInputBorder(), isDense: true),
+                                    onChanged: (_) => setState(() {}),
+                                    decoration: InputDecoration(
+                                      labelText: 'Cash Given by Passenger',
+                                      labelStyle: TextStyle(color: isDark ? Colors.white70 : null),
+                                      prefixText: '₹ ',
+                                      border: const OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 12),
+                                Builder(builder: (context) {
+                                  final given = double.tryParse(_cashGivenController.text.trim()) ?? assignedFare;
+                                  final change = (given - assignedFare).clamp(0.0, 9999.0);
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text('Change to Return:', style: TextStyle(fontSize: 10, color: cashBoxSub)),
+                                      Text('₹${change.toStringAsFixed(1)}',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                                    ],
+                                  );
+                                }),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+                            // Split Payment Toggle: Few as Cash, Few as UPI
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isSplitEnabled,
+                                  activeColor: AppTheme.primaryGreen,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _isSplitEnabled = val ?? false;
+                                      if (_isSplitEnabled) {
+                                        _splitCashController.text = (assignedFare / 2).toStringAsFixed(1);
+                                        _splitUpiController.text = (assignedFare / 2).toStringAsFixed(1);
+                                      }
+                                    });
+                                  },
+                                ),
                                 Expanded(
-                                  child: TextField(
-                                    controller: _splitUpiController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(labelText: 'UPI (₹)', border: OutlineInputBorder(), isDense: true),
-                                  ),
+                                  child: Text('Split Payment: Pay few as Cash & few as UPI',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cashBoxHeading)),
                                 ),
                               ],
                             ),
+
+                            if (_isSplitEnabled) ...[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _splitCashController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: 'Cash (₹)',
+                                        labelStyle: TextStyle(color: isDark ? Colors.white70 : null),
+                                        border: const OutlineInputBorder(),
+                                        isDense: true,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _splitUpiController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: 'UPI (₹)',
+                                        labelStyle: TextStyle(color: isDark ? Colors.white70 : null),
+                                        border: const OutlineInputBorder(),
+                                        isDense: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    }),
                   ],
 
                   const SizedBox(height: 18),
@@ -1515,7 +1571,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                             _connectedPassenger != null
                                 ? 'For: ${_connectedPassenger!.name}'
                                 : 'For: Unknown (Walk-in)',
-                            style: TextStyle(fontSize: 11, color: _connectedPassenger != null ? AppTheme.primaryGreen : Colors.brown),
+                            style: TextStyle(fontSize: 11, color: _connectedPassenger != null ? AppTheme.primaryGreen : const Color.fromARGB(255, 199, 198, 198)),
                           ),
                         ],
                       ),
@@ -1756,6 +1812,11 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
 
   Widget _buildPaymentChip(String label, String mode, IconData icon, {bool enabled = true}) {
     final isSelected = _paymentMode == mode;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unselectedBg = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade100;
+    final unselectedBorder = isDark ? Colors.white24 : Colors.grey.shade300;
+    final unselectedColor = isDark ? Colors.white : Colors.black87;
+
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -1779,28 +1840,24 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade100,
+              color: isSelected ? AppTheme.primaryGreen : unselectedBg,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade300),
+              border: Border.all(color: isSelected ? AppTheme.primaryGreen : unselectedBorder),
             ),
             child: Column(
               children: [
                 Icon(
                   icon,
                   size: 18,
-                  color: isSelected
-                      ? Colors.white
-                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+                  color: isSelected ? Colors.white : unselectedColor,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   label,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected
-                        ? Colors.white
-                        : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected ? Colors.white : unselectedColor,
                   ),
                 ),
               ],

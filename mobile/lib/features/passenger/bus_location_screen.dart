@@ -15,6 +15,7 @@ class BusLocationScreen extends StatelessWidget {
   final String category;
   final String driverName;
   final String conductorName;
+  final VoidCallback? onBack;
 
   const BusLocationScreen({
     super.key,
@@ -30,6 +31,7 @@ class BusLocationScreen extends StatelessWidget {
     this.category = 'Ordinary Bus (Blue-Whiteline)',
     this.driverName = 'Venu Pillai',
     this.conductorName = 'Suresh Kumar',
+    this.onBack,
   });
 
   Color _getCategoryColor(String cat) {
@@ -76,6 +78,16 @@ class BusLocationScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (onBack != null) {
+              onBack!();
+            } else {
+              Navigator.maybePop(context);
+            }
+          },
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -224,6 +236,7 @@ class BusLocationScreen extends StatelessWidget {
                       final isLast = index == activeStops.length - 1;
 
                       return _buildTimelineNode(
+                        context,
                         stop.stopName,
                         stop.time,
                         isPassed: isPassed,
@@ -239,9 +252,10 @@ class BusLocationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineNode(String stopName, String time,
+  Widget _buildTimelineNode(BuildContext context, String stopName, String time,
       {bool isPassed = false, bool isCurrent = false, bool isUpcoming = false, bool isLast = false}) {
-    Color nodeColor = Colors.grey.shade300;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Color nodeColor = isDark ? Colors.white24 : Colors.grey.shade300;
     if (isPassed) nodeColor = AppTheme.primaryGreen;
     if (isCurrent) nodeColor = AppTheme.accentAmber;
 
@@ -267,7 +281,7 @@ class BusLocationScreen extends StatelessWidget {
               Container(
                 width: 3,
                 height: 48,
-                color: isPassed ? AppTheme.primaryGreen : Colors.grey.shade300,
+                color: isPassed ? AppTheme.primaryGreen : (isDark ? Colors.white24 : Colors.grey.shade300),
               ),
           ],
         ),
@@ -287,7 +301,7 @@ class BusLocationScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
-                          color: isCurrent ? AppTheme.primaryGreen : Colors.black87,
+                          color: isCurrent ? AppTheme.primaryGreen : (isDark ? Colors.white : Colors.black87),
                         ),
                       ),
                       if (isCurrent)

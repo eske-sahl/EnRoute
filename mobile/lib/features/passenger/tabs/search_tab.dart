@@ -6,7 +6,8 @@ import '../bus_location_screen.dart';
 
 class SearchTab extends StatefulWidget {
   final PassengerModel? passenger;
-  const SearchTab({super.key, this.passenger});
+  final Function(BusModel)? onTrackBus;
+  const SearchTab({super.key, this.passenger, this.onTrackBus});
 
   @override
   State<SearchTab> createState() => _SearchTabState();
@@ -179,6 +180,10 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   }
 
   void _openBusLiveLocation(BusModel bus) {
+    if (widget.onTrackBus != null) {
+      widget.onTrackBus!(bus);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -200,21 +205,30 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
   }
 
   Widget _buildDirectContactCard(BusModel bus) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50,
+        color: isDark ? const Color(0xFF1E293B) : Colors.blueGrey.shade50,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blueGrey.shade100),
+        border: Border.all(color: isDark ? Colors.white12 : Colors.blueGrey.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.headset_mic, size: 16, color: AppTheme.primaryGreen),
-              SizedBox(width: 6),
-              Text('Direct Operator & Crew Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const Icon(Icons.headset_mic, size: 16, color: AppTheme.primaryGreen),
+              const SizedBox(width: 6),
+              Text(
+                'Direct Operator & Crew Support',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -226,8 +240,15 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Owner: ${bus.ownerName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('${bus.ownerPhone} • ${bus.ownerEmail}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(
+                      'Owner: ${bus.ownerName}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text('${bus.ownerPhone} • ${bus.ownerEmail}', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
                   ],
                 ),
               ),
@@ -265,8 +286,15 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Conductor: ${bus.conductorName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('${bus.conductorPhone} • ${bus.conductorEmail}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(
+                      'Conductor: ${bus.conductorName}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text('${bus.conductorPhone} • ${bus.conductorEmail}', style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.grey)),
                   ],
                 ),
               ),

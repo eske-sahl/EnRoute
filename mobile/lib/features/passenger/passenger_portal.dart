@@ -5,6 +5,8 @@ import 'tabs/dashboard_tab.dart';
 import 'tabs/search_tab.dart';
 import 'tabs/wallet_tab.dart';
 import 'tabs/profile_tab.dart';
+import 'passenger_ticket_history_page.dart';
+import 'bus_location_screen.dart';
 import 'widgets/passenger_ai_sheet.dart';
 
 class PassengerPortal extends StatefulWidget {
@@ -27,6 +29,8 @@ class PassengerPortal extends StatefulWidget {
 
 class _PassengerPortalState extends State<PassengerPortal> {
   int _selectedTabIndex = 0;
+  bool _viewingAllTickets = false;
+  BusModel? _trackingBus;
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +39,22 @@ class _PassengerPortalState extends State<PassengerPortal> {
       DashboardTab(
         passenger: widget.passenger,
         onTopUp: widget.onTopUp,
+        onViewAllTickets: () {
+          setState(() {
+            _viewingAllTickets = true;
+          });
+        },
       ),
 
       // Tab 2: Bus Search (with 2 inner tabs: Route Search & Bus by Reg No)
-      SearchTab(passenger: widget.passenger),
+      SearchTab(
+        passenger: widget.passenger,
+        onTrackBus: (bus) {
+          setState(() {
+            _trackingBus = bus;
+          });
+        },
+      ),
 
       // Tab 3: Wallet Details (All transactions, recharge, upi, cash, travel history)
       WalletTab(
@@ -60,46 +76,77 @@ class _PassengerPortalState extends State<PassengerPortal> {
       'My Profile & Settings',
     ];
 
+    Widget activeBody;
+    if (_viewingAllTickets) {
+      activeBody = PassengerTicketHistoryPage(
+        passenger: widget.passenger,
+        onBack: () => setState(() => _viewingAllTickets = false),
+      );
+    } else if (_trackingBus != null) {
+      activeBody = BusLocationScreen(
+        busRegNumber: _trackingBus!.regNumber,
+        busName: _trackingBus!.busName,
+        routeName: _trackingBus!.routeName,
+        companyName: _trackingBus!.companyName,
+        currentStop: _trackingBus!.currentStop,
+        nextStop: _trackingBus!.nextStop,
+        eta: _trackingBus!.eta,
+        stops: _trackingBus!.stops,
+        category: _trackingBus!.category,
+        driverName: _trackingBus!.driverName,
+        conductorName: _trackingBus!.conductorName,
+        onBack: () => setState(() => _trackingBus = null),
+      );
+    } else {
+      activeBody = tabs[_selectedTabIndex];
+    }
+
+    final isSubpageActive = _viewingAllTickets || _trackingBus != null;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(tabTitles[_selectedTabIndex], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: widget.isOnline ? AppTheme.accentAmber : Colors.orangeAccent,
-                    shape: BoxShape.circle,
+      appBar: isSubpageActive
+          ? null
+          : AppBar(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tabTitles[_selectedTabIndex], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: widget.isOnline ? AppTheme.accentAmber : Colors.orangeAccent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${widget.passenger.name} • ${widget.passenger.id}',
+                        style: const TextStyle(fontSize: 11, color: Colors.white70),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${widget.passenger.name} • ${widget.passenger.id}',
-                  style: const TextStyle(fontSize: 11, color: Colors.white70),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Sign Out',
+                  onPressed: widget.onLogout,
                 ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign Out',
-            onPressed: widget.onLogout,
-          ),
-        ],
-      ),
-      body: tabs[_selectedTabIndex],
+      body: activeBody,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: _buildMetaStyleAiButton(context),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedTabIndex,
         onDestinationSelected: (index) {
           setState(() {
+            _viewingAllTickets = false;
+            _trackingBus = null;
             _selectedTabIndex = index;
           });
         },
