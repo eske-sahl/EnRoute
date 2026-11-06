@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
+import '../../widgets/bus_live_map_widget.dart';
 
 class BusLocationScreen extends StatelessWidget {
   final String busRegNumber;
@@ -46,220 +47,256 @@ class BusLocationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Retrieve stops from passed param or lookup from fleet state
-    List<BusStopSchedule> activeStops = [];
-    if (stops != null && stops!.isNotEmpty) {
-      activeStops = List.from(stops!);
-    } else {
-      final match = FleetState.instance.buses.where((b) => b.regNumber == busRegNumber).toList();
-      if (match.isNotEmpty && match.first.stops.isNotEmpty) {
-        activeStops = List.from(match.first.stops);
-      }
-    }
+    return ListenableBuilder(
+      listenable: FleetState.instance,
+      builder: (context, _) {
+        final liveBus = FleetState.instance.getBusByReg(busRegNumber);
 
-    // Always sort timeline in ascending order of scheduled time
-    activeStops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
+        final activeBus = liveBus ??
+            BusModel(
+              id: 'BUS-TEMP',
+              regNumber: busRegNumber,
+              busName: busName,
+              category: category,
+              routeName: routeName,
+              stops: stops ?? [],
+              companyName: companyName,
+              currentStop: currentStop,
+              nextStop: nextStop,
+              eta: eta,
+              driverName: driverName,
+              conductorName: conductorName,
+            );
 
-    // Determine current stop index
-    int currentIndex = -1;
-    for (int i = 0; i < activeStops.length; i++) {
-      if (activeStops[i].stopName.toLowerCase().contains(currentStop.toLowerCase()) ||
-          currentStop.toLowerCase().contains(activeStops[i].stopName.toLowerCase())) {
-        currentIndex = i;
-        break;
-      }
-    }
-    if (currentIndex == -1 && activeStops.isNotEmpty) {
-      // Default to middle stop or second stop for running simulation
-      currentIndex = (activeStops.length ~/ 2).clamp(0, activeStops.length - 1);
-    }
+        // Retrieve stops and sort in ascending order of time
+        List<BusStopSchedule> activeStops = [];
+        if (activeBus.stops.isNotEmpty) {
+          activeStops = List.from(activeBus.stops);
+        } else if (stops != null && stops!.isNotEmpty) {
+          activeStops = List.from(stops!);
+        }
 
-    final catColor = _getCategoryColor(category);
-    final fleetBus = FleetState.instance.getBusByReg(busRegNumber);
-    final isGpsLive = fleetBus != null ? (fleetBus.isLiveGpsActive && fleetBus.isTripActive) : true;
+        activeStops.sort((a, b) => parseTimeToMinutes(a.time).compareTo(parseTimeToMinutes(b.time)));
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (onBack != null) {
-              onBack!();
-            } else {
-              Navigator.maybePop(context);
-            }
-          },
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('$busName ($busRegNumber)', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text(routeName, style: const TextStyle(fontSize: 11, color: Colors.white70)),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          // Live Map Telemetry HUD
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF131A22), Color(0xFF1F2937)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+        // Determine current stop index
+        int currentIndex = -1;
+        for (int i = 0; i < activeStops.length; i++) {
+          if (activeStops[i].stopName.toLowerCase().contains(activeBus.currentStop.toLowerCase()) ||
+              activeBus.currentStop.toLowerCase().contains(activeStops[i].stopName.toLowerCase())) {
+            currentIndex = i;
+            break;
+          }
+        }
+        if (currentIndex == -1 && activeStops.isNotEmpty) {
+          currentIndex = (activeStops.length ~/ 2).clamp(0, activeStops.length - 1);
+        }
+
+        final catColor = _getCategoryColor(activeBus.category);
+        final isGpsLive = activeBus.isLiveGpsActive && activeBus.isTripActive;
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (onBack != null) {
+                  onBack!();
+                } else {
+                  Navigator.maybePop(context);
+                }
+              },
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Text('${activeBus.busName} (${activeBus.regNumber})',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(activeBus.routeName, style: const TextStyle(fontSize: 11, color: Colors.white70)),
+              ],
+            ),
+            actions: [
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isGpsLive ? Colors.green.shade800 : Colors.amber.shade900,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white30),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    Icon(isGpsLive ? Icons.gps_fixed : Icons.gps_not_fixed, size: 12, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      isGpsLive ? 'LIVE ACTIVE' : 'OFFLINE / DEPOT',
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              // 1. REAL INTERACTIVE OPENSTREETMAP SECTION
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                color: const Color(0xFF0F172A),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    BusLiveMapWidget(
+                      bus: activeBus,
+                      height: 240,
+                      showControls: true,
+                    ),
+                    const SizedBox(height: 10),
+                    // Live Telemetry Bar underneath map
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: isGpsLive ? Colors.greenAccent : Colors.amber,
-                            shape: BoxShape.circle,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: isGpsLive ? Colors.green.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  isGpsLive ? Icons.radar : Icons.location_off,
+                                  size: 14,
+                                  color: isGpsLive ? Colors.greenAccent : Colors.amber,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isGpsLive ? 'HARDWARE GPS BROADCAST' : 'GPS STANDBY',
+                                      style: TextStyle(
+                                        color: isGpsLive ? Colors.greenAccent : Colors.amber,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Next: ${activeBus.nextStop}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          isGpsLive
-                              ? 'LIVE CONDUCTOR GPS BROADCAST (5s pulse)'
-                              : 'GPS BROADCAST STANDBY / NOT BROADCASTING',
-                          style: TextStyle(
-                            color: isGpsLive ? Colors.greenAccent : Colors.amber,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: catColor.withValues(alpha: 0.2),
+                            border: Border.all(color: catColor),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            activeBus.category,
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: catColor.withValues(alpha: 0.2),
-                        border: Border.all(color: catColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        category,
-                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Row(
+              ),
+
+              // 2. STAGE PROGRESS & ETA HUD
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.5)),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(Icons.directions_bus, color: AppTheme.accentAmber, size: 36),
-                    ),
-                    const SizedBox(width: 16),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          const Text('APPROACHING NEXT STOP', style: TextStyle(color: Colors.grey, fontSize: 10, letterSpacing: 1.1)),
-                          Text(
-                            nextStop,
-                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'ETA: ~$eta • Current Speed: ${speedKmh.toInt()} km/h',
-                            style: const TextStyle(color: AppTheme.accentAmber, fontSize: 13, fontWeight: FontWeight.w600),
+                          const Icon(Icons.location_on, size: 16, color: AppTheme.primaryGreen),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('CURRENT STAGE LOCATION', style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                Text(
+                                  activeBus.currentStop,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Driver: $driverName', style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                    Text('Conductor: $conductorName', style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Route Stage Progress Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            color: Colors.grey.shade100,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 14, color: AppTheme.primaryGreen),
-                    const SizedBox(width: 4),
-                    Text(
-                      'CURRENT LOCATION: $currentStop',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.black87),
+                    const SizedBox(width: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.timer_outlined, size: 16, color: AppTheme.accentAmber),
+                        const SizedBox(width: 4),
+                        Text(
+                          'ETA: ~${activeBus.eta}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black87),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'ON-SCHEDULE',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.green),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          // Dynamic Route Timeline in Ascending Order
-          Expanded(
-            child: activeStops.isEmpty
-                ? const Center(
-                    child: Text('No timetable stops registered for this bus route schedule.',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: activeStops.length,
-                    itemBuilder: (context, index) {
-                      final stop = activeStops[index];
-                      final isPassed = index < currentIndex;
-                      final isCurrent = index == currentIndex;
-                      final isUpcoming = index > currentIndex;
-                      final isLast = index == activeStops.length - 1;
+              // 3. ROUTE TIMELINE NODES
+              Expanded(
+                child: activeStops.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No timetable stops registered for this bus route schedule.',
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: activeStops.length,
+                        itemBuilder: (context, index) {
+                          final stop = activeStops[index];
+                          final isPassed = index < currentIndex;
+                          final isCurrent = index == currentIndex;
+                          final isUpcoming = index > currentIndex;
+                          final isLast = index == activeStops.length - 1;
 
-                      return _buildTimelineNode(
-                        context,
-                        stop.stopName,
-                        stop.time,
-                        isPassed: isPassed,
-                        isCurrent: isCurrent,
-                        isUpcoming: isUpcoming,
-                        isLast: isLast,
-                      );
-                    },
-                  ),
+                          return _buildTimelineNode(
+                            context,
+                            stop.stopName,
+                            stop.time,
+                            isPassed: isPassed,
+                            isCurrent: isCurrent,
+                            isUpcoming: isUpcoming,
+                            isLast: isLast,
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -317,7 +354,7 @@ class BusLocationScreen extends StatelessWidget {
                       ),
                       if (isCurrent)
                         const Text(
-                          'BUS IS APPROACHING / CURRENT STAGE',
+                          'BUS IS CURRENTLY HERE / APPROACHING',
                           style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange),
                         ),
                     ],

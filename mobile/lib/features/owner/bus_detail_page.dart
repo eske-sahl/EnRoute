@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
+import '../../widgets/bus_live_map_widget.dart';
 import '../conductor/conductor_portal.dart';
 
 class BusDetailPage extends StatefulWidget {
@@ -37,6 +38,21 @@ class _BusDetailPageState extends State<BusDetailPage> {
   void initState() {
     super.initState();
     _syncFromBus();
+    FleetState.instance.addListener(_onFleetChanged);
+  }
+
+  @override
+  void dispose() {
+    FleetState.instance.removeListener(_onFleetChanged);
+    super.dispose();
+  }
+
+  void _onFleetChanged() {
+    if (mounted) {
+      setState(() {
+        _syncFromBus();
+      });
+    }
   }
 
   void _syncFromBus() {
@@ -1032,6 +1048,15 @@ class _BusDetailPageState extends State<BusDetailPage> {
               ),
             ],
           ),
+          const SizedBox(height: 14),
+
+          // Real Live Interactive Map Semi-Window
+          BusLiveMapWidget(
+            bus: widget.bus,
+            height: 220,
+            showControls: true,
+          ),
+
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(8),
@@ -1042,16 +1067,21 @@ class _BusDetailPageState extends State<BusDetailPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Lat: ${widget.bus.currentLatitude.toStringAsFixed(4)}° N, Lon: ${widget.bus.currentLongitude.toStringAsFixed(4)}° E',
-                  style: const TextStyle(color: Colors.white70, fontSize: 10, fontFamily: 'monospace'),
+                Expanded(
+                  child: Text(
+                    'Lat: ${widget.bus.currentLatitude.toStringAsFixed(4)}° N, Lon: ${widget.bus.currentLongitude.toStringAsFixed(4)}° E',
+                    style: const TextStyle(color: Colors.white70, fontSize: 10, fontFamily: 'monospace'),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(isGpsLive ? Icons.satellite_alt : Icons.location_disabled, color: isGpsLive ? Colors.greenAccent : Colors.grey, size: 12),
                     const SizedBox(width: 4),
                     Text(
-                      isGpsLive ? 'GNSS Lock: 3.2m accuracy' : 'GPS standby',
+                      isGpsLive ? 'GNSS Lock' : 'GPS standby',
                       style: const TextStyle(color: Colors.white60, fontSize: 10),
                     ),
                   ],
@@ -1199,8 +1229,22 @@ class _BusDetailPageState extends State<BusDetailPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Current: ${widget.bus.currentStop}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                      Text('Next: ${widget.bus.nextStop}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                      Expanded(
+                        child: Text(
+                          'Current: ${widget.bus.currentStop}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Next: ${widget.bus.nextStop}',
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -1223,12 +1267,16 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
-                            SizedBox(width: 8),
-                            Text('Bus Classification & Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          ],
+                        const Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.directions_bus, color: AppTheme.primaryGreen),
+                              SizedBox(width: 8),
+                              Flexible(
+                                child: Text('Bus Classification & Category', overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              ),
+                            ],
+                          ),
                         ),
                         TextButton.icon(
                           onPressed: _showEditBusModal,
@@ -1249,7 +1297,13 @@ class _BusDetailPageState extends State<BusDetailPage> {
                         children: [
                           Icon(Icons.palette, color: catColor, size: 18),
                           const SizedBox(width: 8),
-                          Text(_category, style: TextStyle(color: catColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Expanded(
+                            child: Text(
+                              _category,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: catColor, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1276,12 +1330,16 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.alt_route, color: AppTheme.primaryGreen),
-                            SizedBox(width: 8),
-                            Text('Route & Timetable', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          ],
+                        const Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.alt_route, color: AppTheme.primaryGreen),
+                              SizedBox(width: 8),
+                              Flexible(
+                                child: Text('Route & Timetable', overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              ),
+                            ],
+                          ),
                         ),
                         TextButton.icon(
                           onPressed: _showEditBusModal,
@@ -1367,12 +1425,20 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.badge, color: AppTheme.primaryGreen),
-                            SizedBox(width: 8),
-                            Text('Assigned Bus Crew & Workers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          ],
+                        const Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.badge, color: AppTheme.primaryGreen),
+                              SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'Assigned Bus Crew & Workers',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         TextButton.icon(
                           onPressed: _showEditCrewModal,
@@ -1471,7 +1537,12 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     children: [
                       Icon(Icons.warning_amber_rounded, color: Colors.red, size: 20),
                       SizedBox(width: 8),
-                      Text('Vehicle Fleet Management - Danger Zone', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+                      Expanded(
+                        child: Text(
+                          'Vehicle Fleet Management - Danger Zone',
+                          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),

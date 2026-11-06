@@ -39,6 +39,9 @@ dependencies:
   http: ^1.6.0
   shared_preferences: ^2.5.6
   mobile_scanner: ^7.4.2
+  geolocator: ^14.1.2
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
 
 dev_dependencies:
   flutter_test:

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
+import '../../../services/location_service.dart';
 import '../../../widgets/app_creator_footer.dart';
 import '../widgets/passenger_qr_scanner_dialog.dart';
 
@@ -247,13 +248,14 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   void _toggleTrip() {
     if (_bus.isTripActive) {
       // Ending trip
+      LocationService.instance.stopBroadcasting(_bus.regNumber);
       setState(() {
         FleetState.instance.setTripActive(_bus.regNumber, false);
         _initBus();
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Trip Ended. Location broadcast paused.'),
+          content: const Text('Trip Ended. Location broadcast stopped.'),
           backgroundColor: Colors.orange.shade800,
           behavior: SnackBarBehavior.floating,
         ),
@@ -281,7 +283,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Broadcasting your live device GPS location allows passengers and the fleet owner to track this bus in real-time, view ETA countdowns, and see approaching stops.',
+                'Broadcasting your live device GPS location allows passengers and the fleet owner to track this bus in real-time on an interactive map, view ETA countdowns, and see approaching stops.',
                 style: TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 12),
@@ -298,7 +300,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Location sharing is optional. You can choose to enable GPS broadcast or start the trip without GPS.',
+                        'Location sharing is optional. You can choose to enable real device hardware GPS broadcast or start the trip without GPS.',
                         style: TextStyle(fontSize: 11, color: Colors.green),
                       ),
                     ),
@@ -332,19 +334,75 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
               icon: const Icon(Icons.share_location, size: 16, color: Colors.white),
               label: const Text('Turn On & Share GPS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(locCtx);
-                setState(() {
-                  FleetState.instance.setTripActive(_bus.regNumber, true, broadcastGps: true);
-                  _initBus();
-                });
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Trip Started! Live GPS location is now broadcasting to Passengers & Owner.'),
-                    backgroundColor: AppTheme.primaryGreen,
+                  const SnackBar(
+                    content: Row(
+                      children: [
+                        SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                        SizedBox(width: 12),
+                        Text('Checking GPS hardware and satellite lock...'),
+                      ],
+                    ),
+                    duration: Duration(seconds: 2),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
+
+                final success = await LocationService.instance.startBroadcasting(context, _bus.regNumber);
+                if (!mounted) return;
+
+                if (success) {
+                  setState(() {
+                    FleetState.instance.setTripActive(_bus.regNumber, true, broadcastGps: true);
+                    _initBus();
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Trip Started! Real device GPS is actively broadcasting to Passengers & Owner.'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else {
+                  if (!mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (errCtx) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      title: const Text('GPS Location Not Enabled'),
+                      content: const Text(
+                        'Device hardware location was not enabled or granted. Would you like to start the trip without live GPS broadcast?',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(errCtx),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+                          onPressed: () {
+                            Navigator.pop(errCtx);
+                            setState(() {
+                              FleetState.instance.setTripActive(_bus.regNumber, true, broadcastGps: false);
+                              _initBus();
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Trip Started without live GPS broadcast.'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: const Text('Start Without GPS', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                }
               },
             ),
           ],

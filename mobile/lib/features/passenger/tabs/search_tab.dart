@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 import '../../../widgets/app_creator_footer.dart';
+import '../../../widgets/bus_live_map_widget.dart';
 import '../bus_location_screen.dart';
 
 class SearchTab extends StatefulWidget {
@@ -595,6 +596,19 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                         Text(bus.category, style: TextStyle(color: catColor, fontSize: 11, fontWeight: FontWeight.bold)),
                       ],
                     ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Real Live Interactive Map Section
+                  BusLiveMapWidget(
+                    bus: bus,
+                    height: 190,
+                    showControls: true,
+                    onExpand: () {
+                      Navigator.pop(modalCtx);
+                      _openBusLiveLocation(bus);
+                    },
                   ),
 
                   const Divider(height: 24),

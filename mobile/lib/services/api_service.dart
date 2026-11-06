@@ -251,4 +251,60 @@ class ApiService {
     }
     return false;
   }
+
+  /// Live Hardware GPS Coordinate Stream to Backend
+  static Future<bool> updateBusLocation({
+    required String regNumber,
+    required double latitude,
+    required double longitude,
+    double? speed,
+    String? locationString,
+    bool isLiveGpsActive = true,
+    String? currentStop,
+    String? nextStop,
+    String? eta,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'regNumber': regNumber,
+        'latitude': latitude,
+        'longitude': longitude,
+        'speed': speed ?? 0.0,
+        'locationString': locationString ?? 'Live Conductor GPS Broadcast',
+        'isLiveGpsActive': isLiveGpsActive,
+      };
+      if (currentStop != null) payload['currentStop'] = currentStop;
+      if (nextStop != null) payload['nextStop'] = nextStop;
+      if (eta != null) payload['eta'] = eta;
+
+      final res = await http.post(
+        Uri.parse('$activeUrl/data/bus-location'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      ).timeout(const Duration(seconds: 3));
+      return res.statusCode == 200;
+    } catch (_) {
+      try {
+        final payload = <String, dynamic>{
+          'regNumber': regNumber,
+          'latitude': latitude,
+          'longitude': longitude,
+          'speed': speed ?? 0.0,
+          'locationString': locationString ?? 'Live Conductor GPS Broadcast',
+          'isLiveGpsActive': isLiveGpsActive,
+        };
+        if (currentStop != null) payload['currentStop'] = currentStop;
+        if (nextStop != null) payload['nextStop'] = nextStop;
+        if (eta != null) payload['eta'] = eta;
+
+        final res = await http.post(
+          Uri.parse('$fallbackUrl/data/bus-location'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        ).timeout(const Duration(seconds: 3));
+        return res.statusCode == 200;
+      } catch (_) {}
+    }
+    return false;
+  }
 }

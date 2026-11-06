@@ -2009,6 +2009,39 @@ class FleetState extends ChangeNotifier {
     }
   }
 
+  void updateBusCoordinates(
+    String busReg,
+    double lat,
+    double lng, {
+    double? speedKmh,
+    String? locationString,
+  }) {
+    final bus = getBusByReg(busReg);
+    if (bus != null) {
+      bus.currentLatitude = lat;
+      bus.currentLongitude = lng;
+      bus.isLiveGpsActive = true;
+      if (locationString != null && locationString.isNotEmpty) {
+        bus.conductorLocationString = locationString;
+      } else {
+        bus.conductorLocationString = 'Live GPS: ${lat.toStringAsFixed(4)}° N, ${lng.toStringAsFixed(4)}° E';
+      }
+      _persistBuses();
+      ApiService.updateBusLocation(
+        regNumber: bus.regNumber,
+        latitude: lat,
+        longitude: lng,
+        speed: speedKmh ?? 0.0,
+        locationString: bus.conductorLocationString,
+        isLiveGpsActive: true,
+        currentStop: bus.currentStop,
+        nextStop: bus.nextStop,
+        eta: bus.eta,
+      );
+      notifyListeners();
+    }
+  }
+
   void setBusStopFare(String busReg, String fromStop, String toStop, double fare) {
     final bus = getBusByReg(busReg);
     if (bus != null) {

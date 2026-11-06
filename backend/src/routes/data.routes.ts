@@ -583,10 +583,44 @@ router.put('/buses/:regNumber', (req: Request, res: Response) => {
     insurancePolicyNumber: req.body.insurancePolicyNumber || b.insurancePolicyNumber,
     ownerName: req.body.ownerName || b.ownerName,
     ownerPhone: req.body.ownerPhone || b.ownerPhone,
+    currentLatitude: req.body.currentLatitude !== undefined ? Number(req.body.currentLatitude) : b.currentLatitude,
+    currentLongitude: req.body.currentLongitude !== undefined ? Number(req.body.currentLongitude) : b.currentLongitude,
+    isLiveGpsActive: req.body.isLiveGpsActive !== undefined ? Boolean(req.body.isLiveGpsActive) : b.isLiveGpsActive,
+    conductorLocationString: req.body.conductorLocationString || b.conductorLocationString,
+    currentStop: req.body.currentStop || b.currentStop,
+    nextStop: req.body.nextStop || b.nextStop,
+    eta: req.body.eta || b.eta,
   };
 
   saveState(data);
   res.status(200).json({ status: 'success', message: 'Bus updated', data: data.buses[idx] });
+});
+
+// Fast real-time location update endpoint for active buses
+router.post('/bus-location', (req: Request, res: Response) => {
+  const data = loadState();
+  const { regNumber, latitude, longitude, speed, locationString, isLiveGpsActive, currentStop, nextStop, eta } = req.body;
+  if (!regNumber) {
+    return res.status(400).json({ status: 'error', message: 'regNumber is required' });
+  }
+
+  const cleanReg = regNumber.trim().toUpperCase();
+  const idx = data.buses.findIndex((b) => b.regNumber.toUpperCase() === cleanReg);
+  if (idx === -1) {
+    return res.status(404).json({ status: 'error', message: `Bus ${cleanReg} not found` });
+  }
+
+  if (latitude !== undefined) data.buses[idx].currentLatitude = Number(latitude);
+  if (longitude !== undefined) data.buses[idx].currentLongitude = Number(longitude);
+  if (speed !== undefined) (data.buses[idx] as any).speed = Number(speed);
+  if (locationString) data.buses[idx].conductorLocationString = locationString;
+  if (isLiveGpsActive !== undefined) data.buses[idx].isLiveGpsActive = Boolean(isLiveGpsActive);
+  if (currentStop) data.buses[idx].currentStop = currentStop;
+  if (nextStop) data.buses[idx].nextStop = nextStop;
+  if (eta) data.buses[idx].eta = eta;
+
+  saveState(data);
+  res.status(200).json({ status: 'success', message: 'Bus location updated', data: data.buses[idx] });
 });
 
 router.delete('/buses/:regNumber', (req: Request, res: Response) => {
