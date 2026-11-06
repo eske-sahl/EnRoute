@@ -1164,21 +1164,21 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                       children: [
                         const Text('Quick ID fill:', style: TextStyle(fontSize: 11, color: Colors.grey)),
                         ActionChip(
-                          label: const Text('Anjali: SBK-KL-987263', style: TextStyle(fontSize: 10)),
+                          label: const Text('Fathima: SBK-KL-987263', style: TextStyle(fontSize: 10)),
                           onPressed: () {
                             _manualIdController.text = 'SBK-KL-987263';
                             _findAndConnectManual();
                           },
                         ),
                         ActionChip(
-                          label: const Text('Rahul: SBK-KL-554120', style: TextStyle(fontSize: 10)),
+                          label: const Text('Adhil KM: SBK-KL-554120', style: TextStyle(fontSize: 10)),
                           onPressed: () {
                             _manualIdController.text = 'SBK-KL-554120';
                             _findAndConnectManual();
                           },
                         ),
                         ActionChip(
-                          label: const Text('Meera: SBK-KL-339811', style: TextStyle(fontSize: 10)),
+                          label: const Text('Kp: SBK-KL-339811', style: TextStyle(fontSize: 10)),
                           onPressed: () {
                             _manualIdController.text = 'SBK-KL-339811';
                             _findAndConnectManual();

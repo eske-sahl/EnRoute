@@ -249,7 +249,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _showMyReviewsModal(BuildContext context) {
-    // Reviews from passenger Anjali Nair or all demo reviews
+    // Reviews from passenger Fathima or all demo reviews
     final reviews = FleetState.instance.reviews;
 
     showModalBottomSheet(

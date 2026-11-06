@@ -477,7 +477,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                       busId: bus.id,
                       busRegNumber: bus.regNumber,
                       busName: bus.busName,
-                      passengerName: 'Anjali Nair',
+                      passengerName: 'Fathima',
                       rating: selectedRating,
                       comment: comment,
                     );
@@ -1192,7 +1192,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                           },
                           decoration: InputDecoration(
                             labelText: 'Bus Name or Plate Number',
-                            hintText: 'e.g. City, SpeedWings, or KL 07 CD 4589',
+                            hintText: 'e.g. Sana, Arafa, or KL 10 AZ 4589',
                             prefixIcon: const Icon(Icons.search, color: AppTheme.primaryGreen),
                             suffixIcon: _busSearchController.text.isNotEmpty
                                 ? IconButton(
@@ -1232,7 +1232,7 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
-                    children: ['SpeedWings', 'GreenCity', 'City Rider', 'KL 07 CD 4589', 'KL 07 CE 1204'].map((q) {
+                    children: ['Sana', 'Arafa', 'Sanha', 'KKB', 'KL 10 AZ 4589', 'KL 10 CE 1204'].map((q) {
                       return ActionChip(
                         label: Text(q, style: const TextStyle(fontSize: 10)),
                         onPressed: () {

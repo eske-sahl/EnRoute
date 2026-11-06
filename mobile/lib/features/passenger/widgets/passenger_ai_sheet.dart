@@ -42,18 +42,18 @@ class _PassengerAiSheetState extends State<PassengerAiSheet> {
         id: 'AI-WELCOME',
         text: '👋 **Namaskaram ${widget.passenger.name}!** I am your **EnRoute Kerala AI Travel Assistant**.\n\n'
             'Ask me anything about bus timings, step-by-step route guidance, or advice for your journey:\n\n'
-            '• *"I want full list of SpeedWings bus timings"*\n'
-            '• *"I want to go from Aluva to Perumbavoor, what should I do?"*\n'
+            '• *"I want full list of Sana bus timings"*\n'
+            '• *"I want to go from Mannarkad to Kozhikkode, what should I do?"*\n'
             '• *"I don\'t have any previous experience of bus journey, what should I do?"*\n\n'
             'Tap any prompt below or type your question!',
         isUser: false,
         timestamp: DateTime.now(),
         quickSuggestions: [
-          'Full list of SpeedWings bus timings',
-          'I want to go from Aluva to Perumbavoor, what should I do?',
+          'Full list of Sana bus timings',
+          'I want to go from Mannarkad to Kozhikkode, what should I do?',
           'I don’t have any previous experience of bus journey, what should I do?',
-          'How to go from Kaloor to Thoppumpady?',
-          'What is the fare from Aluva to Kizhakkambalam?',
+          'How to go from Farook College to West Hill?',
+          'What is the fare from Mannarkad to Kozhikkode?',
           'Which buses are running right now?',
         ],
       ),
@@ -765,7 +765,7 @@ class _PassengerAiSheetState extends State<PassengerAiSheet> {
                       controller: _inputController,
                       style: const TextStyle(fontSize: 14),
                       decoration: const InputDecoration(
-                        hintText: 'Ask AI (e.g. SpeedWings timings, Aluva to Fort Kochi)...',
+                        hintText: 'Ask AI (e.g. Sana timings, Mannarkad to Kozhikkode)...',
                         hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey),
                         border: InputBorder.none,
                         isDense: true,
@@ -780,7 +780,7 @@ class _PassengerAiSheetState extends State<PassengerAiSheet> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('🎙️ Voice prompt ready: Ask "SpeedWings timings" or "Aluva to Perumbavoor"'),
+                          content: Text('🎙️ Voice prompt ready: Ask "Sana timings" or "Mannarkad to Kozhikkode"'),
                           duration: Duration(seconds: 2),
                         ),
                       );

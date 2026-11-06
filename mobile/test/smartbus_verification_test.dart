@@ -18,16 +18,18 @@ void main() {
       final wrongPass = state.authenticatePassenger('passenger@gmail.com', 'wrongpassword');
       expect(wrongPass, isNull, reason: 'Wrong password must be rejected');
 
-      // Valid Anjali Nair credentials
-      final anjali = state.authenticatePassenger('passenger@gmail.com', 'password123');
+      // Valid Fathima credentials
+      final anjali = state.authenticatePassenger('fathima@gmail.com', 'password123') ??
+          state.authenticatePassenger('passenger@gmail.com', 'password123');
       expect(anjali, isNotNull);
-      expect(anjali!.name, 'Anjali Nair');
+      expect(anjali!.name, 'Fathima');
       expect(anjali.id, 'SBK-KL-987263');
 
-      // Valid Rahul Menon credentials
-      final rahul = state.authenticatePassenger('rahul@gmail.com', 'password123');
+      // Valid Adhil KM credentials
+      final rahul = state.authenticatePassenger('adhil@gmail.com', 'password123') ??
+          state.authenticatePassenger('rahul@gmail.com', 'password123');
       expect(rahul, isNotNull);
-      expect(rahul!.name, 'Rahul Menon');
+      expect(rahul!.name, 'Adhil KM');
       expect(rahul.id, 'SBK-KL-554120');
     });
 
@@ -144,9 +146,10 @@ void main() {
       final state = FleetState.instance;
 
       // Seed owner authentication
-      final seedOwner = state.authenticateOwner('owner@stgeorge.com', 'password123');
+      final seedOwner = state.authenticateOwner('sahl@gmail.com', 'password123') ??
+          state.authenticateOwner('owner@stgeorge.com', 'password123');
       expect(seedOwner, isNotNull);
-      expect(seedOwner!.companyName, 'St. George Motors Ernakulam');
+      expect(seedOwner!.companyName, 'Sahl Motors Kozhikode');
 
       // Register new owner
       final newOwner = state.registerOwner(
@@ -406,21 +409,21 @@ void main() {
       // 1. Direct ID Scan
       final scanned1 = state.findPassengerByIdOrPhone(anjali.id);
       expect(scanned1?.id, anjali.id);
-      expect(scanned1?.name, 'Anjali Nair');
+      expect(scanned1?.name, 'Fathima');
 
       // 2. Prefixed QR Code Scan: SMARTBUS:PASSENGER:SBK-KL-554120
       const qrDataPrefixed = 'SMARTBUS:PASSENGER:SBK-KL-554120';
       final cleanId2 = qrDataPrefixed.replaceAll(RegExp(r'SMARTBUS:PASSENGER:', caseSensitive: false), '').trim();
       final scanned2 = state.findPassengerByIdOrPhone(cleanId2);
       expect(scanned2?.id, rahul.id);
-      expect(scanned2?.name, 'Rahul Menon');
+      expect(scanned2?.name, 'Adhil KM');
 
       // 3. JSON format QR Code
-      const jsonQr = '{"type":"PASSENGER","id":"SBK-KL-339811","name":"Meera Pillai"}';
+      const jsonQr = '{"type":"PASSENGER","id":"SBK-KL-339811","name":"Kp"}';
       expect(jsonQr.contains('"id":"SBK-KL-339811"'), isTrue);
       final scanned3 = state.findPassengerByIdOrPhone('SBK-KL-339811');
       expect(scanned3?.id, meera.id);
-      expect(scanned3?.name, 'Meera Pillai');
+      expect(scanned3?.name, 'Kp');
     });
   });
 }

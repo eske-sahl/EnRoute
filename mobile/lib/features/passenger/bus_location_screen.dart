@@ -23,15 +23,15 @@ class BusLocationScreen extends StatelessWidget {
     required this.busRegNumber,
     required this.busName,
     required this.routeName,
-    this.companyName = 'St. George Motors Ernakulam',
+    this.companyName = 'Sahl Motors Kozhikode',
     this.currentStop = 'Pump Junction',
     this.nextStop = 'Kizhakkambalam',
     this.eta = '4 mins',
     this.speedKmh = 42.0,
     this.stops,
     this.category = 'Ordinary Bus (Blue-Whiteline)',
-    this.driverName = 'Venu Pillai',
-    this.conductorName = 'Suresh Kumar',
+    this.driverName = 'Venu Pillai (Badge #KL4201)',
+    this.conductorName = 'Shamil K',
     this.onBack,
   });
 

@@ -49,7 +49,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Step 3: Login as Passenger
-      await tester.enterText(find.byKey(const Key('login_id_field')), 'passenger@gmail.com');
+      await tester.enterText(find.byKey(const Key('login_id_field')), 'fathima@gmail.com');
       await tester.enterText(find.byKey(const Key('login_password_field')), 'password123');
       await tester.tap(find.byKey(const Key('login_submit_button')));
       await tester.pumpAndSettle();
@@ -73,12 +73,12 @@ void main() {
       expect(find.text('Kerala Transit Intelligence • Live Fleet'), findsOneWidget);
 
       // Test Prompt 1: Bus Timings
-      await tester.enterText(find.byType(TextField), 'I want full list of SpeedWings bus timings');
+      await tester.enterText(find.byType(TextField), 'I want full list of Sana bus timings');
       await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle();
-      expect(find.textContaining('KL 07 CD 4589'), findsWidgets);
+      expect(find.textContaining('KL 10 AZ 4589'), findsWidgets);
       expect(find.text('Complete Route Timeline'), findsOneWidget);
 
       // Test Prompt 2: First Time Passenger Guide

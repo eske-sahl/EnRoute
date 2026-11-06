@@ -148,7 +148,7 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                         controller: nameCtrl,
                         decoration: InputDecoration(
                           labelText: 'Bus Display Name *',
-                          hintText: 'e.g. SpeedWings / Kochi Express',
+                          hintText: 'e.g. Sana / Arafa',
                           prefixIcon: const Icon(Icons.directions_bus_filled, color: AppTheme.primaryGreen),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                         ),

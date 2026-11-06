@@ -57,7 +57,7 @@ class _AppRootNavigationControllerState extends State<AppRootNavigationControlle
   bool _isLoggedIn = false; // Starts at Login Page as requested
   String _userRole = 'PASSENGER'; // 'PASSENGER', 'CONDUCTOR', 'OWNER'
   String _userEmail = 'passenger@gmail.com';
-  String _userName = 'Anjali Nair';
+  String _userName = 'Fathima';
   String _userId = 'SBK-KL-987263';
   bool _isBackendOnline = false;
 

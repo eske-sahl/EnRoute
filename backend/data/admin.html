@@ -670,7 +670,7 @@
       <div class="detail-grid">
         <div class="detail-box">
           <div class="detail-label">Legal Bus Owner</div>
-          <div class="detail-value" id="vb-owner">George Varghese (+91 94470 12345)</div>
+          <div class="detail-value" id="vb-owner">Sahl (+91 94470 12345)</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Chassis / VIN Number</div>
@@ -698,7 +698,7 @@
       <div class="detail-grid">
         <div class="detail-box">
           <div class="detail-label">Assigned Route</div>
-          <div class="detail-value" id="vb-route">Aluva Stand ➔ Perumbavoor Stand</div>
+          <div class="detail-value" id="vb-route">Mannarkad Stand ➔ Kozhikkode Stand</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Road Status & GPS</div>
@@ -710,7 +710,7 @@
         </div>
         <div class="detail-box">
           <div class="detail-label">Assigned Conductor</div>
-          <div class="detail-value" id="vb-conductor">Suresh Kumar (+91 98470 11001)</div>
+          <div class="detail-value" id="vb-conductor">Shamil K (+91 98470 11001)</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Assigned Cleaner</div>
@@ -759,7 +759,7 @@
         </div>
         <div class="detail-box">
           <div class="detail-label">Assigned Vehicle</div>
-          <div class="detail-value" id="vc-bus">SpeedWings (KL 07 CD 4589)</div>
+          <div class="detail-value" id="vc-bus">Sana (KL 10 AZ 4589)</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Duty Status</div>
@@ -795,19 +795,19 @@
       <div class="detail-grid">
         <div class="detail-box">
           <div class="detail-label">Bus Vehicle</div>
-          <div class="detail-value" id="vt-bus">SpeedWings (KL 07 CD 4589)</div>
+          <div class="detail-value" id="vt-bus">Sana (KL 10 AZ 4589)</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Passenger</div>
-          <div class="detail-value" id="vt-passenger">Anjali Nair (SBK-KL-987263)</div>
+          <div class="detail-value" id="vt-passenger">Fathima (SBK-KL-987263)</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Boarding Stop</div>
-          <div class="detail-value" id="vt-from">Aluva Stand</div>
+          <div class="detail-value" id="vt-from">Mannarkad Stand</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Destination Stop</div>
-          <div class="detail-value" id="vt-to">Perumbavoor Stand</div>
+          <div class="detail-value" id="vt-to">Kozhikkode Stand</div>
         </div>
         <div class="detail-box">
           <div class="detail-label">Fare Collected</div>
@@ -946,7 +946,7 @@
         </div>
         <div class="form-group">
           <label>Legal Owner Name</label>
-          <input type="text" id="add-b-owner-name" class="form-input" placeholder="e.g. George Varghese">
+          <input type="text" id="add-b-owner-name" class="form-input" placeholder="e.g. Sahl">
         </div>
         <div class="form-group">
           <label>Owner Phone</label>
@@ -954,7 +954,7 @@
         </div>
         <div class="form-group">
           <label>Start Point</label>
-          <input type="text" id="add-b-start" class="form-input" placeholder="e.g. Aluva Stand">
+          <input type="text" id="add-b-start" class="form-input" placeholder="e.g. Mannarkad Stand">
         </div>
         <div class="form-group">
           <label>Destination Point</label>
@@ -1189,7 +1189,7 @@
             '<td><span class="kl-plate">' + b.regNumber + '</span></td>' +
             '<td><strong>' + b.busName + '</strong></td>' +
             '<td>' + b.category + '</td>' +
-            '<td><strong>' + (b.ownerName || 'George Varghese') + '</strong></td>' +
+            '<td><strong>' + (b.ownerName || 'Sahl') + '</strong></td>' +
             '<td>' + (b.ownerPhone || '+91 94470 12345') + '</td>' +
             '<td class="mono" style="font-size:11px;">' + (b.permitNumber || 'KL/2026/MVD/STAGE/0491') + '</td>' +
             '<td style="font-size:12px;">' + (b.fitnessValidity || '28-Dec-2027') + '</td>' +
@@ -1298,7 +1298,7 @@
       if (!bus) return alert('Bus not found: ' + reg);
 
       const isPending = bus.verificationStatus === 'WAITING_FOR_VERIFICATION' || bus.isApprovedByAdmin === false;
-      const ownerName = bus.ownerName || 'George Varghese';
+      const ownerName = bus.ownerName || 'Sahl';
       const ownerPhone = bus.ownerPhone || '+91 94470 12345';
       const chassis = bus.chassisNumber || 'MB1-420-KL-CHASSIS-8891';
       const permit = bus.permitNumber || 'KL/2026/MVD/STAGE/0491';
@@ -1333,11 +1333,11 @@
           '</div>' +
           '<div class="detail-box">' +
             '<div class="detail-label">Fleet Operator / Company</div>' +
-            '<div class="detail-value">' + (bus.companyName || 'St. George Motors Ernakulam') + '</div>' +
+            '<div class="detail-value">' + (bus.companyName || 'Sahl Motors Kozhikode') + '</div>' +
           '</div>' +
           '<div class="detail-box">' +
             '<div class="detail-label">Owner Email</div>' +
-            '<div class="detail-value">' + (bus.ownerEmail || 'owner@stgeorge.com') + '</div>' +
+            '<div class="detail-value">' + (bus.ownerEmail || 'sahl@gmail.com') + '</div>' +
           '</div>' +
         '</div>' +
 
@@ -1462,7 +1462,7 @@
       document.getElementById('vb-reg').innerText = b.regNumber;
       document.getElementById('vb-name').innerText = b.busName;
       document.getElementById('vb-category').innerText = b.category;
-      document.getElementById('vb-owner').innerText = (b.ownerName || 'George Varghese') + ' (' + (b.ownerPhone || '+91 94470 12345') + ')';
+      document.getElementById('vb-owner').innerText = (b.ownerName || 'Sahl') + ' (' + (b.ownerPhone || '+91 94470 12345') + ')';
       document.getElementById('vb-chassis').innerText = b.chassisNumber || 'MB1-420-KL-CHASSIS-8891';
       document.getElementById('vb-permit').innerText = b.permitNumber || 'KL/2026/MVD/STAGE/0491';
       document.getElementById('vb-fitness').innerText = b.fitnessValidity || '28-Dec-2027';

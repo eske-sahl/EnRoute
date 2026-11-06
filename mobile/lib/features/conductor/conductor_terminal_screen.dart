@@ -19,8 +19,8 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _scannerAnimCtrl;
 
-  String _boardingStop = 'Aluva Stand';
-  String _destStop = 'Kizhakkambalam';
+  String _boardingStop = 'Mannarkad Stand';
+  String _destStop = 'Kozhikkode Stand';
   String _concessionType = 'General'; // 'General', 'Student Concession', 'Senior'
   String _paymentMode = 'WALLET'; // 'WALLET', 'CASH', 'UPI'
 
@@ -28,7 +28,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
   double _totalCollection = 480.0;
   int _ticketsIssued = 24;
   bool _passengerScanned = false;
-  final String _scannedPassengerName = 'Anjali Nair';
+  final String _scannedPassengerName = 'Fathima';
 
   final List<Map<String, dynamic>> _stops = [
     {'name': 'Aluva Stand', 'stage': 1},
@@ -83,7 +83,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
           children: [
             Icon(Icons.check_circle, color: Colors.greenAccent),
             SizedBox(width: 8),
-            Text('Passenger Verified: Anjali Nair (Wallet: ₹250.00)'),
+            Text('Passenger Verified: Fathima (Wallet: ₹250.00)'),
           ],
         ),
         backgroundColor: AppTheme.darkSlate,
@@ -138,7 +138,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
               const SizedBox(height: 14),
               _ticketRow('Ticket No', ticketNo),
               _ticketRow('Passenger', _scannedPassengerName),
-              _ticketRow('Bus', 'KL 07 CD 4589 (SpeedWings)'),
+              _ticketRow('Bus', 'KL 10 AZ 4589 (Sana)'),
               _ticketRow('Journey', '$_boardingStop ➔ $_destStop'),
               _ticketRow('Category', _concessionType),
               const Divider(height: 20),
@@ -180,7 +180,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Conductor Terminal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('Bus: KL 07 CD 4589 • SpeedWings Line', style: TextStyle(fontSize: 12, color: Colors.white70)),
+            Text('Bus: KL 10 AZ 4589 • Sana Line', style: TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),
       ),

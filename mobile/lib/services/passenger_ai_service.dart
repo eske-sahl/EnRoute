@@ -50,11 +50,11 @@ class PassengerAiService {
 
   List<String> getSuggestedPrompts() {
     return [
-      'Full list of SpeedWings bus timings',
-      'I want to go from Aluva to Perumbavoor, what should I do?',
+      'Full list of Sana bus timings',
+      'I want to go from Mannarkad to Kozhikkode, what should I do?',
       'I don’t have any previous experience of bus journey, what should I do?',
-      'How to go from Kaloor to Thoppumpady?',
-      'What is the fare from Aluva to Kizhakkambalam?',
+      'How to go from Farook College to West Hill?',
+      'What is the fare from Mannarkad to Kozhikkode?',
       'Which buses are running right now?',
       'How do I use and recharge my Smart Wallet?',
     ];
@@ -221,9 +221,10 @@ class PassengerAiService {
       if (q.contains(name) ||
           cleanQ.contains(reg) ||
           q.contains(cleanReg) ||
-          (name.contains('speedwings') && q.contains('speed')) ||
-          (name.contains('greencity') && (q.contains('green') || q.contains('city express'))) ||
-          (name.contains('city rider') && q.contains('rider')) ||
+          (name.contains('sana') && (q.contains('sana') || q.contains('speedwings') || q.contains('speed'))) ||
+          (name.contains('arafa') && (q.contains('arafa') || q.contains('greencity') || q.contains('green'))) ||
+          (name.contains('sanha') && (q.contains('sanha') || q.contains('city rider') || q.contains('rider'))) ||
+          (name.contains('kkb') && q.contains('kkb')) ||
           (name.contains('eske') && q.contains('eske'))) {
         return b;
       }
@@ -368,7 +369,7 @@ class PassengerAiService {
       text.writeln('');
     }
 
-    text.writeln('💬 *To see the full stop-by-stop schedule for any bus, just ask: "Timings for SpeedWings" or tap a suggestion below!*');
+    text.writeln('💬 *To see the full stop-by-stop schedule for any bus, just ask: "Timings for Sana" or tap a suggestion below!*');
 
     return AiMessage(
       id: id,
@@ -389,8 +390,31 @@ class PassengerAiService {
     String? origin;
     String? destination;
 
-    // Known popular stops
-    final stopKeywords = [
+    // Known popular stops & fleet registered stops
+    final stopKeywords = <String>{
+      'mannarkad',
+      'kozhikkode',
+      'kozhikode',
+      'kalikavu',
+      'farook college',
+      'west hill',
+      'ramanattukara',
+      'kondotty',
+      'manjeri',
+      'wandoor',
+      'edavanna',
+      'alanallur',
+      'melattur',
+      'pandikkad',
+      'feroke',
+      'meenchanda',
+      'kallayi',
+      'palayam',
+      'mananchira',
+      'nadakkavu',
+      'university',
+      'thenhipalam',
+      'calicut airport',
       'aluva',
       'perumbavoor',
       'kaloor',
@@ -407,15 +431,46 @@ class PassengerAiService {
       'pattimattom',
       'fort kochi',
       'edappally',
-    ];
+    };
 
-    // Search for pairs
-    for (final s in stopKeywords) {
-      if (q.contains(s)) {
-        if (origin == null) {
+    // Dynamically expand with all fleet stop names
+    for (final b in buses) {
+      for (final s in b.allRouteStops) {
+        final clean = s.trim().toLowerCase();
+        if (clean.isNotEmpty) stopKeywords.add(clean);
+        final base = clean.replaceAll('stand', '').replaceAll('junction', '').replaceAll('depot', '').trim();
+        if (base.length >= 3) stopKeywords.add(base);
+      }
+    }
+
+    // Sort keywords by length descending so longer phrases match first
+    final sortedKeywords = stopKeywords.toList()..sort((a, b) => b.length.compareTo(a.length));
+
+    // Parse 'from X to Y' pattern first if present in query
+    final fromToMatch = RegExp(r'from\s+([a-zA-Z\s]+?)\s+to\s+([a-zA-Z\s,]+)', caseSensitive: false).firstMatch(q);
+    if (fromToMatch != null) {
+      final rawFrom = fromToMatch.group(1)?.trim() ?? '';
+      final rawTo = fromToMatch.group(2)?.split(RegExp(r'[,?.]')).first.replaceAll('what should i do', '').trim() ?? '';
+
+      for (final s in sortedKeywords) {
+        if (origin == null && (rawFrom.contains(s) || s.contains(rawFrom))) {
           origin = s;
-        } else if (destination == null && s != origin) {
+        }
+        if (destination == null && (rawTo.contains(s) || s.contains(rawTo))) {
           destination = s;
+        }
+      }
+    }
+
+    // Search for pairs if not already matched
+    if (origin == null || destination == null) {
+      for (final s in sortedKeywords) {
+        if (q.contains(s)) {
+          if (origin == null) {
+            origin = s;
+          } else if (destination == null && s != origin) {
+            destination = s;
+          }
         }
       }
     }
