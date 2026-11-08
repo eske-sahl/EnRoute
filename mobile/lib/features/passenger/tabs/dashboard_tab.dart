@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 import '../../../widgets/app_creator_footer.dart';
+import '../../../widgets/upi_payment_dialog.dart';
 
 class DashboardTab extends StatelessWidget {
   final PassengerModel passenger;
@@ -23,16 +24,16 @@ class DashboardTab extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
+      builder: (bottomSheetCtx) {
         return Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Add Money to Demo Wallet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Add Money via Dynamic UPI', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
-              const Text('Select an amount to recharge your travel balance:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+              const Text('Select an amount to generate your Google Pay / UPI QR:', style: TextStyle(color: Colors.grey, fontSize: 13)),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -41,10 +42,34 @@ class DashboardTab extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryGreen,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                     onPressed: () {
-                      onTopUp(amt);
-                      Navigator.pop(context);
+                      Navigator.pop(bottomSheetCtx);
+                      UpiPaymentDialog.show(
+                        context: context,
+                        amount: amt,
+                        title: 'UPI Wallet Recharge',
+                        subtitle: 'Payee: ${UpiPaymentDialog.payeeName} (EnRoute Wallet)',
+                        transactionNote: 'EnRoute Wallet Recharge for ${passenger.name}',
+                        confirmButtonText: 'I Have Paid • Credit ₹${amt.toInt()}',
+                        onPaymentConfirmed: () {
+                          onTopUp(amt);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, color: Colors.greenAccent),
+                                  const SizedBox(width: 8),
+                                  Text('₹${amt.toInt()} added to Smart Wallet via UPI!'),
+                                ],
+                              ),
+                              backgroundColor: AppTheme.darkSlate,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      );
                     },
                     child: Text('₹${amt.toInt()}'),
                   );

@@ -83,7 +83,13 @@
       "assignedBusReg": "KL 10 AZ 4589",
       "assignedBusName": "Sana",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1",
+      "name": "Shamil K",
+      "email": "shamil@enroute.com",
+      "password": "password123",
+      "phone": "+91 98470 11001",
+      "todayCollection": 6420
     },
     {
       "id": "COND-2",
@@ -94,7 +100,13 @@
       "assignedBusReg": "KL 10 CE 1204",
       "assignedBusName": "Arafa",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1",
+      "name": "Kaarangadan",
+      "email": "kaarangadan@enroute.com",
+      "password": "password123",
+      "phone": "+91 98470 11002",
+      "todayCollection": 7840
     },
     {
       "id": "COND-3",
@@ -105,7 +117,13 @@
       "assignedBusReg": "KL 11 BQ 9981",
       "assignedBusName": "Sanha",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-2",
+      "name": "Anfal",
+      "email": "anfal@enroute.com",
+      "password": "password123",
+      "phone": "+91 98470 11003",
+      "todayCollection": 4220
     },
     {
       "id": "COND-4",
@@ -116,7 +134,13 @@
       "assignedBusReg": "KL 11 CF 3320",
       "assignedBusName": "KKB",
       "role": "ROLE_CONDUCTOR",
-      "status": "ACTIVE"
+      "status": "ACTIVE",
+      "ownerId": "OWNER-1",
+      "name": "Jamsheer",
+      "email": "jamsheer@enroute.com",
+      "password": "password123",
+      "phone": "+91 98470 11004",
+      "todayCollection": 3150
     }
   ],
   "buses": [
@@ -130,7 +154,7 @@
       "seatingCapacity": 48,
       "isTripActive": false,
       "status": "STOPPED / DEPOT",
-      "todayCollection": 6420.0,
+      "todayCollection": 6420,
       "ticketsSold": 168,
       "ownerName": "Sahl",
       "ownerPhone": "+91 94470 12345",
@@ -154,18 +178,179 @@
         "cleaner": "Mani K."
       },
       "timetable": [
-        { "stop": "Mannarkad Stand", "time": "07:00 AM" },
-        { "stop": "Alanallur", "time": "07:25 AM" },
-        { "stop": "Melattur", "time": "07:45 AM" },
-        { "stop": "Pandikkad", "time": "08:05 AM" },
-        { "stop": "Manjeri Stand", "time": "08:35 AM" },
-        { "stop": "Kondotty", "time": "09:05 AM" },
-        { "stop": "Ramanattukara", "time": "09:30 AM" },
-        { "stop": "Kozhikkode Stand", "time": "10:00 AM" }
+        {
+          "stop": "Mannarkad Stand",
+          "time": "07:00 AM"
+        },
+        {
+          "stop": "Alanallur",
+          "time": "07:25 AM"
+        },
+        {
+          "stop": "Melattur",
+          "time": "07:45 AM"
+        },
+        {
+          "stop": "Pandikkad",
+          "time": "08:05 AM"
+        },
+        {
+          "stop": "Manjeri Stand",
+          "time": "08:35 AM"
+        },
+        {
+          "stop": "Kondotty",
+          "time": "09:05 AM"
+        },
+        {
+          "stop": "Ramanattukara",
+          "time": "09:30 AM"
+        },
+        {
+          "stop": "Kozhikkode Stand",
+          "time": "10:00 AM"
+        }
       ],
       "currentLatitude": 10.9882,
       "currentLongitude": 76.4589,
-      "conductorLocationString": "Mannarkad Stand Depot (Resting)"
+      "conductorLocationString": "Mannarkad Stand Depot (Resting)",
+      "id": "BUS-1",
+      "ownerId": "OWNER-1",
+      "routeName": "Mannarkad - Kozhikkode (via Manjeri & Kondotty)",
+      "stops": [
+        {
+          "stopName": "Mannarkad Stand",
+          "time": "07:00 AM"
+        },
+        {
+          "stopName": "Alanallur",
+          "time": "07:25 AM"
+        },
+        {
+          "stopName": "Melattur",
+          "time": "07:45 AM"
+        },
+        {
+          "stopName": "Pandikkad",
+          "time": "08:05 AM"
+        },
+        {
+          "stopName": "Manjeri Stand",
+          "time": "08:35 AM"
+        },
+        {
+          "stopName": "Kondotty",
+          "time": "09:05 AM"
+        },
+        {
+          "stopName": "Ramanattukara",
+          "time": "09:30 AM"
+        },
+        {
+          "stopName": "Kozhikkode Stand",
+          "time": "10:00 AM"
+        }
+      ],
+      "ticketsCount": 168,
+      "isActive": false,
+      "currentStop": "Depot (Mannarkad Stand)",
+      "nextStop": "Trip not started",
+      "eta": "Halted",
+      "conductorEmail": "shamil@enroute.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "customFareChart": {
+        "mannarkad->mannarkad stand": 10,
+        "mannarkad stand->mannarkad": 10,
+        "mannarkad->alanallur": 14,
+        "alanallur->mannarkad": 14,
+        "mannarkad->melattur": 18,
+        "melattur->mannarkad": 18,
+        "mannarkad->pandikkad": 22,
+        "pandikkad->mannarkad": 22,
+        "mannarkad->manjeri stand": 30,
+        "manjeri stand->mannarkad": 30,
+        "mannarkad->kondotty": 34,
+        "kondotty->mannarkad": 34,
+        "mannarkad->ramanattukara": 38,
+        "ramanattukara->mannarkad": 38,
+        "mannarkad->kozhikkode stand": 42,
+        "kozhikkode stand->mannarkad": 42,
+        "mannarkad->kozhikkode": 46,
+        "kozhikkode->mannarkad": 46,
+        "mannarkad stand->alanallur": 10,
+        "alanallur->mannarkad stand": 10,
+        "mannarkad stand->melattur": 14,
+        "melattur->mannarkad stand": 14,
+        "mannarkad stand->pandikkad": 18,
+        "pandikkad->mannarkad stand": 18,
+        "mannarkad stand->manjeri stand": 22,
+        "manjeri stand->mannarkad stand": 22,
+        "mannarkad stand->kondotty": 30,
+        "kondotty->mannarkad stand": 30,
+        "mannarkad stand->ramanattukara": 34,
+        "ramanattukara->mannarkad stand": 34,
+        "mannarkad stand->kozhikkode stand": 38,
+        "kozhikkode stand->mannarkad stand": 38,
+        "mannarkad stand->kozhikkode": 42,
+        "kozhikkode->mannarkad stand": 42,
+        "alanallur->melattur": 10,
+        "melattur->alanallur": 10,
+        "alanallur->pandikkad": 14,
+        "pandikkad->alanallur": 14,
+        "alanallur->manjeri stand": 18,
+        "manjeri stand->alanallur": 18,
+        "alanallur->kondotty": 22,
+        "kondotty->alanallur": 22,
+        "alanallur->ramanattukara": 30,
+        "ramanattukara->alanallur": 30,
+        "alanallur->kozhikkode stand": 34,
+        "kozhikkode stand->alanallur": 34,
+        "alanallur->kozhikkode": 38,
+        "kozhikkode->alanallur": 38,
+        "melattur->pandikkad": 10,
+        "pandikkad->melattur": 10,
+        "melattur->manjeri stand": 14,
+        "manjeri stand->melattur": 14,
+        "melattur->kondotty": 18,
+        "kondotty->melattur": 18,
+        "melattur->ramanattukara": 22,
+        "ramanattukara->melattur": 22,
+        "melattur->kozhikkode stand": 30,
+        "kozhikkode stand->melattur": 30,
+        "melattur->kozhikkode": 34,
+        "kozhikkode->melattur": 34,
+        "pandikkad->manjeri stand": 10,
+        "manjeri stand->pandikkad": 10,
+        "pandikkad->kondotty": 14,
+        "kondotty->pandikkad": 14,
+        "pandikkad->ramanattukara": 18,
+        "ramanattukara->pandikkad": 18,
+        "pandikkad->kozhikkode stand": 22,
+        "kozhikkode stand->pandikkad": 22,
+        "pandikkad->kozhikkode": 30,
+        "kozhikkode->pandikkad": 30,
+        "manjeri stand->kondotty": 10,
+        "kondotty->manjeri stand": 10,
+        "manjeri stand->ramanattukara": 14,
+        "ramanattukara->manjeri stand": 14,
+        "manjeri stand->kozhikkode stand": 18,
+        "kozhikkode stand->manjeri stand": 18,
+        "manjeri stand->kozhikkode": 22,
+        "kozhikkode->manjeri stand": 22,
+        "kondotty->ramanattukara": 10,
+        "ramanattukara->kondotty": 10,
+        "kondotty->kozhikkode stand": 14,
+        "kozhikkode stand->kondotty": 14,
+        "kondotty->kozhikkode": 18,
+        "kozhikkode->kondotty": 18,
+        "ramanattukara->kozhikkode stand": 10,
+        "kozhikkode stand->ramanattukara": 10,
+        "ramanattukara->kozhikkode": 14,
+        "kozhikkode->ramanattukara": 14,
+        "kozhikkode stand->kozhikkode": 10,
+        "kozhikkode->kozhikkode stand": 10
+      }
     },
     {
       "regNumber": "KL 10 CE 1204",
@@ -177,22 +362,22 @@
       "seatingCapacity": 52,
       "isTripActive": false,
       "status": "STOPPED / DEPOT",
-      "todayCollection": 7840.0,
+      "todayCollection": 7840,
       "ticketsSold": 202,
       "ownerName": "Sahl",
       "ownerPhone": "+91 94470 12345",
       "ownerEmail": "sahl@gmail.com",
       "companyName": "Sahl Motors Kozhikode",
       "driverName": "Antony Joseph",
-      "driverPhone": "+91 94470 55114",
+      "driverPhone": "+91 94470 55112",
       "conductorName": "Kaarangadan",
       "conductorPhone": "+91 98470 11002",
       "cleanerName": "Saji T.",
-      "cleanerPhone": "+91 94470 55115",
-      "chassisNumber": "MB1-420-KL-CHASSIS-9922",
-      "permitNumber": "KL/2026/MVD/STAGE/0512",
-      "fitnessValidity": "15-Nov-2027",
-      "insurancePolicyNumber": "UI-KL-COM-883901",
+      "cleanerPhone": "+91 94470 55113",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
       "verificationStatus": "ADMIN_APPROVED",
       "isApprovedByAdmin": true,
       "workers": {
@@ -201,17 +386,153 @@
         "cleaner": "Saji T."
       },
       "timetable": [
-        { "stop": "Kalikavu Stand", "time": "07:30 AM" },
-        { "stop": "Wandoor", "time": "07:55 AM" },
-        { "stop": "Edavanna", "time": "08:15 AM" },
-        { "stop": "Manjeri Stand", "time": "08:40 AM" },
-        { "stop": "Kondotty", "time": "09:10 AM" },
-        { "stop": "Ramanattukara", "time": "09:35 AM" },
-        { "stop": "Kozhikkode Stand", "time": "10:05 AM" }
+        {
+          "stop": "Kalikavu Stand",
+          "time": "07:30 AM"
+        },
+        {
+          "stop": "Wandoor",
+          "time": "07:55 AM"
+        },
+        {
+          "stop": "Edavanna",
+          "time": "08:15 AM"
+        },
+        {
+          "stop": "Manjeri Stand",
+          "time": "08:40 AM"
+        },
+        {
+          "stop": "Kondotty",
+          "time": "09:10 AM"
+        },
+        {
+          "stop": "Ramanattukara",
+          "time": "09:35 AM"
+        },
+        {
+          "stop": "Kozhikkode Stand",
+          "time": "10:05 AM"
+        }
       ],
       "currentLatitude": 11.1738,
       "currentLongitude": 76.3268,
-      "conductorLocationString": "Kalikavu Stand Depot (Resting)"
+      "conductorLocationString": "Kalikavu Stand Depot (Resting)",
+      "id": "BUS-2",
+      "ownerId": "OWNER-1",
+      "routeName": "Kalikavu - Kozhikkode (via Wandoor & Manjeri)",
+      "stops": [
+        {
+          "stopName": "Kalikavu Stand",
+          "time": "07:30 AM"
+        },
+        {
+          "stopName": "Wandoor",
+          "time": "07:55 AM"
+        },
+        {
+          "stopName": "Edavanna",
+          "time": "08:15 AM"
+        },
+        {
+          "stopName": "Manjeri Stand",
+          "time": "08:40 AM"
+        },
+        {
+          "stopName": "Kondotty",
+          "time": "09:10 AM"
+        },
+        {
+          "stopName": "Ramanattukara",
+          "time": "09:35 AM"
+        },
+        {
+          "stopName": "Kozhikkode Stand",
+          "time": "10:05 AM"
+        }
+      ],
+      "ticketsCount": 202,
+      "isActive": false,
+      "currentStop": "Depot (Kalikavu Stand)",
+      "nextStop": "Trip not started",
+      "eta": "Halted",
+      "conductorEmail": "kaarangadan@enroute.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "customFareChart": {
+        "kalikavu->kalikavu stand": 10,
+        "kalikavu stand->kalikavu": 10,
+        "kalikavu->wandoor": 14,
+        "wandoor->kalikavu": 14,
+        "kalikavu->edavanna": 18,
+        "edavanna->kalikavu": 18,
+        "kalikavu->manjeri stand": 22,
+        "manjeri stand->kalikavu": 22,
+        "kalikavu->kondotty": 30,
+        "kondotty->kalikavu": 30,
+        "kalikavu->ramanattukara": 34,
+        "ramanattukara->kalikavu": 34,
+        "kalikavu->kozhikkode stand": 38,
+        "kozhikkode stand->kalikavu": 38,
+        "kalikavu->kozhikkode": 42,
+        "kozhikkode->kalikavu": 42,
+        "kalikavu stand->wandoor": 10,
+        "wandoor->kalikavu stand": 10,
+        "kalikavu stand->edavanna": 14,
+        "edavanna->kalikavu stand": 14,
+        "kalikavu stand->manjeri stand": 18,
+        "manjeri stand->kalikavu stand": 18,
+        "kalikavu stand->kondotty": 22,
+        "kondotty->kalikavu stand": 22,
+        "kalikavu stand->ramanattukara": 30,
+        "ramanattukara->kalikavu stand": 30,
+        "kalikavu stand->kozhikkode stand": 34,
+        "kozhikkode stand->kalikavu stand": 34,
+        "kalikavu stand->kozhikkode": 38,
+        "kozhikkode->kalikavu stand": 38,
+        "wandoor->edavanna": 10,
+        "edavanna->wandoor": 10,
+        "wandoor->manjeri stand": 14,
+        "manjeri stand->wandoor": 14,
+        "wandoor->kondotty": 18,
+        "kondotty->wandoor": 18,
+        "wandoor->ramanattukara": 22,
+        "ramanattukara->wandoor": 22,
+        "wandoor->kozhikkode stand": 30,
+        "kozhikkode stand->wandoor": 30,
+        "wandoor->kozhikkode": 34,
+        "kozhikkode->wandoor": 34,
+        "edavanna->manjeri stand": 10,
+        "manjeri stand->edavanna": 10,
+        "edavanna->kondotty": 14,
+        "kondotty->edavanna": 14,
+        "edavanna->ramanattukara": 18,
+        "ramanattukara->edavanna": 18,
+        "edavanna->kozhikkode stand": 22,
+        "kozhikkode stand->edavanna": 22,
+        "edavanna->kozhikkode": 30,
+        "kozhikkode->edavanna": 30,
+        "manjeri stand->kondotty": 10,
+        "kondotty->manjeri stand": 10,
+        "manjeri stand->ramanattukara": 14,
+        "ramanattukara->manjeri stand": 14,
+        "manjeri stand->kozhikkode stand": 18,
+        "kozhikkode stand->manjeri stand": 18,
+        "manjeri stand->kozhikkode": 22,
+        "kozhikkode->manjeri stand": 22,
+        "kondotty->ramanattukara": 10,
+        "ramanattukara->kondotty": 10,
+        "kondotty->kozhikkode stand": 14,
+        "kozhikkode stand->kondotty": 14,
+        "kondotty->kozhikkode": 18,
+        "kozhikkode->kondotty": 18,
+        "ramanattukara->kozhikkode stand": 10,
+        "kozhikkode stand->ramanattukara": 10,
+        "ramanattukara->kozhikkode": 14,
+        "kozhikkode->ramanattukara": 14,
+        "kozhikkode stand->kozhikkode": 10,
+        "kozhikkode->kozhikkode stand": 10
+      }
     },
     {
       "regNumber": "KL 11 BQ 9981",
@@ -222,23 +543,23 @@
       "destPoint": "West Hill",
       "seatingCapacity": 48,
       "isTripActive": false,
-      "status": "STOPPED / DEPOT",
-      "todayCollection": 4220.0,
+      "status": "IN_DEPOT",
+      "todayCollection": 4220,
       "ticketsSold": 116,
       "ownerName": "Fathima Riyas",
       "ownerPhone": "+91 94470 54321",
       "ownerEmail": "fathima.owner@gmail.com",
       "companyName": "Fathima Riyas Transit",
       "driverName": "Pradeep Kumar",
-      "driverPhone": "+91 94470 55116",
+      "driverPhone": "+91 94470 55112",
       "conductorName": "Anfal",
       "conductorPhone": "+91 98470 11003",
       "cleanerName": "Babu N.",
-      "cleanerPhone": "+91 94470 55117",
-      "chassisNumber": "MB1-420-KL-CHASSIS-1104",
-      "permitNumber": "KL/2026/MVD/STAGE/0688",
-      "fitnessValidity": "10-Oct-2027",
-      "insurancePolicyNumber": "OIC-KL-COM-991204",
+      "cleanerPhone": "+91 94470 55113",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
       "verificationStatus": "ADMIN_APPROVED",
       "isApprovedByAdmin": true,
       "workers": {
@@ -247,18 +568,145 @@
         "cleaner": "Babu N."
       },
       "timetable": [
-        { "stop": "Farook College", "time": "08:00 AM" },
-        { "stop": "Feroke Stand", "time": "08:15 AM" },
-        { "stop": "Meenchanda", "time": "08:30 AM" },
-        { "stop": "Kallayi", "time": "08:42 AM" },
-        { "stop": "Palayam Stand", "time": "08:55 AM" },
-        { "stop": "Mananchira", "time": "09:05 AM" },
-        { "stop": "Nadakkavu", "time": "09:18 AM" },
-        { "stop": "West Hill", "time": "09:30 AM" }
+        {
+          "stop": "Farook College",
+          "time": "08:00 AM"
+        },
+        {
+          "stop": "Feroke Stand",
+          "time": "08:15 AM"
+        },
+        {
+          "stop": "Meenchanda",
+          "time": "08:30 AM"
+        },
+        {
+          "stop": "Kallayi",
+          "time": "08:42 AM"
+        },
+        {
+          "stop": "Palayam Stand",
+          "time": "08:55 AM"
+        },
+        {
+          "stop": "Mananchira",
+          "time": "09:05 AM"
+        },
+        {
+          "stop": "Nadakkavu",
+          "time": "09:18 AM"
+        },
+        {
+          "stop": "West Hill",
+          "time": "09:30 AM"
+        }
       ],
       "currentLatitude": 11.1895,
       "currentLongitude": 75.8505,
-      "conductorLocationString": "Farook College Depot (Resting)"
+      "conductorLocationString": "Farook College Depot (Resting)",
+      "id": "BUS-3",
+      "ownerId": "OWNER-2",
+      "routeName": "Farook College - West Hill (via Palayam & Mananchira)",
+      "stops": [
+        {
+          "stopName": "Farook College",
+          "time": "08:00 AM"
+        },
+        {
+          "stopName": "Feroke Stand",
+          "time": "08:15 AM"
+        },
+        {
+          "stopName": "Meenchanda",
+          "time": "08:30 AM"
+        },
+        {
+          "stopName": "Kallayi",
+          "time": "08:42 AM"
+        },
+        {
+          "stopName": "Palayam Stand",
+          "time": "08:55 AM"
+        },
+        {
+          "stopName": "Mananchira",
+          "time": "09:05 AM"
+        },
+        {
+          "stopName": "Nadakkavu",
+          "time": "09:18 AM"
+        },
+        {
+          "stopName": "West Hill",
+          "time": "09:30 AM"
+        }
+      ],
+      "ticketsCount": 116,
+      "isActive": false,
+      "currentStop": "Farook College Stand",
+      "nextStop": "Scheduled at 08:00 AM",
+      "eta": "Resting",
+      "conductorEmail": "anfal@enroute.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "customFareChart": {
+        "farook college->feroke stand": 10,
+        "feroke stand->farook college": 10,
+        "farook college->meenchanda": 14,
+        "meenchanda->farook college": 14,
+        "farook college->kallayi": 18,
+        "kallayi->farook college": 18,
+        "farook college->palayam stand": 22,
+        "palayam stand->farook college": 22,
+        "farook college->mananchira": 30,
+        "mananchira->farook college": 30,
+        "farook college->nadakkavu": 34,
+        "nadakkavu->farook college": 34,
+        "farook college->west hill": 38,
+        "west hill->farook college": 38,
+        "feroke stand->meenchanda": 10,
+        "meenchanda->feroke stand": 10,
+        "feroke stand->kallayi": 14,
+        "kallayi->feroke stand": 14,
+        "feroke stand->palayam stand": 18,
+        "palayam stand->feroke stand": 18,
+        "feroke stand->mananchira": 22,
+        "mananchira->feroke stand": 22,
+        "feroke stand->nadakkavu": 30,
+        "nadakkavu->feroke stand": 30,
+        "feroke stand->west hill": 34,
+        "west hill->feroke stand": 34,
+        "meenchanda->kallayi": 10,
+        "kallayi->meenchanda": 10,
+        "meenchanda->palayam stand": 14,
+        "palayam stand->meenchanda": 14,
+        "meenchanda->mananchira": 18,
+        "mananchira->meenchanda": 18,
+        "meenchanda->nadakkavu": 22,
+        "nadakkavu->meenchanda": 22,
+        "meenchanda->west hill": 30,
+        "west hill->meenchanda": 30,
+        "kallayi->palayam stand": 10,
+        "palayam stand->kallayi": 10,
+        "kallayi->mananchira": 14,
+        "mananchira->kallayi": 14,
+        "kallayi->nadakkavu": 18,
+        "nadakkavu->kallayi": 18,
+        "kallayi->west hill": 22,
+        "west hill->kallayi": 22,
+        "palayam stand->mananchira": 10,
+        "mananchira->palayam stand": 10,
+        "palayam stand->nadakkavu": 14,
+        "nadakkavu->palayam stand": 14,
+        "palayam stand->west hill": 18,
+        "west hill->palayam stand": 18,
+        "mananchira->nadakkavu": 10,
+        "nadakkavu->mananchira": 10,
+        "mananchira->west hill": 14,
+        "west hill->mananchira": 14,
+        "nadakkavu->west hill": 10,
+        "west hill->nadakkavu": 10
+      }
     },
     {
       "regNumber": "KL 11 CF 3320",
@@ -269,23 +717,23 @@
       "destPoint": "Kondotty",
       "seatingCapacity": 44,
       "isTripActive": false,
-      "status": "STOPPED / DEPOT",
-      "todayCollection": 3150.0,
+      "status": "IN_DEPOT",
+      "todayCollection": 3150,
       "ticketsSold": 98,
       "ownerName": "Sahl",
       "ownerPhone": "+91 94470 12345",
       "ownerEmail": "sahl@gmail.com",
       "companyName": "Sahl Motors Kozhikode",
       "driverName": "Santhosh M.",
-      "driverPhone": "+91 94470 55118",
+      "driverPhone": "+91 94470 55112",
       "conductorName": "Jamsheer",
       "conductorPhone": "+91 98470 11004",
       "cleanerName": "Vijayan T.",
-      "cleanerPhone": "+91 94470 55119",
-      "chassisNumber": "MB1-420-KL-CHASSIS-3320",
-      "permitNumber": "KL/2026/MVD/STAGE/0721",
-      "fitnessValidity": "19-Jan-2028",
-      "insurancePolicyNumber": "NIC-KL-COM-889104",
+      "cleanerPhone": "+91 94470 55113",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
       "verificationStatus": "ADMIN_APPROVED",
       "isApprovedByAdmin": true,
       "workers": {
@@ -294,15 +742,557 @@
         "cleaner": "Vijayan T."
       },
       "timetable": [
-        { "stop": "Ramanattukara Stand", "time": "08:30 AM" },
-        { "stop": "University / Thenhipalam", "time": "08:45 AM" },
-        { "stop": "Calicut Airport Junction", "time": "09:00 AM" },
-        { "stop": "Kondotty Stand", "time": "09:20 AM" }
+        {
+          "stop": "Ramanattukara Stand",
+          "time": "08:30 AM"
+        },
+        {
+          "stop": "University / Thenhipalam",
+          "time": "08:45 AM"
+        },
+        {
+          "stop": "Calicut Airport Junction",
+          "time": "09:00 AM"
+        },
+        {
+          "stop": "Kondotty Stand",
+          "time": "09:20 AM"
+        }
       ],
       "currentLatitude": 11.1748,
       "currentLongitude": 75.8643,
-      "conductorLocationString": "Ramanattukara Stand Depot (Resting)"
+      "conductorLocationString": "Ramanattukara Stand Depot (Resting)",
+      "id": "BUS-4",
+      "ownerId": "OWNER-1",
+      "routeName": "Ramanattukara - Kondotty (via Airport Junction)",
+      "stops": [
+        {
+          "stopName": "Ramanattukara Stand",
+          "time": "08:30 AM"
+        },
+        {
+          "stopName": "University / Thenhipalam",
+          "time": "08:45 AM"
+        },
+        {
+          "stopName": "Calicut Airport Junction",
+          "time": "09:00 AM"
+        },
+        {
+          "stopName": "Kondotty Stand",
+          "time": "09:20 AM"
+        }
+      ],
+      "ticketsCount": 98,
+      "isActive": false,
+      "currentStop": "Ramanattukara Stand",
+      "nextStop": "Scheduled at 08:30 AM",
+      "eta": "Resting",
+      "conductorEmail": "jamsheer@enroute.com",
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "customFareChart": {
+        "ramanattukara->ramanattukara stand": 10,
+        "ramanattukara stand->ramanattukara": 10,
+        "ramanattukara->university / thenhipalam": 14,
+        "university / thenhipalam->ramanattukara": 14,
+        "ramanattukara->calicut airport junction": 18,
+        "calicut airport junction->ramanattukara": 18,
+        "ramanattukara->kondotty stand": 22,
+        "kondotty stand->ramanattukara": 22,
+        "ramanattukara->kondotty": 30,
+        "kondotty->ramanattukara": 30,
+        "ramanattukara stand->university / thenhipalam": 10,
+        "university / thenhipalam->ramanattukara stand": 10,
+        "ramanattukara stand->calicut airport junction": 14,
+        "calicut airport junction->ramanattukara stand": 14,
+        "ramanattukara stand->kondotty stand": 18,
+        "kondotty stand->ramanattukara stand": 18,
+        "ramanattukara stand->kondotty": 22,
+        "kondotty->ramanattukara stand": 22,
+        "university / thenhipalam->calicut airport junction": 10,
+        "calicut airport junction->university / thenhipalam": 10,
+        "university / thenhipalam->kondotty stand": 14,
+        "kondotty stand->university / thenhipalam": 14,
+        "university / thenhipalam->kondotty": 18,
+        "kondotty->university / thenhipalam": 18,
+        "calicut airport junction->kondotty stand": 10,
+        "kondotty stand->calicut airport junction": 10,
+        "calicut airport junction->kondotty": 14,
+        "kondotty->calicut airport junction": 14,
+        "kondotty stand->kondotty": 10,
+        "kondotty->kondotty stand": 10
+      }
+    },
+    {
+      "id": "BUS-1",
+      "ownerId": "OWNER-1",
+      "regNumber": "KL 07 CD 4589",
+      "busName": "SpeedWings",
+      "category": "Ordinary Bus (Blue-Whiteline)",
+      "startPoint": "Aluva Stand",
+      "destPoint": "Perumbavoor Stand",
+      "routeName": "Aluva Stand - Perumbavoor Stand (via Kizhakkambalam)",
+      "stops": [
+        {
+          "stopName": "Aluva Stand",
+          "time": "10:00 AM"
+        },
+        {
+          "stopName": "Bank Junction",
+          "time": "10:08 AM"
+        },
+        {
+          "stopName": "Pump Junction",
+          "time": "10:15 AM"
+        },
+        {
+          "stopName": "Kizhakkambalam",
+          "time": "10:24 AM"
+        },
+        {
+          "stopName": "Pattimattom",
+          "time": "10:35 AM"
+        },
+        {
+          "stopName": "Perumbavoor Stand",
+          "time": "10:48 AM"
+        }
+      ],
+      "seatingCapacity": 48,
+      "driverName": "Venu Pillai (Badge #KL4201)",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Mani K.",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Suresh Kumar",
+      "companyName": "St. George Motors Ernakulam",
+      "todayCollection": 6420,
+      "ticketsCount": 169,
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Depot (Aluva Stand)",
+      "nextStop": "Trip not started",
+      "eta": "Halted",
+      "ownerName": "George Varghese",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isTripActive": false,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Aluva Stand Depot (Resting)",
+      "customFareChart": {
+        "aluva stand->bank junction": 20,
+        "bank junction->aluva stand": 20,
+        "aluva stand->pump junction": 19,
+        "pump junction->aluva stand": 19,
+        "aluva stand->kizhakkambalam": 18,
+        "kizhakkambalam->aluva stand": 18,
+        "aluva stand->pattimattom": 22,
+        "pattimattom->aluva stand": 22,
+        "aluva stand->perumbavoor stand": 30,
+        "perumbavoor stand->aluva stand": 30,
+        "bank junction->pump junction": 10,
+        "pump junction->bank junction": 10,
+        "bank junction->kizhakkambalam": 14,
+        "kizhakkambalam->bank junction": 14,
+        "bank junction->pattimattom": 18,
+        "pattimattom->bank junction": 18,
+        "bank junction->perumbavoor stand": 22,
+        "perumbavoor stand->bank junction": 22,
+        "pump junction->kizhakkambalam": 10,
+        "kizhakkambalam->pump junction": 10,
+        "pump junction->pattimattom": 14,
+        "pattimattom->pump junction": 14,
+        "pump junction->perumbavoor stand": 18,
+        "perumbavoor stand->pump junction": 18,
+        "kizhakkambalam->pattimattom": 10,
+        "pattimattom->kizhakkambalam": 10,
+        "kizhakkambalam->perumbavoor stand": 14,
+        "perumbavoor stand->kizhakkambalam": 14,
+        "pattimattom->perumbavoor stand": 10,
+        "perumbavoor stand->pattimattom": 10
+      }
+    },
+    {
+      "id": "BUS-2",
+      "ownerId": "OWNER-1",
+      "regNumber": "KL 07 CE 1204",
+      "busName": "GreenCity Express",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "startPoint": "Ernakulam Kaloor",
+      "destPoint": "Thoppumpady",
+      "routeName": "Ernakulam Kaloor - Thoppumpady (via Menaka)",
+      "stops": [
+        {
+          "stopName": "Kaloor Stand",
+          "time": "10:30 AM"
+        },
+        {
+          "stopName": "Menaka Junction",
+          "time": "10:42 AM"
+        },
+        {
+          "stopName": "Thevara Ferry",
+          "time": "10:55 AM"
+        },
+        {
+          "stopName": "Thoppumpady",
+          "time": "11:15 AM"
+        }
+      ],
+      "seatingCapacity": 52,
+      "driverName": "Antony Joseph",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Saji T.",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Biju Varghese",
+      "companyName": "St. George Motors Ernakulam",
+      "todayCollection": 7840,
+      "ticketsCount": 202,
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Depot (Kaloor Stand)",
+      "nextStop": "Trip not started",
+      "eta": "Halted",
+      "ownerName": "George Varghese",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11002",
+      "conductorEmail": "biju@stgeorge.com",
+      "isTripActive": false,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 9.9816,
+      "currentLongitude": 76.275,
+      "conductorLocationString": "Kaloor Stand Depot (Resting)",
+      "customFareChart": {
+        "ernakulam kaloor->kaloor stand": 10,
+        "kaloor stand->ernakulam kaloor": 10,
+        "ernakulam kaloor->menaka junction": 14,
+        "menaka junction->ernakulam kaloor": 14,
+        "ernakulam kaloor->thevara ferry": 18,
+        "thevara ferry->ernakulam kaloor": 18,
+        "ernakulam kaloor->thoppumpady": 22,
+        "thoppumpady->ernakulam kaloor": 22,
+        "kaloor stand->menaka junction": 10,
+        "menaka junction->kaloor stand": 10,
+        "kaloor stand->thevara ferry": 14,
+        "thevara ferry->kaloor stand": 14,
+        "kaloor stand->thoppumpady": 18,
+        "thoppumpady->kaloor stand": 18,
+        "menaka junction->thevara ferry": 10,
+        "thevara ferry->menaka junction": 10,
+        "menaka junction->thoppumpady": 14,
+        "thoppumpady->menaka junction": 14,
+        "thevara ferry->thoppumpady": 10,
+        "thoppumpady->thevara ferry": 10
+      }
+    },
+    {
+      "id": "BUS-3",
+      "ownerId": "OWNER-1",
+      "regNumber": "KL 07 BQ 9981",
+      "busName": "City Rider",
+      "category": "City Bus (Green-Whiteline)",
+      "startPoint": "Vytilla Hub",
+      "destPoint": "Kakkanad InfoPark",
+      "routeName": "Vytilla Hub - Kakkanad InfoPark (via Palarivattom)",
+      "stops": [
+        {
+          "stopName": "Vytilla Hub",
+          "time": "11:00 AM"
+        },
+        {
+          "stopName": "Palarivattom Bypass",
+          "time": "11:15 AM"
+        },
+        {
+          "stopName": "Kakkanad Stand",
+          "time": "11:30 AM"
+        },
+        {
+          "stopName": "InfoPark Express",
+          "time": "11:45 AM"
+        }
+      ],
+      "seatingCapacity": 48,
+      "driverName": "Pradeep Kumar",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Babu N.",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Rajesh M.",
+      "companyName": "St. George Motors Ernakulam",
+      "todayCollection": 4220,
+      "ticketsCount": 116,
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Vytilla Mobility Hub",
+      "nextStop": "Scheduled at 02:00 PM",
+      "eta": "Resting",
+      "ownerName": "George Varghese",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11003",
+      "conductorEmail": "rajesh@stgeorge.com",
+      "isTripActive": false,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 9.9678,
+      "currentLongitude": 76.3195,
+      "conductorLocationString": "Vytilla Mobility Hub Depot (Resting)",
+      "customFareChart": {
+        "vytilla hub->palarivattom bypass": 10,
+        "palarivattom bypass->vytilla hub": 10,
+        "vytilla hub->kakkanad stand": 14,
+        "kakkanad stand->vytilla hub": 14,
+        "vytilla hub->infopark express": 18,
+        "infopark express->vytilla hub": 18,
+        "vytilla hub->kakkanad infopark": 22,
+        "kakkanad infopark->vytilla hub": 22,
+        "palarivattom bypass->kakkanad stand": 10,
+        "kakkanad stand->palarivattom bypass": 10,
+        "palarivattom bypass->infopark express": 14,
+        "infopark express->palarivattom bypass": 14,
+        "palarivattom bypass->kakkanad infopark": 18,
+        "kakkanad infopark->palarivattom bypass": 18,
+        "kakkanad stand->infopark express": 10,
+        "infopark express->kakkanad stand": 10,
+        "kakkanad stand->kakkanad infopark": 14,
+        "kakkanad infopark->kakkanad stand": 14,
+        "infopark express->kakkanad infopark": 10,
+        "kakkanad infopark->infopark express": 10
+      }
+    },
+    {
+      "id": "BUS-4",
+      "ownerId": "OWNER-1",
+      "regNumber": "KL71K3286",
+      "busName": "esKE",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "startPoint": "Melattur",
+      "destPoint": "Nilambur",
+      "routeName": "Melattur - Nilambur",
+      "stops": [],
+      "seatingCapacity": 48,
+      "driverName": "Unassigned",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "Unassigned",
+      "companyName": "St. George Motors Ernakulam",
+      "todayCollection": 92,
+      "ticketsCount": 3,
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Pump Junction",
+      "nextStop": "Kizhakkambalam (~4 mins)",
+      "eta": "4 mins",
+      "ownerName": "George Varghese (Owner)",
+      "ownerPhone": "+91 94470 12345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isTripActive": false,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 2,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Near Pump Junction, Aluva (Conductor Device GPS)",
+      "customFareChart": {
+        "melattur->nilambur": 10,
+        "nilambur->melattur": 10
+      }
+    },
+    {
+      "id": "BUS-1793859642560",
+      "ownerId": "OWNER-1793859552169",
+      "regNumber": "KL91K9191",
+      "busName": "Sahl1",
+      "category": "Ordinary Bus (Blue-Whiteline)",
+      "startPoint": "Ferook College",
+      "destPoint": "Kozhikkode",
+      "routeName": "Ferook College - Kozhikkode",
+      "stops": [
+        {
+          "stopName": "ramanattukara",
+          "time": "08:00 AM"
+        }
+      ],
+      "seatingCapacity": 48,
+      "driverName": "Unassigned",
+      "driverPhone": "+91 94470 55112",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "+91 94470 55113",
+      "conductorName": "anu",
+      "companyName": "Sahl express",
+      "todayCollection": 0,
+      "ticketsCount": 0,
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-8891",
+      "permitNumber": "KL/2026/MVD/STAGE/0491",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-778210",
+      "currentStop": "Ferook College",
+      "nextStop": "Kozhikkode",
+      "eta": "Departing soon",
+      "ownerName": "Sahl sk",
+      "ownerPhone": "9119191919",
+      "ownerEmail": "kvksalu@gmail.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isTripActive": false,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 2,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Near Pump Junction, Aluva (Conductor Device GPS)",
+      "customFareChart": {
+        "ferook college->ramanattukara": 10,
+        "ramanattukara->ferook college": 10,
+        "ferook college->kozhikkode": 14,
+        "kozhikkode->ferook college": 14,
+        "ramanattukara->kozhikkode": 10,
+        "kozhikkode->ramanattukara": 10
+      }
+    },
+    {
+      "id": "BUS-1793893493023",
+      "ownerId": "OWNER-1",
+      "regNumber": "KL 07 N 1121",
+      "busName": "SK",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "startPoint": "Aluva Stand",
+      "destPoint": "Angamaly Stand",
+      "routeName": "Aluva Stand - Angamaly Stand",
+      "stops": [],
+      "seatingCapacity": 48,
+      "driverName": "Unassigned",
+      "driverPhone": "",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "",
+      "conductorName": "Suresh Kumar",
+      "companyName": "St. George Motors Ernakulam",
+      "todayCollection": 0,
+      "ticketsCount": 0,
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-1995",
+      "permitNumber": "KL/2026/MVD/STAGE/1995",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-700995",
+      "currentStop": "Trip Completed (At Stand)",
+      "nextStop": "Standing at Destination",
+      "eta": "Halted",
+      "ownerName": "Sahl",
+      "ownerPhone": "9447012345",
+      "ownerEmail": "owner@stgeorge.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "suresh@stgeorge.com",
+      "isTripActive": false,
+      "isLiveGpsActive": false,
+      "currentStageIndex": 2,
+      "currentLatitude": 10.1076,
+      "currentLongitude": 76.3516,
+      "conductorLocationString": "Near Pump Junction, Aluva (Conductor Device GPS)",
+      "customFareChart": {
+        "aluva stand->angamaly stand": 10,
+        "angamaly stand->aluva stand": 10
+      }
     }
   ],
-  "tickets": []
+  "tickets": [
+    {
+      "id": "TCK-1793849278564",
+      "ticketNumber": "KL-SBK-0511-1001",
+      "busRegNumber": "KL 07 CD 4589",
+      "busName": "SpeedWings",
+      "conductorId": "COND-1",
+      "conductorName": "Suresh Kumar",
+      "passengerId": "SBK-KL-554120",
+      "passengerName": "Rahul Menon",
+      "boardingStop": "Aluva Stand",
+      "destStop": "Perumbavoor Stand",
+      "fare": 30,
+      "category": "General",
+      "paymentMode": "SMART_WALLET",
+      "cashGiven": 0,
+      "changeReturned": 0,
+      "splitCash": 0,
+      "splitUpi": 0,
+      "issuedAt": "2026-11-05T08:57:58.564"
+    },
+    {
+      "id": "TCK-1793851916036",
+      "ticketNumber": "KL-SBK-0511-1002",
+      "busRegNumber": "KL 07 CD 4589",
+      "busName": "SpeedWings",
+      "conductorId": "COND-1",
+      "conductorName": "Suresh Kumar",
+      "passengerId": "SBK-KL-554120",
+      "passengerName": "Rahul Menon",
+      "boardingStop": "Perumbavoor Stand",
+      "destStop": "Bank Junction",
+      "fare": 22,
+      "category": "General",
+      "paymentMode": "SMART_WALLET",
+      "cashGiven": 0,
+      "changeReturned": 0,
+      "splitCash": 0,
+      "splitUpi": 0,
+      "issuedAt": "2026-11-05T09:41:56.036"
+    },
+    {
+      "id": "TCK-1793852545825",
+      "ticketNumber": "KL-SBK-0511-1003",
+      "busRegNumber": "KL 07 CD 4589",
+      "busName": "SpeedWings",
+      "conductorId": "COND-1",
+      "conductorName": "Suresh Kumar",
+      "passengerId": "SBK-KL-987263",
+      "passengerName": "Anjali Nair",
+      "boardingStop": "Aluva Stand",
+      "destStop": "Pattimattom",
+      "fare": 22,
+      "category": "General",
+      "paymentMode": "SMART_WALLET",
+      "cashGiven": 0,
+      "changeReturned": 0,
+      "splitCash": 0,
+      "splitUpi": 0,
+      "issuedAt": "2026-11-05T09:52:25.825"
+    }
+  ]
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/upi_payment_dialog.dart';
 
 class ConductorTerminalScreen extends StatefulWidget {
   final VoidCallback onEndTrip;
@@ -93,70 +94,86 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
   }
 
   void _handleIssueTicket() {
-    widget.onTicketIssued(_calculatedFare);
-    setState(() {
-      _totalCollection += _calculatedFare;
-      _ticketsIssued += 1;
-      _passengerScanned = false;
-    });
+    void finalize() {
+      widget.onTicketIssued(_calculatedFare);
+      setState(() {
+        _totalCollection += _calculatedFare;
+        _ticketsIssued += 1;
+        _passengerScanned = false;
+      });
 
-    final ticketNo = 'SBK-20261018-${(1000 + _ticketsIssued)}';
+      final ticketNo = 'SBK-20261018-${(1000 + _ticketsIssued)}';
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Row(
-            children: [
-              Icon(Icons.check_circle, color: AppTheme.primaryGreen, size: 28),
-              SizedBox(width: 10),
-              Text('Ticket Confirmed'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Fare Deducted:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(
-                      '₹${_calculatedFare.toStringAsFixed(1)} ($_paymentMode)',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              _ticketRow('Ticket No', ticketNo),
-              _ticketRow('Passenger', _scannedPassengerName),
-              _ticketRow('Bus', 'KL 10 AZ 4589 (Sana)'),
-              _ticketRow('Journey', '$_boardingStop ➔ $_destStop'),
-              _ticketRow('Category', _concessionType),
-              const Divider(height: 20),
-              const Text(
-                'Digital receipt synced to passenger wallet & server ledger.',
-                style: TextStyle(color: Colors.grey, fontSize: 11),
-              ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Next Passenger'),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle, color: AppTheme.primaryGreen, size: 28),
+                SizedBox(width: 10),
+                Text('Ticket Confirmed'),
+              ],
             ),
-          ],
-        );
-      },
-    );
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Fare Deducted:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        '₹${_calculatedFare.toStringAsFixed(1)} ($_paymentMode)',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _ticketRow('Ticket No', ticketNo),
+                _ticketRow('Passenger', _scannedPassengerName),
+                _ticketRow('Bus', 'KL 10 AZ 4589 (Sana)'),
+                _ticketRow('Journey', '$_boardingStop ➔ $_destStop'),
+                _ticketRow('Category', _concessionType),
+                const Divider(height: 20),
+                const Text(
+                  'Digital receipt synced to passenger wallet & server ledger.',
+                  style: TextStyle(color: Colors.grey, fontSize: 11),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Next Passenger'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    if (_paymentMode == 'UPI') {
+      UpiPaymentDialog.show(
+        context: context,
+        amount: _calculatedFare,
+        title: 'UPI Dynamic Spot QR',
+        subtitle: 'Payee: ${UpiPaymentDialog.payeeName} (Sana Line)',
+        transactionNote: 'EnRoute Ticket KL 10 AZ 4589',
+        confirmButtonText: 'Confirm Payment Received',
+        onPaymentConfirmed: finalize,
+      );
+    } else {
+      finalize();
+    }
   }
 
   Widget _ticketRow(String label, String value) {

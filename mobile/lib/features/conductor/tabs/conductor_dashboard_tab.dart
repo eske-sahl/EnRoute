@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 import '../../../services/location_service.dart';
 import '../../../widgets/app_creator_footer.dart';
+import '../../../widgets/upi_payment_dialog.dart';
 import '../widgets/passenger_qr_scanner_dialog.dart';
 
 class ConductorDashboardTab extends StatefulWidget {
@@ -412,62 +412,14 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   }
 
   void _showUpiQrModal(double fare, VoidCallback onPaymentConfirmed) {
-    showDialog(
+    UpiPaymentDialog.show(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.qr_code_2, color: Colors.blue),
-              ),
-              const SizedBox(width: 10),
-              const Text('UPI Dynamic Spot QR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Pay ₹${fare.toStringAsFixed(1)} to ${_bus.busName}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryGreen)),
-              const SizedBox(height: 4),
-              Text('VPA: smartbus.${_bus.regNumber.replaceAll(" ", "").toLowerCase()}@upi',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey)),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: QrImageView(
-                  data: 'upi://pay?pa=smartbus.${_bus.regNumber.replaceAll(" ", "").toLowerCase()}@upi&pn=${_bus.busName}&am=${fare.toStringAsFixed(1)}&cu=INR',
-                  version: QrVersions.auto,
-                  size: 180,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text('Scan using any UPI App: GPay, PhonePe, Paytm, BHIM',
-                  style: TextStyle(fontSize: 11, color: Colors.grey)),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
-              onPressed: () {
-                Navigator.pop(ctx);
-                onPaymentConfirmed();
-              },
-              child: const Text('Confirm Payment Received'),
-            ),
-          ],
-        );
-      },
+      amount: fare,
+      title: 'UPI Dynamic Spot QR',
+      subtitle: 'Payee: ${UpiPaymentDialog.payeeName} (${_bus.busName})',
+      transactionNote: 'EnRoute Bus Ticket ${_bus.regNumber}',
+      confirmButtonText: 'Confirm Payment Received',
+      onPaymentConfirmed: onPaymentConfirmed,
     );
   }
 
@@ -542,6 +494,8 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
 
     if (paymentMode == 'UPI') {
       _showUpiQrModal(fare, finalizeTicket);
+    } else if (paymentMode == 'SPLIT' && splitUpi > 0) {
+      _showUpiQrModal(splitUpi, finalizeTicket);
     } else {
       finalizeTicket();
     }
