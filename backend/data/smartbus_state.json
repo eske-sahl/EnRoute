@@ -80,8 +80,8 @@
       "userId": "shamil.conductor",
       "phoneNumber": "+91 98470 11001",
       "licenseNumber": "KL-10-COND-2018-8891",
-      "assignedBusReg": "KL 10 AZ 4589",
-      "assignedBusName": "Sana",
+      "assignedBusReg": "Unassigned",
+      "assignedBusName": "Unassigned",
       "role": "ROLE_CONDUCTOR",
       "status": "ACTIVE",
       "ownerId": "OWNER-1",
@@ -89,7 +89,7 @@
       "email": "shamil@enroute.com",
       "password": "password123",
       "phone": "+91 98470 11001",
-      "todayCollection": 6420
+      "todayCollection": 0
     },
     {
       "id": "COND-2",
@@ -106,7 +106,7 @@
       "email": "kaarangadan@enroute.com",
       "password": "password123",
       "phone": "+91 98470 11002",
-      "todayCollection": 7840
+      "todayCollection": 0
     },
     {
       "id": "COND-3",
@@ -123,7 +123,7 @@
       "email": "anfal@enroute.com",
       "password": "password123",
       "phone": "+91 98470 11003",
-      "todayCollection": 4220
+      "todayCollection": 0
     },
     {
       "id": "COND-4",
@@ -140,7 +140,7 @@
       "email": "jamsheer@enroute.com",
       "password": "password123",
       "phone": "+91 98470 11004",
-      "todayCollection": 3150
+      "todayCollection": 0
     },
     {
       "id": "COND-1794128212313",
@@ -364,9 +364,10 @@
         "kozhikkode stand->kozhikkode": 10,
         "kozhikkode->kozhikkode stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "regNumber": "KL 10 CE 1204",
@@ -549,9 +550,10 @@
         "kozhikkode stand->kozhikkode": 10,
         "kozhikkode->kozhikkode stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "regNumber": "KL 11 BQ 9981",
@@ -562,7 +564,7 @@
       "destPoint": "West Hill",
       "seatingCapacity": 48,
       "isTripActive": false,
-      "status": "IN_DEPOT",
+      "status": "STOPPED / DEPOT",
       "todayCollection": 0,
       "ticketsSold": 116,
       "ownerName": "Fathima Riyas",
@@ -726,9 +728,10 @@
         "nadakkavu->west hill": 10,
         "west hill->nadakkavu": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "regNumber": "KL 11 CF 3320",
@@ -739,7 +742,7 @@
       "destPoint": "Kondotty",
       "seatingCapacity": 44,
       "isTripActive": false,
-      "status": "IN_DEPOT",
+      "status": "STOPPED / DEPOT",
       "todayCollection": 0,
       "ticketsSold": 98,
       "ownerName": "Sahl",
@@ -845,9 +848,10 @@
         "kondotty stand->kondotty": 10,
         "kondotty->kondotty stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "id": "BUS-4",
@@ -896,7 +900,8 @@
       },
       "upiId": "",
       "payeeName": "",
-      "isUpiEnabled": false
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "id": "BUS-1793859642560",
@@ -954,7 +959,8 @@
       },
       "upiId": "",
       "payeeName": "",
-      "isUpiEnabled": false
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "id": "BUS-1793893493023",
@@ -1003,7 +1009,8 @@
       },
       "upiId": "kvksalu-2@okaxis",
       "payeeName": "SK",
-      "isUpiEnabled": true
+      "isUpiEnabled": true,
+      "speedKmh": 0
     },
     {
       "id": "BUS-1794128083767",
@@ -1024,8 +1031,8 @@
       "companyName": "Fathima Riyas Transit",
       "todayCollection": 0,
       "ticketsCount": 0,
-      "isActive": true,
-      "status": "RUNNING_NOW",
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
       "isApprovedByAdmin": true,
       "verificationStatus": "ADMIN_APPROVED",
       "chassisNumber": "MB1-420-KL-CHASSIS-1041",
@@ -1040,7 +1047,7 @@
       "ownerEmail": "fathima.owner@gmail.com",
       "conductorPhone": "+91 98470 11001",
       "conductorEmail": "shamil@enroute.com",
-      "isTripActive": true,
+      "isTripActive": false,
       "isLiveGpsActive": true,
       "currentStageIndex": 0,
       "currentLatitude": 10.9882,
@@ -1052,7 +1059,8 @@
       },
       "upiId": "",
       "payeeName": "",
-      "isUpiEnabled": false
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "id": "BUS-1794128144656",
@@ -1073,8 +1081,8 @@
       "companyName": "Fathima Riyas Transit",
       "todayCollection": 0,
       "ticketsCount": 0,
-      "isActive": true,
-      "status": "RUNNING_NOW",
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
       "isApprovedByAdmin": true,
       "verificationStatus": "ADMIN_APPROVED",
       "chassisNumber": "MB1-420-KL-CHASSIS-1139",
@@ -1089,7 +1097,7 @@
       "ownerEmail": "fathima.owner@gmail.com",
       "conductorPhone": "+91 98470 11001",
       "conductorEmail": "shamil@enroute.com",
-      "isTripActive": true,
+      "isTripActive": false,
       "isLiveGpsActive": true,
       "currentStageIndex": 0,
       "currentLatitude": 10.9882,
@@ -1101,7 +1109,8 @@
       },
       "upiId": "",
       "payeeName": "",
-      "isUpiEnabled": false
+      "isUpiEnabled": false,
+      "speedKmh": 0
     },
     {
       "id": "BUS-1794133090308",
@@ -1122,8 +1131,8 @@
       "companyName": "Fathima Riyas Transit",
       "todayCollection": 0,
       "ticketsCount": 0,
-      "isActive": true,
-      "status": "RUNNING_NOW",
+      "isActive": false,
+      "status": "STOPPED / DEPOT",
       "isApprovedByAdmin": false,
       "verificationStatus": "WAITING_FOR_VERIFICATION",
       "chassisNumber": "MB1-420-KL-CHASSIS-1706",
@@ -1138,7 +1147,7 @@
       "ownerEmail": "fathima.owner@gmail.com",
       "conductorPhone": "+91 98470 11001",
       "conductorEmail": "shamil@enroute.com",
-      "isTripActive": true,
+      "isTripActive": false,
       "isLiveGpsActive": true,
       "currentStageIndex": 0,
       "currentLatitude": 10.9882,
@@ -1150,7 +1159,58 @@
       },
       "upiId": "kvksalu-2@okaxis",
       "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "isUpiEnabled": true,
+      "speedKmh": 0
+    },
+    {
+      "id": "BUS-1794141361701",
+      "ownerId": "OWNER-1",
+      "regNumber": "KK11",
+      "busName": "jkj",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "startPoint": "Aluva Stand",
+      "destPoint": "Angamaly Stand",
+      "routeName": "Aluva Stand - Angamaly Stand",
+      "stops": [],
+      "seatingCapacity": 48,
+      "driverName": "Unassigned",
+      "driverPhone": "",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "",
+      "conductorName": "Shamil K",
+      "companyName": "Sahl Motors Kozhikode",
+      "todayCollection": 0,
+      "ticketsCount": 0,
+      "isActive": true,
+      "status": "RUNNING_NOW",
+      "isApprovedByAdmin": false,
+      "verificationStatus": "WAITING_FOR_VERIFICATION",
+      "chassisNumber": "MB1-420-KL-CHASSIS-1716",
+      "permitNumber": "KL/2026/MVD/STAGE/1716",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-700716",
+      "currentStop": "Aluva Stand",
+      "nextStop": "Angamaly Stand",
+      "eta": "Awaiting Admin Approval",
+      "ownerName": "Sahl",
+      "ownerPhone": "9447012345",
+      "ownerEmail": "sahl@gmail.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "shamil@enroute.com",
+      "isTripActive": true,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 10.9882,
+      "currentLongitude": 76.4589,
+      "speedKmh": 0,
+      "conductorLocationString": "Mannarkad Stand (Conductor Device GPS)",
+      "customFareChart": {
+        "aluva stand->angamaly stand": 10,
+        "angamaly stand->aluva stand": 10
+      },
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     }
   ],
   "tickets": [
