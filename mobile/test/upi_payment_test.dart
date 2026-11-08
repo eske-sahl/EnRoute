@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/services/fleet_state.dart';
 import 'package:mobile/widgets/upi_payment_dialog.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -70,6 +71,64 @@ void main() {
 
       expect(paymentConfirmed, isTrue);
       expect(find.byType(UpiPaymentDialog), findsNothing);
+    });
+
+    test('4. BusModel supports owner-assigned UPI details and serialization', () {
+      final bus = BusModel(
+        id: 'TEST-BUS-1',
+        regNumber: 'KL 10 AZ 9999',
+        busName: 'Test Express',
+        category: 'Ordinary Bus (Blue-Whiteline)',
+        routeName: 'Test Route',
+        stops: [],
+        upiId: 'custom.owner@okhdfcbank',
+        payeeName: 'Custom Motors',
+        isUpiEnabled: true,
+      );
+
+      expect(bus.upiId, 'custom.owner@okhdfcbank');
+      expect(bus.payeeName, 'Custom Motors');
+      expect(bus.isUpiEnabled, isTrue);
+
+      final json = bus.toJson();
+      expect(json['upiId'], 'custom.owner@okhdfcbank');
+      expect(json['payeeName'], 'Custom Motors');
+      expect(json['isUpiEnabled'], isTrue);
+
+      final revived = BusModel.fromJson(json);
+      expect(revived.upiId, 'custom.owner@okhdfcbank');
+      expect(revived.payeeName, 'Custom Motors');
+      expect(revived.isUpiEnabled, isTrue);
+    });
+
+    test('5. FleetState updates bus UPI details configured by owner', () {
+      final state = FleetState.instance;
+      final bus = state.buses.first;
+
+      state.updateBusUpiDetails(
+        regNumber: bus.regNumber,
+        upiId: 'kvksalu-2@okaxis',
+        payeeName: 'ESKE_ Motors',
+        isUpiEnabled: true,
+      );
+
+      final updated = state.getBusByReg(bus.regNumber);
+      expect(updated?.upiId, 'kvksalu-2@okaxis');
+      expect(updated?.payeeName, 'ESKE_ Motors');
+      expect(updated?.isUpiEnabled, isTrue);
+    });
+
+    test('6. Dynamic UPI URI generation reflects customized owner VPA and Payee', () {
+      final customUri = UpiPaymentDialog.buildUpiUri(
+        amount: 32.0,
+        note: 'EnRoute Spot Ticket KL 10 CE 1204',
+        vpa: 'arafa.transport@okaxis',
+        name: 'Arafa Lines',
+      );
+
+      expect(customUri, contains('pa=arafa.transport@okaxis'));
+      expect(customUri, contains('pn=Arafa%20Lines'));
+      expect(customUri, contains('am=32.00'));
     });
   });
 }

@@ -377,6 +377,11 @@ class BusModel {
   // Stop-to-Stop Fare Chart Matrix
   Map<String, double> customFareChart;
 
+  // Business Banking & Direct UPI Ticketing (Configured by Bus Owner)
+  String upiId;
+  String payeeName;
+  bool isUpiEnabled;
+
   BusModel({
     required this.id,
     this.ownerId = 'OWNER-1',
@@ -418,6 +423,9 @@ class BusModel {
     this.currentLatitude = 10.9882,
     this.currentLongitude = 76.4589,
     this.conductorLocationString = 'Mannarkad Stand (Conductor Device GPS)',
+    this.upiId = 'kvksalu-2@okaxis',
+    this.payeeName = 'ESKE_',
+    this.isUpiEnabled = true,
     Map<String, double>? customFareChart,
   }) : customFareChart = customFareChart ?? {} {
     sortStops();
@@ -558,6 +566,9 @@ class BusModel {
     'currentLongitude': currentLongitude,
     'conductorLocationString': conductorLocationString,
     'customFareChart': customFareChart,
+    'upiId': upiId,
+    'payeeName': payeeName,
+    'isUpiEnabled': isUpiEnabled,
   };
 
   factory BusModel.fromJson(Map<String, dynamic> json) => BusModel(
@@ -606,6 +617,9 @@ class BusModel {
     conductorLocationString: (json['conductorLocationString'] as String?) ?? '',
     customFareChart: (json['customFareChart'] as Map?)
         ?.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
+    upiId: (json['upiId'] as String?) ?? 'kvksalu-2@okaxis',
+    payeeName: (json['payeeName'] as String?) ?? (json['busName'] as String? ?? 'ESKE_'),
+    isUpiEnabled: (json['isUpiEnabled'] as bool?) ?? true,
   );
 }
 
@@ -1855,6 +1869,27 @@ class FleetState extends ChangeNotifier {
     }
   }
 
+  void updateBusUpiDetails({
+    required String regNumber,
+    required String upiId,
+    required String payeeName,
+    required bool isUpiEnabled,
+  }) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final index = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (index != -1) {
+      final b = buses[index];
+      b.upiId = upiId.trim();
+      b.payeeName = payeeName.trim().isNotEmpty ? payeeName.trim() : b.busName;
+      b.isUpiEnabled = isUpiEnabled;
+      _persistBuses();
+      _pushStateToBackend();
+      notifyListeners();
+    }
+  }
+
   void approveBusByAdmin(String regNumber) {
     final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
     final index = buses.indexWhere(
@@ -1910,6 +1945,9 @@ class FleetState extends ChangeNotifier {
     required String conductor,
     required bool isActive,
     List<BusStopSchedule>? stops,
+    String? upiId,
+    String? payeeName,
+    bool? isUpiEnabled,
   }) {
     final index = buses.indexWhere((b) => b.regNumber == regNumber);
     if (index != -1) {
@@ -1929,6 +1967,9 @@ class FleetState extends ChangeNotifier {
         b.stops = stops;
         b.sortStops();
       }
+      if (upiId != null) b.upiId = upiId.trim();
+      if (payeeName != null) b.payeeName = payeeName.trim().isNotEmpty ? payeeName.trim() : b.busName;
+      if (isUpiEnabled != null) b.isUpiEnabled = isUpiEnabled;
       _persistBuses();
       _pushStateToBackend();
       notifyListeners();

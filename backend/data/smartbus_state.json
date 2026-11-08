@@ -148,7 +148,7 @@
       "regNumber": "KL 10 AZ 4589",
       "busName": "Sana",
       "category": "Limited Stop Bus (Red-Whiteline)",
-      "route": "Mannarkad Stand ➔ Kozhikkode Stand (via Manjeri & Kondotty)",
+      "route": "Mannarkad Stand \u2794 Kozhikkode Stand (via Manjeri & Kondotty)",
       "startPoint": "Mannarkad",
       "destPoint": "Kozhikkode",
       "seatingCapacity": 48,
@@ -350,13 +350,16 @@
         "kozhikkode->ramanattukara": 14,
         "kozhikkode stand->kozhikkode": 10,
         "kozhikkode->kozhikkode stand": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "regNumber": "KL 10 CE 1204",
       "busName": "Arafa",
       "category": "Ordinary Bus (Blue-Whiteline)",
-      "route": "Kalikavu Stand ➔ Kozhikkode Stand (via Wandoor & Manjeri)",
+      "route": "Kalikavu Stand \u2794 Kozhikkode Stand (via Wandoor & Manjeri)",
       "startPoint": "Kalikavu",
       "destPoint": "Kozhikkode",
       "seatingCapacity": 52,
@@ -532,13 +535,16 @@
         "kozhikkode->ramanattukara": 14,
         "kozhikkode stand->kozhikkode": 10,
         "kozhikkode->kozhikkode stand": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "regNumber": "KL 11 BQ 9981",
       "busName": "Sanha",
       "category": "City Bus (Green-Whiteline)",
-      "route": "Farook College ➔ West Hill (via Palayam & Mananchira)",
+      "route": "Farook College \u2794 West Hill (via Palayam & Mananchira)",
       "startPoint": "Farook College",
       "destPoint": "West Hill",
       "seatingCapacity": 48,
@@ -706,13 +712,16 @@
         "west hill->mananchira": 14,
         "nadakkavu->west hill": 10,
         "west hill->nadakkavu": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "regNumber": "KL 11 CF 3320",
       "busName": "KKB",
       "category": "Ordinary Bus (Blue-Whiteline)",
-      "route": "Ramanattukara Stand ➔ Kondotty Stand (via Airport Junction)",
+      "route": "Ramanattukara Stand \u2794 Kondotty Stand (via Airport Junction)",
       "startPoint": "Ramanattukara",
       "destPoint": "Kondotty",
       "seatingCapacity": 44,
@@ -822,7 +831,10 @@
         "kondotty->calicut airport junction": 14,
         "kondotty stand->kondotty": 10,
         "kondotty->kondotty stand": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "id": "BUS-1",
@@ -921,7 +933,10 @@
         "perumbavoor stand->kizhakkambalam": 14,
         "pattimattom->perumbavoor stand": 10,
         "perumbavoor stand->pattimattom": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "id": "BUS-2",
@@ -1002,7 +1017,10 @@
         "thoppumpady->menaka junction": 14,
         "thevara ferry->thoppumpady": 10,
         "thoppumpady->thevara ferry": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "id": "BUS-3",
@@ -1083,7 +1101,10 @@
         "kakkanad infopark->kakkanad stand": 14,
         "infopark express->kakkanad infopark": 10,
         "kakkanad infopark->infopark express": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "id": "BUS-4",
@@ -1129,7 +1150,10 @@
       "customFareChart": {
         "melattur->nilambur": 10,
         "nilambur->melattur": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "id": "BUS-1793859642560",
@@ -1184,7 +1208,10 @@
         "kozhikkode->ferook college": 14,
         "ramanattukara->kozhikkode": 10,
         "kozhikkode->ramanattukara": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     },
     {
       "id": "BUS-1793893493023",
@@ -1230,7 +1257,10 @@
       "customFareChart": {
         "aluva stand->angamaly stand": 10,
         "angamaly stand->aluva stand": 10
-      }
+      },
+      "upiId": "kvksalu-2@okaxis",
+      "payeeName": "ESKE_",
+      "isUpiEnabled": true
     }
   ],
   "tickets": [

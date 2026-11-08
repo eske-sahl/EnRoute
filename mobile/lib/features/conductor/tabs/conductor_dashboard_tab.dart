@@ -412,11 +412,16 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   }
 
   void _showUpiQrModal(double fare, VoidCallback onPaymentConfirmed) {
+    final vpa = _bus.upiId.trim().isNotEmpty ? _bus.upiId.trim() : UpiPaymentDialog.defaultVpa;
+    final payee = _bus.payeeName.trim().isNotEmpty ? _bus.payeeName.trim() : _bus.busName;
+
     UpiPaymentDialog.show(
       context: context,
       amount: fare,
+      vpa: vpa,
+      payeeName: payee,
       title: 'UPI Dynamic Spot QR',
-      subtitle: 'Payee: ${UpiPaymentDialog.payeeName} (${_bus.busName})',
+      subtitle: 'Payee: $payee (${_bus.busName})',
       transactionNote: 'EnRoute Bus Ticket ${_bus.regNumber}',
       confirmButtonText: 'Confirm Payment Received',
       onPaymentConfirmed: onPaymentConfirmed,
@@ -1524,11 +1529,18 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                         'SMART_WALLET',
                         Icons.account_balance_wallet,
                         enabled: _connectedPassenger != null,
+                        disabledReason: 'Smart Wallet requires a connected Passenger account. Connect passenger via QR or ID first.',
                       ),
                       const SizedBox(width: 6),
                       _buildPaymentChip('Cash', 'CASH', Icons.payments_outlined),
                       const SizedBox(width: 6),
-                      _buildPaymentChip('UPI QR', 'UPI', Icons.qr_code_2),
+                      _buildPaymentChip(
+                        'UPI QR',
+                        'UPI',
+                        Icons.qr_code_2,
+                        enabled: _bus.isUpiEnabled && _bus.upiId.trim().isNotEmpty,
+                        disabledReason: 'UPI payments are disabled for ${_bus.busName}. The bus owner must configure & enable UPI in Bus Details.',
+                      ),
                     ],
                   ),
 
@@ -1912,7 +1924,7 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
     );
   }
 
-  Widget _buildPaymentChip(String label, String mode, IconData icon, {bool enabled = true}) {
+  Widget _buildPaymentChip(String label, String mode, IconData icon, {bool enabled = true, String? disabledReason}) {
     final isSelected = _paymentMode == mode;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final unselectedBg = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade100;
@@ -1924,10 +1936,10 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
         onTap: () {
           if (!enabled) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Smart Wallet requires a connected Passenger account. Connect passenger via QR or ID first.'),
+              SnackBar(
+                content: Text(disabledReason ?? 'Smart Wallet requires a connected Passenger account. Connect passenger via QR or ID first.'),
                 backgroundColor: Colors.brown,
-                duration: Duration(seconds: 2),
+                duration: const Duration(seconds: 3),
               ),
             );
             return;

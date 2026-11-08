@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/fleet_state.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/upi_payment_dialog.dart';
 
@@ -161,13 +162,27 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
       );
     }
 
+    final bus = FleetState.instance.getBusByReg('KL 10 AZ 4589') ?? FleetState.instance.buses.first;
+
     if (_paymentMode == 'UPI') {
+      if (!bus.isUpiEnabled || bus.upiId.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('UPI payment is disabled for ${bus.busName}. Please ask the owner to enable it in Bus Details or use Cash.'),
+            backgroundColor: Colors.brown,
+          ),
+        );
+        return;
+      }
+
       UpiPaymentDialog.show(
         context: context,
         amount: _calculatedFare,
+        vpa: bus.upiId,
+        payeeName: bus.payeeName,
         title: 'UPI Dynamic Spot QR',
-        subtitle: 'Payee: ${UpiPaymentDialog.payeeName} (Sana Line)',
-        transactionNote: 'EnRoute Ticket KL 10 AZ 4589',
+        subtitle: 'Payee: ${bus.payeeName} (${bus.busName})',
+        transactionNote: 'EnRoute Ticket ${bus.regNumber}',
         confirmButtonText: 'Confirm Payment Received',
         onPaymentConfirmed: finalize,
       );
@@ -413,13 +428,24 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
                     const SizedBox(height: 14),
 
                     // Payment Method Pill Selector
-                    Row(
-                      children: [
-                        _paymentPill('Smart Wallet', 'WALLET', Icons.account_balance_wallet),
-                        _paymentPill('Cash', 'CASH', Icons.money),
-                        _paymentPill('UPI QR', 'UPI', Icons.qr_code_scanner),
-                      ],
-                    ),
+                    Builder(builder: (context) {
+                      final bus = FleetState.instance.getBusByReg('KL 10 AZ 4589') ?? FleetState.instance.buses.first;
+                      final isUpiReady = bus.isUpiEnabled && bus.upiId.trim().isNotEmpty;
+
+                      return Row(
+                        children: [
+                          _paymentPill('Smart Wallet', 'WALLET', Icons.account_balance_wallet),
+                          _paymentPill('Cash', 'CASH', Icons.money),
+                          _paymentPill(
+                            'UPI QR',
+                            'UPI',
+                            Icons.qr_code_scanner,
+                            enabled: isUpiReady,
+                            disabledReason: 'UPI payments are disabled for ${bus.busName}. The bus owner must enable & configure UPI in Bus Details.',
+                          ),
+                        ],
+                      );
+                    }),
 
                     const SizedBox(height: 18),
 
@@ -467,7 +493,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
     );
   }
 
-  Widget _paymentPill(String title, String modeKey, IconData icon) {
+  Widget _paymentPill(String title, String modeKey, IconData icon, {bool enabled = true, String? disabledReason}) {
     final isSelected = _paymentMode == modeKey;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final unselectedBg = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade100;
@@ -475,28 +501,43 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _paymentMode = modeKey),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryGreen : unselectedBg,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isSelected ? AppTheme.primaryGreen : (isDark ? Colors.white24 : Colors.grey.shade300)),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, size: 16, color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54)),
-              const SizedBox(height: 2),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                  color: isSelected ? Colors.white : unselectedColor,
-                ),
+        onTap: () {
+          if (!enabled) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(disabledReason ?? 'Payment method is not available.'),
+                backgroundColor: Colors.brown,
+                duration: const Duration(seconds: 3),
               ),
-            ],
+            );
+            return;
+          }
+          setState(() => _paymentMode = modeKey);
+        },
+        child: Opacity(
+          opacity: enabled ? 1.0 : 0.45,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.primaryGreen : unselectedBg,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: isSelected ? AppTheme.primaryGreen : (isDark ? Colors.white24 : Colors.grey.shade300)),
+            ),
+            child: Column(
+              children: [
+                Icon(icon, size: 16, color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54)),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected ? Colors.white : unselectedColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

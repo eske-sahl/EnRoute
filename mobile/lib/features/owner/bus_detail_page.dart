@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
 import '../../widgets/bus_live_map_widget.dart';
+import '../../widgets/upi_payment_dialog.dart';
 import '../conductor/conductor_portal.dart';
 
 class BusDetailPage extends StatefulWidget {
@@ -33,6 +35,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
   late String _cleanerPhone;
   late String _conductor;
   late bool _isActive;
+  late String _upiId;
+  late String _payeeName;
+  late bool _isUpiEnabled;
 
   @override
   void initState() {
@@ -70,6 +75,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
     _cleanerPhone = widget.bus.cleanerPhone;
     _conductor = widget.bus.conductorName;
     _isActive = widget.bus.isActive;
+    _upiId = widget.bus.upiId;
+    _payeeName = widget.bus.payeeName;
+    _isUpiEnabled = widget.bus.isUpiEnabled;
   }
 
   Color _getCategoryColor(String category) {
@@ -94,6 +102,198 @@ class _BusDetailPageState extends State<BusDetailPage> {
         backgroundColor: active ? AppTheme.primaryGreen : Colors.orange.shade800,
         behavior: SnackBarBehavior.floating,
       ),
+    );
+  }
+
+  void _showEditUpiModal() {
+    final upiCtrl = TextEditingController(text: _upiId);
+    final payeeCtrl = TextEditingController(text: _payeeName);
+    bool enableUpi = _isUpiEnabled;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final currentVpa = upiCtrl.text.trim().isNotEmpty ? upiCtrl.text.trim() : UpiPaymentDialog.defaultVpa;
+            final currentPayee = payeeCtrl.text.trim().isNotEmpty ? payeeCtrl.text.trim() : widget.bus.busName;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.qr_code_2, color: AppTheme.primaryGreen),
+                            SizedBox(width: 8),
+                            Text('Bus Banking & Direct UPI', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(sheetCtx)),
+                      ],
+                    ),
+                    const Text(
+                      'Configure your business UPI ID and payee name. When enabled, your conductor POS will show dynamic QR codes depositing directly into this account.',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Enable / Disable UPI Toggle
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Enable UPI Dynamic QR for this Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      subtitle: Text(
+                        enableUpi
+                            ? 'Conductor can accept Google Pay, PhonePe & Paytm'
+                            : 'UPI disabled. Conductor portal restricted to Cash & Wallet',
+                        style: TextStyle(fontSize: 11, color: enableUpi ? AppTheme.primaryGreen : Colors.grey),
+                      ),
+                      value: enableUpi,
+                      activeTrackColor: AppTheme.primaryGreen.withValues(alpha: 0.5),
+                      activeThumbColor: AppTheme.primaryGreen,
+                      onChanged: (val) {
+                        setModalState(() => enableUpi = val);
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Payee Business Name
+                    TextField(
+                      controller: payeeCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Business / Payee Name',
+                        hintText: 'e.g. ESKE_ or Sana Bus Lines',
+                        prefixIcon: const Icon(Icons.business, color: AppTheme.primaryGreen),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onChanged: (_) => setModalState(() {}),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // UPI ID / VPA
+                    TextField(
+                      controller: upiCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Owner UPI ID (VPA)',
+                        hintText: 'e.g. kvksalu-2@okaxis or name@okhdfcbank',
+                        prefixIcon: const Icon(Icons.account_balance, color: AppTheme.primaryGreen),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        helperText: 'Payments from GPay/PhonePe will credit directly to this VPA',
+                      ),
+                      onChanged: (_) => setModalState(() {}),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Live QR Preview inside sheet
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: QrImageView(
+                              data: UpiPaymentDialog.buildUpiUri(
+                                amount: 15.0,
+                                note: 'EnRoute Spot Ticket ${widget.bus.regNumber}',
+                                vpa: currentVpa,
+                                name: currentPayee,
+                              ),
+                              size: 70,
+                              version: QrVersions.auto,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Live QR Preview (Sample ₹15)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                const SizedBox(height: 4),
+                                Text('Payee: $currentPayee', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                Text('VPA: $currentVpa', style: const TextStyle(fontSize: 11, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () {
+                        final newUpi = upiCtrl.text.trim().isNotEmpty ? upiCtrl.text.trim() : UpiPaymentDialog.defaultVpa;
+                        final newPayee = payeeCtrl.text.trim().isNotEmpty ? payeeCtrl.text.trim() : widget.bus.busName;
+
+                        FleetState.instance.updateBusUpiDetails(
+                          regNumber: widget.bus.regNumber,
+                          upiId: newUpi,
+                          payeeName: newPayee,
+                          isUpiEnabled: enableUpi,
+                        );
+
+                        setState(() {
+                          _syncFromBus();
+                        });
+
+                        Navigator.pop(sheetCtx);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.greenAccent),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text('Banking details saved! Conductor POS will now use $newUpi')),
+                              ],
+                            ),
+                            backgroundColor: AppTheme.darkSlate,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      child: const Text('Save & Apply to Conductor POS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1520,9 +1720,171 @@ class _BusDetailPageState extends State<BusDetailPage> {
               ),
             ),
 
+            const SizedBox(height: 18),
+
+            // 5. Business Banking & Dynamic UPI Payments
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.qr_code_2_rounded, color: AppTheme.primaryGreen),
+                              SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'Business Banking & Direct UPI',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _showEditUpiModal,
+                          icon: const Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
+                          label: const Text('Configure', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _isUpiEnabled ? Colors.green.withValues(alpha: 0.1) : Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _isUpiEnabled ? Colors.green.withValues(alpha: 0.3) : Colors.amber.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isUpiEnabled ? Icons.check_circle : Icons.warning_amber_rounded,
+                            color: _isUpiEnabled ? Colors.green : Colors.amber.shade800,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _isUpiEnabled
+                                  ? 'Active: Conductor POS generates dynamic UPI QR codes'
+                                  : 'Disabled: Conductor restricted to Cash & Smart Wallet',
+                              style: TextStyle(
+                                color: _isUpiEnabled ? Colors.green.shade800 : Colors.amber.shade900,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _infoRow('Business Payee Name', _payeeName),
+                    _infoRow('Assigned UPI ID (VPA)', _upiId),
+                    const SizedBox(height: 14),
+
+                    // QR Code Preview & Direct Test Card
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white12
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: QrImageView(
+                              data: UpiPaymentDialog.buildUpiUri(
+                                amount: 15.0,
+                                note: 'EnRoute Spot Ticket ${widget.bus.regNumber}',
+                                vpa: _upiId,
+                                name: _payeeName,
+                              ),
+                              size: 78,
+                              version: QrVersions.auto,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Conductor Spot QR',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Generated dynamically with ticket fare for GPay, PhonePe & Paytm.',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    side: const BorderSide(color: AppTheme.primaryGreen),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: () {
+                                    UpiPaymentDialog.show(
+                                      context: context,
+                                      amount: 15.0,
+                                      vpa: _upiId,
+                                      payeeName: _payeeName,
+                                      title: 'Test Owner Spot QR',
+                                      subtitle: 'Simulating scan for ${widget.bus.busName}',
+                                      transactionNote: 'EnRoute Spot Ticket ${widget.bus.regNumber}',
+                                      confirmButtonText: 'Test Payment Received',
+                                      onPaymentConfirmed: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('✓ Verified! Test QR correctly directed to $_upiId'),
+                                            backgroundColor: AppTheme.primaryGreen,
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  icon: const Icon(Icons.qr_code_scanner, size: 14, color: AppTheme.primaryGreen),
+                                  label: const Text('Test / Scan QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const SizedBox(height: 20),
 
-            // 5. Danger Zone - Delete Bus Option
+            // 6. Danger Zone - Delete Bus Option
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

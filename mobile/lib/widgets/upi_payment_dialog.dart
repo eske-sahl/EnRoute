@@ -4,10 +4,16 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../theme/app_theme.dart';
 
 class UpiPaymentDialog extends StatelessWidget {
-  static const String upiId = 'kvksalu-2@okaxis';
-  static const String payeeName = 'ESKE_';
+  static const String defaultVpa = 'kvksalu-2@okaxis';
+  static const String defaultPayeeName = 'ESKE_';
+
+  // For backwards compatibility with static access
+  static String get upiId => defaultVpa;
+  static String get payeeName => defaultPayeeName;
 
   final double amount;
+  final String vpa;
+  final String payee;
   final String title;
   final String subtitle;
   final String transactionNote;
@@ -17,6 +23,8 @@ class UpiPaymentDialog extends StatelessWidget {
   const UpiPaymentDialog({
     super.key,
     required this.amount,
+    this.vpa = defaultVpa,
+    this.payee = defaultPayeeName,
     required this.title,
     required this.subtitle,
     required this.transactionNote,
@@ -28,19 +36,23 @@ class UpiPaymentDialog extends StatelessWidget {
   static String buildUpiUri({
     required double amount,
     required String note,
-    String vpa = upiId,
-    String name = payeeName,
+    String? vpa,
+    String? name,
   }) {
-    final encodedName = Uri.encodeComponent(name);
+    final effectiveVpa = (vpa != null && vpa.trim().isNotEmpty) ? vpa.trim() : defaultVpa;
+    final effectiveName = (name != null && name.trim().isNotEmpty) ? name.trim() : defaultPayeeName;
+    final encodedName = Uri.encodeComponent(effectiveName);
     final encodedNote = Uri.encodeComponent(note);
     final formattedAmt = amount.toStringAsFixed(2);
-    return 'upi://pay?pa=$vpa&pn=$encodedName&am=$formattedAmt&cu=INR&tn=$encodedNote';
+    return 'upi://pay?pa=$effectiveVpa&pn=$encodedName&am=$formattedAmt&cu=INR&tn=$encodedNote';
   }
 
   /// Convenience static helper to display the modal dialog
   static Future<void> show({
     required BuildContext context,
     required double amount,
+    String? vpa,
+    String? payeeName,
     String title = 'UPI Dynamic Payment',
     String subtitle = 'Scan to pay with any UPI App',
     required String transactionNote,
@@ -52,6 +64,8 @@ class UpiPaymentDialog extends StatelessWidget {
       barrierDismissible: false,
       builder: (ctx) => UpiPaymentDialog(
         amount: amount,
+        vpa: (vpa != null && vpa.trim().isNotEmpty) ? vpa.trim() : defaultVpa,
+        payee: (payeeName != null && payeeName.trim().isNotEmpty) ? payeeName.trim() : defaultPayeeName,
         title: title,
         subtitle: subtitle,
         transactionNote: transactionNote,
@@ -64,7 +78,9 @@ class UpiPaymentDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final upiUri = buildUpiUri(amount: amount, note: transactionNote);
+    final effectiveVpa = vpa.trim().isNotEmpty ? vpa.trim() : defaultVpa;
+    final effectivePayee = payee.trim().isNotEmpty ? payee.trim() : defaultPayeeName;
+    final upiUri = buildUpiUri(amount: amount, note: transactionNote, vpa: effectiveVpa, name: effectivePayee);
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -166,11 +182,11 @@ class UpiPaymentDialog extends StatelessWidget {
             InkWell(
               borderRadius: BorderRadius.circular(10),
               onTap: () {
-                Clipboard.setData(const ClipboardData(text: upiId));
+                Clipboard.setData(ClipboardData(text: effectiveVpa));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('UPI ID copied: $upiId'),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text('UPI ID copied: $effectiveVpa'),
+                    duration: const Duration(seconds: 2),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -188,7 +204,7 @@ class UpiPaymentDialog extends StatelessWidget {
                     const Icon(Icons.verified, color: Colors.blue, size: 14),
                     const SizedBox(width: 6),
                     Text(
-                      '$payeeName • $upiId',
+                      '$effectivePayee • $effectiveVpa',
                       style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(width: 6),
