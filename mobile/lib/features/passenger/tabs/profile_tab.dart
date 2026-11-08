@@ -94,7 +94,24 @@ class _ProfileTabState extends State<ProfileTab> {
           const SizedBox(height: 20),
 
           // App Settings & Tools Section (Languages, Themes, Share, Rate, Report, Suggest, How to Use)
-          const AppSettingsSection(),
+          AppSettingsSection(
+            additionalOptions: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.delete_forever, color: Colors.red, size: 22),
+                ),
+                title: const Text('Delete Passenger Account', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Permanently remove passenger account & travel history', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => _confirmDeleteAccount(context),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 20),
 
@@ -117,49 +134,6 @@ class _ProfileTabState extends State<ProfileTab> {
               subtitle: const Text('View and manage your submitted bus ratings', style: TextStyle(color: Colors.grey, fontSize: 12)),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showMyReviewsModal(context),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Danger Zone / Account Deletion
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: Colors.red.shade200),
-            ),
-            color: Colors.red.shade50.withValues(alpha: 0.3),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
-                      const SizedBox(width: 8),
-                      Text('Danger Zone', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: 14)),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Permanently delete your passenger account, wallet, and history from EnRoute.',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red.shade700,
-                      side: BorderSide(color: Colors.red.shade300),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () => _confirmDeleteAccount(context),
-                    icon: const Icon(Icons.delete_forever, size: 18),
-                    label: const Text('Delete Passenger Account', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
             ),
           ),
 

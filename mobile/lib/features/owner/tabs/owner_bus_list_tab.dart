@@ -1091,34 +1091,12 @@ class _OwnerBusListTabState extends State<OwnerBusListTab> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Verification in progress. Awaiting State Transport Admin approval.'),
+                                content: Text('Verification in progress. Awaiting State Transport Admin approval at official MVD portal.'),
                                 backgroundColor: Colors.amber,
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
                           }
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryGreen,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        icon: const Icon(Icons.verified, size: 16, color: Colors.white),
-                        label: const Text('Proceed & Verify Bus (Admin)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        onPressed: () {
-                          Navigator.pop(dialogCtx);
-                          FleetState.instance.approveBusByAdmin(bus.regNumber);
-                          setState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Bus ${bus.busName} (${bus.regNumber}) has been verified and approved by Admin! Full access unlocked.'),
-                              backgroundColor: AppTheme.primaryGreen,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
                         },
                       ),
                     ],

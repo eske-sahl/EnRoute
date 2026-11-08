@@ -287,34 +287,36 @@ class _ConductorProfileTabState extends State<ConductorProfileTab> {
 
           const SizedBox(height: 20),
 
-          // App Settings & Tools Section
-          const AppSettingsSection(),
+          // App Settings & Preferences with Data Management
+          AppSettingsSection(
+            additionalOptions: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.delete_forever, color: Colors.red, size: 22),
+                ),
+                title: const Text('Delete Conductor Account', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Permanently remove this conductor profile & credentials', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => _confirmDeleteAccount(context),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 20),
 
-          // Actions & Danger Zone
+          // Sign Out Card
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Column(
-              children: [
-
-                // 5. Sign Out / Logout Option
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Sign Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: const Text('End conductor terminal session'),
-                  onTap: widget.onLogout,
-                ),
-                const Divider(height: 1),
-
-                // 6. Delete Conductor Account Option
-                ListTile(
-                  leading: const Icon(Icons.delete_forever, color: Colors.red),
-                  title: const Text('Delete Conductor Account', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: const Text('Permanently remove this conductor profile & credentials'),
-                  onTap: () => _confirmDeleteAccount(context),
-                ),
-              ],
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Sign Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('End conductor terminal session'),
+              onTap: widget.onLogout,
             ),
           ),
           const SizedBox(height: 10),

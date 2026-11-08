@@ -467,6 +467,66 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
     );
   }
 
+  void _showEditCollectionDialog() {
+    final ctrl = TextEditingController(text: _bus.todayCollection.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.edit_note_rounded, color: AppTheme.primaryGreen),
+            SizedBox(width: 8),
+            Text('Update Shift Collection', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Update the reconciled earning/collection for ${_bus.busName} (${_bus.regNumber}). This immediately updates the owner\'s net profit and revenue reports.',
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 14),
+            TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Today\'s Total Collection (₹)',
+                prefixText: '₹ ',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+            onPressed: () {
+              final val = double.tryParse(ctrl.text.trim()) ?? _bus.todayCollection;
+              FleetState.instance.updateBusCollection(
+                regNumber: _bus.regNumber,
+                amount: val,
+                conductorId: widget.conductor.id,
+              );
+              Navigator.pop(ctx);
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Collection updated to ₹${val.toStringAsFixed(0)}. Owner profit updated lively.'),
+                  backgroundColor: AppTheme.primaryGreen,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text('Save & Update Profit', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleIssueTicket() {
     final fare = _currentAssignedFare;
     final paymentMode = _isSplitEnabled ? 'SPLIT' : _paymentMode;
@@ -790,14 +850,24 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('TODAY\'S COLLECTION', style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.1)),
-                        const SizedBox(height: 2),
-                        Text(currency.format(_bus.todayCollection),
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ],
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: _showEditCollectionDialog,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Text('TODAY\'S COLLECTION', style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.1)),
+                              SizedBox(width: 4),
+                              Icon(Icons.edit, size: 11, color: Colors.white54),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(currency.format(_bus.todayCollection),
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ],
+                      ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,

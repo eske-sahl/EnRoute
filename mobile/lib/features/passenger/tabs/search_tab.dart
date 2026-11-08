@@ -3,6 +3,7 @@ import '../../../theme/app_theme.dart';
 import '../../../services/fleet_state.dart';
 import '../../../widgets/app_creator_footer.dart';
 import '../../../widgets/bus_live_map_widget.dart';
+import '../passenger_bus_tracking_screen.dart';
 import '../bus_location_screen.dart';
 
 class SearchTab extends StatefulWidget {
@@ -611,6 +612,31 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                     },
                   ),
 
+                  const SizedBox(height: 10),
+
+                  // Track Bus Button (Zomato / Swiggy / Uber style live distance & radar)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 2,
+                      ),
+                      icon: const Icon(Icons.navigation_rounded, size: 18),
+                      label: Text(
+                        'Track ${bus.busName}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(modalCtx);
+                        PassengerBusTrackingScreen.startTracking(context, bus);
+                      },
+                    ),
+                  ),
+
                   const Divider(height: 24),
                   const Text('Scheduled Stops & Timeline (Ascending)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 4),
@@ -892,22 +918,20 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
 
                   const SizedBox(height: 12),
 
-                  // Personalized Recently Travelled Points (or Popular Points if no travels yet)
+                  // Personalized Recently Travelled Points
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            _recentTravelledPoints.isNotEmpty ? Icons.history : Icons.explore_outlined,
+                          const Icon(
+                            Icons.history,
                             size: 14,
                             color: AppTheme.primaryGreen,
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            _recentTravelledPoints.isNotEmpty
-                                ? 'Your Recently Travelled Points'
-                                : 'Popular Transit Points',
+                            'Recent Travelled Points',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -917,36 +941,60 @@ class _SearchTabState extends State<SearchTab> with SingleTickerProviderStateMix
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: (_recentTravelledPoints.isNotEmpty
-                                ? _recentTravelledPoints
-                                : [
-                                    'Aluva Stand',
-                                    'Perumbavoor Stand',
-                                    'Angamaly Stand',
-                                    'Ernakulam Kaloor',
-                                    'Kakkanad InfoPark',
-                                    'Vytilla Hub',
-                                  ])
-                            .map((s) {
-                          return ActionChip(
-                            avatar: _recentTravelledPoints.isNotEmpty
-                                ? const Icon(Icons.history, size: 12, color: AppTheme.primaryGreen)
-                                : const Icon(Icons.place_outlined, size: 12, color: AppTheme.primaryGreen),
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            label: Text(s, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
-                            onPressed: () {
-                              if (_startSearchController.text.isEmpty) {
-                                _selectStartStop(s);
-                              } else {
-                                _selectEndStop(s);
-                              }
-                            },
+                      if (_recentTravelledPoints.isNotEmpty)
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: _recentTravelledPoints.map((s) {
+                            return ActionChip(
+                              avatar: const Icon(Icons.history, size: 12, color: AppTheme.primaryGreen),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              label: Text(s, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
+                              onPressed: () {
+                                if (_startSearchController.text.isEmpty) {
+                                  _selectStartStop(s);
+                                } else {
+                                  _selectEndStop(s);
+                                }
+                              },
+                            );
+                          }).toList(),
+                        )
+                      else
+                        Builder(builder: (context) {
+                          final isDark = Theme.of(context).brightness == Brightness.dark;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.info_outline, size: 14, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    widget.passenger?.homeStation.isNotEmpty == true
+                                        ? 'Home Station: ${widget.passenger!.homeStation}. Your travelled destinations will appear here.'
+                                        : 'No recent travelled points yet. Stations you travel through will appear here.',
+                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  ),
+                                ),
+                                if (widget.passenger?.homeStation.isNotEmpty == true)
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: () => _selectStartStop(widget.passenger!.homeStation),
+                                    child: const Text('Use Home', style: TextStyle(fontSize: 11, color: AppTheme.primaryGreen)),
+                                  ),
+                              ],
+                            ),
                           );
-                        }).toList(),
-                      ),
+                        }),
                     ],
                   ),
 

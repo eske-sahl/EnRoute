@@ -372,6 +372,7 @@ class BusModel {
   int currentStageIndex;
   double currentLatitude;
   double currentLongitude;
+  double speedKmh;
   String conductorLocationString;
 
   // Stop-to-Stop Fare Chart Matrix
@@ -424,6 +425,7 @@ class BusModel {
     this.currentStageIndex = 0,
     this.currentLatitude = 10.9882,
     this.currentLongitude = 76.4589,
+    this.speedKmh = 0.0,
     this.conductorLocationString = 'Mannarkad Stand (Conductor Device GPS)',
     this.upiId = '',
     this.payeeName = '',
@@ -566,6 +568,7 @@ class BusModel {
     'currentStageIndex': currentStageIndex,
     'currentLatitude': currentLatitude,
     'currentLongitude': currentLongitude,
+    'speedKmh': speedKmh,
     'conductorLocationString': conductorLocationString,
     'customFareChart': customFareChart,
     'upiId': upiId,
@@ -616,6 +619,7 @@ class BusModel {
     currentStageIndex: (json['currentStageIndex'] as num?)?.toInt() ?? 0,
     currentLatitude: (json['currentLatitude'] as num?)?.toDouble() ?? 10.0,
     currentLongitude: (json['currentLongitude'] as num?)?.toDouble() ?? 76.0,
+    speedKmh: (json['speedKmh'] as num?)?.toDouble() ?? 0.0,
     conductorLocationString: (json['conductorLocationString'] as String?) ?? '',
     customFareChart: (json['customFareChart'] as Map?)
         ?.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
@@ -863,7 +867,7 @@ class FleetState extends ChangeNotifier {
         licenseNumber: 'KL-10-COND-2018-8891',
         assignedBusReg: 'KL 10 AZ 4589',
         assignedBusName: 'Sana',
-        todayCollection: 6420.0,
+        todayCollection: 0.0,
       ),
       ConductorModel(
         id: 'COND-2',
@@ -876,7 +880,7 @@ class FleetState extends ChangeNotifier {
         licenseNumber: 'KL-10-COND-2020-4102',
         assignedBusReg: 'KL 10 CE 1204',
         assignedBusName: 'Arafa',
-        todayCollection: 7840.0,
+        todayCollection: 0.0,
       ),
       ConductorModel(
         id: 'COND-3',
@@ -889,7 +893,7 @@ class FleetState extends ChangeNotifier {
         licenseNumber: 'KL-11-COND-2021-7740',
         assignedBusReg: 'KL 11 BQ 9981',
         assignedBusName: 'Sanha',
-        todayCollection: 4220.0,
+        todayCollection: 0.0,
       ),
       ConductorModel(
         id: 'COND-4',
@@ -902,7 +906,7 @@ class FleetState extends ChangeNotifier {
         licenseNumber: 'KL-11-COND-2022-5509',
         assignedBusReg: 'KL 11 CF 3320',
         assignedBusName: 'KKB',
-        todayCollection: 3150.0,
+        todayCollection: 0.0,
       ),
     ]);
 
@@ -1208,6 +1212,28 @@ class FleetState extends ChangeNotifier {
       reviews.addAll(savedReviews.map((e) => BusReviewModel.fromJson(e)));
     } else {
       await _persistReviews();
+    }
+
+    // Purge legacy demo buses and reset fake collections to real zeroes
+    final hasCleanedDemoData = StorageService.instance.getBool('sbk_demo_cleaned_v6') ?? false;
+    if (!hasCleanedDemoData) {
+      final legacyDemos = {'speedwings', 'greencity express', 'city rider'};
+      buses.removeWhere((b) => legacyDemos.contains(b.busName.toLowerCase()));
+      issuedTickets.removeWhere((t) => legacyDemos.contains(t.busName.toLowerCase()));
+
+      for (final b in buses) {
+        final realTickets = issuedTickets.where((t) => t.busRegNumber == b.regNumber).toList();
+        b.todayCollection = realTickets.fold<double>(0.0, (sum, t) => sum + t.fare);
+        b.ticketsCount = realTickets.length;
+      }
+      for (final c in conductors) {
+        final realTickets = issuedTickets.where((t) => t.conductorId == c.id || t.conductorName == c.name).toList();
+        c.todayCollection = realTickets.fold<double>(0.0, (sum, t) => sum + t.fare);
+      }
+      await _persistBuses();
+      await _persistConductors();
+      await _persistTickets();
+      await StorageService.instance.setBool('sbk_demo_cleaned_v6', true);
     }
 
     // Seamless migration: replace legacy demo names with the new fleet configuration
@@ -1733,31 +1759,36 @@ class FleetState extends ChangeNotifier {
       final busTickets = getTicketsForBus(bus.regNumber);
       final ticketSum = busTickets.fold<double>(0.0, (s, t) => s + t.fare);
 
-      final double busDailyGross = bus.todayCollection > 0
-          ? bus.todayCollection
-          : (ticketSum > 0 ? ticketSum : 5800.0);
-      final int busDailyTickets = bus.ticketsCount > 0
-          ? bus.ticketsCount
-          : (busTickets.isNotEmpty ? busTickets.length : 38);
+      // Dynamic calculations strictly from real issued tickets or conductor shift entries
+      final double busDailyGross = ticketSum > 0
+          ? ticketSum
+          : (bus.todayCollection > 0 ? bus.todayCollection : 0.0);
+      final int busDailyTickets = busTickets.isNotEmpty
+          ? busTickets.length
+          : (bus.ticketsCount > 0 ? bus.ticketsCount : 0);
 
       final double gross = busDailyGross * multiplier;
       final int tickets = (busDailyTickets * multiplier).round();
-      final int trips = (tickets > 0 ? (tickets / 36.0).ceil() : (multiplier * 4).round());
+      final int trips = tickets > 0 ? (tickets / 36.0).ceil() : 0;
 
-      final double fuel = gross * 0.42;
-      final double crew = gross * 0.24;
-      final double maint = gross * 0.08;
-      final double taxPermits = gross * 0.05;
+      final double fuel = gross > 0 ? gross * 0.42 : 0.0;
+      final double crew = gross > 0 ? gross * 0.24 : 0.0;
+      final double maint = gross > 0 ? gross * 0.08 : 0.0;
+      final double taxPermits = gross > 0 ? gross * 0.05 : 0.0;
       final double totalExp = fuel + crew + maint + taxPermits;
       final double net = gross - totalExp;
       final double margin = gross > 0 ? (net / gross) * 100 : 0.0;
-      final double avgFare = tickets > 0 ? gross / tickets : 15.0;
+      final double avgFare = tickets > 0 ? gross / tickets : 0.0;
 
-      String badge = 'STABLE PROFIT';
-      if (!bus.isActive) {
+      String badge = 'NO TRIPS YET';
+      if (gross == 0) {
+        badge = bus.isActive ? 'RUNNING (0 FARE)' : 'DEPOT STANDBY';
+      } else if (!bus.isActive) {
         badge = 'DEPOT STANDBY';
       } else if (margin >= 20.0) {
         badge = 'HIGH PROFIT';
+      } else {
+        badge = 'STABLE PROFIT';
       }
 
       busBreakdowns.add(BusProfitBreakdown(
@@ -1904,6 +1935,30 @@ class FleetState extends ChangeNotifier {
       _pushStateToBackend();
       notifyListeners();
     }
+  }
+
+  void updateBusCollection({
+    required String regNumber,
+    required double amount,
+    String? conductorId,
+  }) {
+    final cleanTarget = regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    final bIndex = buses.indexWhere(
+      (b) => b.regNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase() == cleanTarget,
+    );
+    if (bIndex != -1) {
+      buses[bIndex].todayCollection = amount;
+    }
+    if (conductorId != null) {
+      final cIndex = conductors.indexWhere((c) => c.id == conductorId);
+      if (cIndex != -1) {
+        conductors[cIndex].todayCollection = amount;
+      }
+    }
+    _persistBuses();
+    _persistConductors();
+    _pushStateToBackend();
+    notifyListeners();
   }
 
   void approveBusByAdmin(String regNumber) {
@@ -2171,6 +2226,7 @@ class FleetState extends ChangeNotifier {
     if (bus != null) {
       bus.currentLatitude = lat;
       bus.currentLongitude = lng;
+      if (speedKmh != null) bus.speedKmh = speedKmh;
       bus.isLiveGpsActive = true;
       if (locationString != null && locationString.isNotEmpty) {
         bus.conductorLocationString = locationString;

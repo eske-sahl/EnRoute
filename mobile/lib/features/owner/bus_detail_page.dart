@@ -3,7 +3,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
 import '../../widgets/bus_live_map_widget.dart';
-import '../../widgets/upi_payment_dialog.dart';
 import '../conductor/conductor_portal.dart';
 
 class BusDetailPage extends StatefulWidget {
@@ -221,12 +220,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: QrImageView(
-                                data: UpiPaymentDialog.buildUpiUri(
-                                  amount: 15.0,
-                                  note: 'EnRoute Spot Ticket ${widget.bus.regNumber}',
-                                  vpa: currentVpa,
-                                  name: currentPayee,
-                                ),
+                                data: 'upi://pay?pa=$currentVpa&pn=${Uri.encodeComponent(currentPayee)}&cu=INR',
                                 size: 70,
                                 version: QrVersions.auto,
                               ),
@@ -236,7 +230,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Live QR Preview (Sample ₹15)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                  const Text('Owner Assigned QR Preview', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                   const SizedBox(height: 4),
                                   Text('Payee: $currentPayee', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                                   Text('VPA: $currentVpa', style: const TextStyle(fontSize: 11, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
@@ -260,7 +254,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                             SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Enter a UPI ID above to generate the dynamic QR scanner for this bus.',
+                                'Enter a UPI ID above to configure the official owner-assigned QR scanner for this bus.',
                                 style: TextStyle(fontSize: 11, color: Colors.brown),
                               ),
                             ),
@@ -1122,54 +1116,6 @@ class _BusDetailPageState extends State<BusDetailPage> {
     );
   }
 
-  void _confirmDeleteBus() {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.delete_forever, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Delete Bus?'),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to permanently delete "${widget.bus.busName}" (${widget.bus.regNumber}) from your fleet? '
-            'This action cannot be undone. Assigned conductors will be released.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                Navigator.pop(ctx);
-                FleetState.instance.deleteBus(widget.bus.regNumber);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Bus ${widget.bus.busName} (${widget.bus.regNumber}) removed from fleet.'),
-                    backgroundColor: Colors.red.shade700,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                if (widget.onBack != null) {
-                  widget.onBack!();
-                } else {
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Delete Bus', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildLiveGpsRadarHUD(BuildContext context) {
     final isGpsLive = widget.bus.isLiveGpsActive && widget.bus.isTripActive;
 
@@ -1354,11 +1300,6 @@ class _BusDetailPageState extends State<BusDetailPage> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            tooltip: 'Delete Bus from Fleet',
-            onPressed: _confirmDeleteBus,
-          ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Bus Configuration',
@@ -1831,7 +1772,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                       _infoRow('Assigned UPI ID (VPA)', _upiId.isNotEmpty ? _upiId : 'Not Assigned (Empty)'),
                       const SizedBox(height: 14),
 
-                      // QR Code Preview & Direct Test Card (or Empty State)
+                      // Owner-Assigned QR Code Card (or Unassigned State)
                       if (hasValidUpi) ...[
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -1852,13 +1793,8 @@ class _BusDetailPageState extends State<BusDetailPage> {
                                   border: Border.all(color: Colors.grey.shade300),
                                 ),
                                 child: QrImageView(
-                                  data: UpiPaymentDialog.buildUpiUri(
-                                    amount: 15.0,
-                                    note: 'EnRoute Spot Ticket ${widget.bus.regNumber}',
-                                    vpa: _upiId,
-                                    name: _payeeName,
-                                  ),
-                                  size: 78,
+                                  data: 'upi://pay?pa=$_upiId&pn=${Uri.encodeComponent(_payeeName)}&cu=INR',
+                                  size: 84,
                                   version: QrVersions.auto,
                                 ),
                               ),
@@ -1867,13 +1803,19 @@ class _BusDetailPageState extends State<BusDetailPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Conductor Spot QR',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    const Row(
+                                      children: [
+                                        Icon(Icons.verified, size: 14, color: AppTheme.primaryGreen),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Owner Assigned QR Code',
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Directly credits to $_upiId on spot ticket scan.',
+                                      'Directly credits to $_upiId on passenger scan.',
                                       style: const TextStyle(fontSize: 11, color: Colors.grey),
                                     ),
                                     const SizedBox(height: 8),
@@ -1884,29 +1826,9 @@ class _BusDetailPageState extends State<BusDetailPage> {
                                         minimumSize: Size.zero,
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                      onPressed: () {
-                                        UpiPaymentDialog.show(
-                                          context: context,
-                                          amount: 15.0,
-                                          vpa: _upiId,
-                                          payeeName: _payeeName,
-                                          title: 'Test Owner Spot QR',
-                                          subtitle: 'Testing assigned QR for ${widget.bus.busName}',
-                                          transactionNote: 'EnRoute Spot Ticket ${widget.bus.regNumber}',
-                                          confirmButtonText: 'Test Payment Received',
-                                          onPaymentConfirmed: () {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text('✓ Verified! Test QR correctly directed to $_upiId'),
-                                                backgroundColor: AppTheme.primaryGreen,
-                                                behavior: SnackBarBehavior.floating,
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                      icon: const Icon(Icons.qr_code_scanner, size: 14, color: AppTheme.primaryGreen),
-                                      label: const Text('Test / Scan QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                                      onPressed: _showEditUpiModal,
+                                      icon: const Icon(Icons.edit, size: 14, color: AppTheme.primaryGreen),
+                                      label: const Text('Configure / Change UPI', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
                                     ),
                                   ],
                                 ),
@@ -1928,12 +1850,12 @@ class _BusDetailPageState extends State<BusDetailPage> {
                               const Icon(Icons.qr_code_2, size: 40, color: Colors.grey),
                               const SizedBox(height: 6),
                               const Text(
-                                'No Scanner Assigned for this Bus',
+                                'No UPI QR Configured for this Bus',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               const SizedBox(height: 4),
                               const Text(
-                                'The conductor cannot show a UPI QR code until you assign your business UPI ID.',
+                                'The conductor cannot receive money by UPI until you configure a UPI ID for this bus.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 11, color: Colors.grey),
                               ),
@@ -1946,8 +1868,8 @@ class _BusDetailPageState extends State<BusDetailPage> {
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 ),
                                 onPressed: _showEditUpiModal,
-                                icon: const Icon(Icons.add_link, size: 16),
-                                label: const Text('Assign UPI ID & Scanner'),
+                                icon: const Icon(Icons.qr_code_scanner, size: 16),
+                                label: const Text('Configure UPI / QR Code'),
                               ),
                             ],
                           ),
@@ -1959,51 +1881,6 @@ class _BusDetailPageState extends State<BusDetailPage> {
               );
             }),
 
-            const SizedBox(height: 20),
-
-            // 6. Danger Zone - Delete Bus Option
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.red, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Vehicle Fleet Management - Danger Zone',
-                          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Permanently delete this bus from your fleet. This action is irreversible and unassigns all associated crew.',
-                    style: TextStyle(color: Colors.grey, fontSize: 11),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: _confirmDeleteBus,
-                    icon: const Icon(Icons.delete_forever, size: 18),
-                    label: const Text('Delete Bus from Fleet', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 30),
           ],
         ),

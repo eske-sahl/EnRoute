@@ -195,50 +195,24 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
 
           const SizedBox(height: 20),
 
-          // App Settings & Preferences
-          const AppSettingsSection(),
-
-          const SizedBox(height: 20),
-
-          // Danger Zone / Account Deletion
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: Colors.red.shade200),
-            ),
-            color: Colors.red.shade50.withValues(alpha: 0.3),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
-                      const SizedBox(width: 8),
-                      Text('Danger Zone', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: 14)),
-                    ],
+          // App Settings, Preferences & Data Management
+          AppSettingsSection(
+            additionalOptions: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Permanently delete your bus operator account, fleet configurations, and conductor authorizations.',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red.shade700,
-                      side: BorderSide(color: Colors.red.shade300),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () => _confirmDeleteAccount(context),
-                    icon: const Icon(Icons.delete_forever, size: 18),
-                    label: const Text('Delete Operator Account', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
+                  child: const Icon(Icons.delete_sweep_rounded, color: Colors.red, size: 22),
+                ),
+                title: const Text('Manage & Delete Data', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Bus deletion, conductor removal & account closing', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => _showDataDeletionManagementModal(context),
               ),
-            ),
+            ],
           ),
 
           const SizedBox(height: 24),
@@ -260,6 +234,211 @@ class _OwnerProfileTabState extends State<OwnerProfileTab> {
           const AppCreatorFooter(),
         ],
       ),
+    );
+  }
+
+  void _showDataDeletionManagementModal(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ownerBuses = FleetState.instance.getBusesForOwner(widget.owner.id);
+    final ownerConductors = FleetState.instance.conductors.where((c) => c.ownerId == widget.owner.id).toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.15), shape: BoxShape.circle),
+                          child: const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Account & Data Deletion', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text('Manage deletion of buses, staff & account', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+
+                    // 1. Delete Bus Option
+                    const Text('DELETE A BUS FROM FLEET', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    if (ownerBuses.isEmpty)
+                      const Text('No buses currently in your fleet.', style: TextStyle(fontSize: 12, color: Colors.grey))
+                    else
+                      ...ownerBuses.map((bus) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.directions_bus, size: 20, color: AppTheme.primaryGreen),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(bus.busName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    Text(bus.regNumber, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (confirmCtx) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                      title: const Row(
+                                        children: [
+                                          Icon(Icons.delete_forever, color: Colors.red),
+                                          SizedBox(width: 8),
+                                          Text('Delete Bus?'),
+                                        ],
+                                      ),
+                                      content: Text('Are you sure you want to permanently delete "${bus.busName}" (${bus.regNumber}) from your fleet?'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(confirmCtx), child: const Text('Cancel')),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                          onPressed: () {
+                                            FleetState.instance.deleteBus(bus.regNumber);
+                                            Navigator.pop(confirmCtx);
+                                            Navigator.pop(sheetCtx);
+                                            setState(() {});
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Bus ${bus.busName} (${bus.regNumber}) deleted successfully.')),
+                                            );
+                                          },
+                                          child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+
+                    const SizedBox(height: 16),
+
+                    // 2. Delete Conductor Option
+                    const Text('REMOVE A CONDUCTOR STAFF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    if (ownerConductors.isEmpty)
+                      const Text('No conductors assigned to your account.', style: TextStyle(fontSize: 12, color: Colors.grey))
+                    else
+                      ...ownerConductors.map((cond) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.badge, size: 20, color: Colors.blue),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(cond.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    Text('${cond.userId} • Bus: ${cond.assignedBusName}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (confirmCtx) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                      title: const Row(
+                                        children: [
+                                          Icon(Icons.delete_forever, color: Colors.red),
+                                          SizedBox(width: 8),
+                                          Text('Delete Conductor?'),
+                                        ],
+                                      ),
+                                      content: Text('Are you sure you want to remove conductor "${cond.name}" (${cond.userId})?'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(confirmCtx), child: const Text('Cancel')),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                          onPressed: () {
+                                            FleetState.instance.deleteConductor(cond.id);
+                                            Navigator.pop(confirmCtx);
+                                            Navigator.pop(sheetCtx);
+                                            setState(() {});
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Conductor ${cond.name} removed successfully.')),
+                                            );
+                                          },
+                                          child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+
+                    const SizedBox(height: 16),
+
+                    // 3. Delete Operator Account Option
+                    const Text('CLOSE OPERATOR ACCOUNT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(sheetCtx);
+                        _confirmDeleteAccount(context);
+                      },
+                      icon: const Icon(Icons.delete_forever, size: 18),
+                      label: const Text('Delete Entire Operator Account', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

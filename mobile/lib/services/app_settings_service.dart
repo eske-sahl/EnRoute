@@ -6,7 +6,7 @@ class AppSettingsService extends ChangeNotifier {
   static final AppSettingsService instance = AppSettingsService._();
   AppSettingsService._();
 
-  ThemeMode _themeMode = ThemeMode.dark;
+  ThemeMode _themeMode = ThemeMode.light;
   String _language = 'en'; // 'en' or 'ml'
   bool _isInitialized = false;
 
@@ -21,10 +21,10 @@ class AppSettingsService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedTheme = prefs.getString('enroute_theme_mode');
-      if (savedTheme == 'light') {
-        _themeMode = ThemeMode.light;
-      } else {
+      if (savedTheme == 'dark') {
         _themeMode = ThemeMode.dark;
+      } else {
+        _themeMode = ThemeMode.light;
       }
 
       final savedLang = prefs.getString('enroute_language');

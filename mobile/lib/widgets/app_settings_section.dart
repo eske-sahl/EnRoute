@@ -3,7 +3,9 @@ import '../services/app_settings_service.dart';
 import '../theme/app_theme.dart';
 
 class AppSettingsSection extends StatelessWidget {
-  const AppSettingsSection({super.key});
+  final List<Widget>? additionalOptions;
+
+  const AppSettingsSection({super.key, this.additionalOptions});
 
   @override
   Widget build(BuildContext context) {
@@ -217,6 +219,13 @@ class AppSettingsSection extends StatelessWidget {
                     trailing: const Icon(Icons.chevron_right, size: 20),
                     onTap: () => settings.showSuggestFeatureModal(context),
                   ),
+
+                  if (additionalOptions != null) ...[
+                    for (final opt in additionalOptions!) ...[
+                      const Divider(height: 1),
+                      opt,
+                    ],
+                  ],
                 ],
               ),
             ),

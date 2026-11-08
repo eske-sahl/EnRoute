@@ -548,11 +548,6 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
             ],
           ),
           actions: [
-            TextButton.icon(
-              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 16),
-              label: const Text('Delete Conductor', style: TextStyle(color: Colors.red)),
-              onPressed: () => _confirmDeleteConductor(cond, dialogCtx),
-            ),
             OutlinedButton.icon(
               icon: const Icon(Icons.edit, size: 16),
               label: const Text('Edit Details'),
@@ -564,50 +559,6 @@ class _OwnerConductorTabState extends State<OwnerConductorTab> {
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogCtx),
               child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _confirmDeleteConductor(ConductorModel cond, BuildContext parentCtx) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Delete Conductor?'),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to remove conductor "${cond.name}" (${cond.userId})? '
-            'This conductor will no longer be able to log in, and their assigned bus (${cond.assignedBusReg}) will be set to Unassigned.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pop(parentCtx);
-                FleetState.instance.deleteConductor(cond.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Conductor ${cond.name} deleted successfully.'),
-                    backgroundColor: Colors.red.shade700,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-              child: const Text('Delete', style: TextStyle(color: Colors.white)),
             ),
           ],
         );

@@ -189,33 +189,17 @@ class _OwnerPortalState extends State<OwnerPortal> {
                           const SizedBox(height: 4),
                           Text('Owner: ${bus.ownerName} (${bus.ownerPhone})', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                           Text('Chassis: ${bus.chassisNumber} • Permit: ${bus.permitNumber}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryGreen,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                icon: const Icon(Icons.verified, size: 14, color: Colors.white),
-                                label: const Text('Proceed & Approve', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                                onPressed: () {
-                                  Navigator.pop(dialogCtx);
-                                  FleetState.instance.approveBusByAdmin(bus.regNumber);
-                                  setState(() {});
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Bus ${bus.busName} (${bus.regNumber}) approved! Full access unlocked.'),
-                                      backgroundColor: AppTheme.primaryGreen,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Awaiting official MVD / Admin review & permit verification',
+                              style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),

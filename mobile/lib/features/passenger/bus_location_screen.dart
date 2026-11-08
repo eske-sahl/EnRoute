@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/fleet_state.dart';
 import '../../widgets/bus_live_map_widget.dart';
+import 'passenger_bus_tracking_screen.dart';
 
 class BusLocationScreen extends StatelessWidget {
   final String busRegNumber;
@@ -210,6 +211,26 @@ class BusLocationScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Track Bus Button (Zomato / Swiggy / Uber style live distance & radar)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 2,
+                        ),
+                        icon: const Icon(Icons.navigation_rounded, size: 18),
+                        label: Text(
+                          'Track ${activeBus.busName}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        onPressed: () => PassengerBusTrackingScreen.startTracking(context, activeBus),
+                      ),
                     ),
                   ],
                 ),
