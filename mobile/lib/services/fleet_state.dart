@@ -382,6 +382,8 @@ class BusModel {
   String payeeName;
   bool isUpiEnabled;
 
+  bool get hasValidUpi => isUpiEnabled && upiId.trim().isNotEmpty;
+
   BusModel({
     required this.id,
     this.ownerId = 'OWNER-1',
@@ -423,9 +425,9 @@ class BusModel {
     this.currentLatitude = 10.9882,
     this.currentLongitude = 76.4589,
     this.conductorLocationString = 'Mannarkad Stand (Conductor Device GPS)',
-    this.upiId = 'kvksalu-2@okaxis',
-    this.payeeName = 'ESKE_',
-    this.isUpiEnabled = true,
+    this.upiId = '',
+    this.payeeName = '',
+    this.isUpiEnabled = false,
     Map<String, double>? customFareChart,
   }) : customFareChart = customFareChart ?? {} {
     sortStops();
@@ -617,9 +619,9 @@ class BusModel {
     conductorLocationString: (json['conductorLocationString'] as String?) ?? '',
     customFareChart: (json['customFareChart'] as Map?)
         ?.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
-    upiId: (json['upiId'] as String?) ?? 'kvksalu-2@okaxis',
-    payeeName: (json['payeeName'] as String?) ?? (json['busName'] as String? ?? 'ESKE_'),
-    isUpiEnabled: (json['isUpiEnabled'] as bool?) ?? true,
+    upiId: (json['upiId'] as String?) ?? '',
+    payeeName: (json['payeeName'] as String?) ?? '',
+    isUpiEnabled: (json['isUpiEnabled'] as bool?) ?? false,
   );
 }
 
@@ -1166,6 +1168,20 @@ class FleetState extends ChangeNotifier {
       await _persistBuses();
     } else {
       await _persistBuses();
+    }
+
+    // Ensure all buses start without any default/fixed UPI ID unless explicitly assigned by the owner
+    final hasCleanedUpi = StorageService.instance.getBool('sbk_upi_cleaned_v5') ?? false;
+    if (!hasCleanedUpi) {
+      for (final b in buses) {
+        if (b.upiId == 'kvksalu-2@okaxis' || b.payeeName == 'ESKE_') {
+          b.upiId = '';
+          b.payeeName = '';
+          b.isUpiEnabled = false;
+        }
+      }
+      await _persistBuses();
+      await StorageService.instance.setBool('sbk_upi_cleaned_v5', true);
     }
 
     if (savedTickets != null) {

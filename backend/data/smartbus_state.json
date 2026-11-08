@@ -114,8 +114,8 @@
       "userId": "anfal.conductor",
       "phoneNumber": "+91 98470 11003",
       "licenseNumber": "KL-11-COND-2021-7740",
-      "assignedBusReg": "KL 11 BQ 9981",
-      "assignedBusName": "Sanha",
+      "assignedBusReg": "KL88AQ1234",
+      "assignedBusName": "KKB",
       "role": "ROLE_CONDUCTOR",
       "status": "ACTIVE",
       "ownerId": "OWNER-2",
@@ -141,6 +141,19 @@
       "password": "password123",
       "phone": "+91 98470 11004",
       "todayCollection": 3150
+    },
+    {
+      "id": "COND-1794128212313",
+      "ownerId": "OWNER-2",
+      "name": "sulu",
+      "email": "sulu@g.c",
+      "userId": "sulu.c",
+      "password": "000000",
+      "phone": "9898909098",
+      "licenseNumber": "KL712020110200",
+      "assignedBusReg": "KL88AQ1234",
+      "assignedBusName": "KKB",
+      "todayCollection": 0
     }
   ],
   "buses": [
@@ -351,9 +364,9 @@
         "kozhikkode stand->kozhikkode": 10,
         "kozhikkode->kozhikkode stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "regNumber": "KL 10 CE 1204",
@@ -536,9 +549,9 @@
         "kozhikkode stand->kozhikkode": 10,
         "kozhikkode->kozhikkode stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "regNumber": "KL 11 BQ 9981",
@@ -713,9 +726,9 @@
         "nadakkavu->west hill": 10,
         "west hill->nadakkavu": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "regNumber": "KL 11 CF 3320",
@@ -832,9 +845,9 @@
         "kondotty stand->kondotty": 10,
         "kondotty->kondotty stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "id": "BUS-1",
@@ -934,9 +947,9 @@
         "pattimattom->perumbavoor stand": 10,
         "perumbavoor stand->pattimattom": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "id": "BUS-2",
@@ -1018,9 +1031,9 @@
         "thevara ferry->thoppumpady": 10,
         "thoppumpady->thevara ferry": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "id": "BUS-3",
@@ -1102,9 +1115,9 @@
         "infopark express->kakkanad infopark": 10,
         "kakkanad infopark->infopark express": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "id": "BUS-4",
@@ -1151,9 +1164,9 @@
         "melattur->nilambur": 10,
         "nilambur->melattur": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "id": "BUS-1793859642560",
@@ -1209,9 +1222,9 @@
         "ramanattukara->kozhikkode": 10,
         "kozhikkode->ramanattukara": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     },
     {
       "id": "BUS-1793893493023",
@@ -1258,9 +1271,107 @@
         "aluva stand->angamaly stand": 10,
         "angamaly stand->aluva stand": 10
       },
-      "upiId": "kvksalu-2@okaxis",
-      "payeeName": "ESKE_",
-      "isUpiEnabled": true
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
+    },
+    {
+      "id": "BUS-1794128083767",
+      "ownerId": "OWNER-2",
+      "regNumber": "KL71O9811",
+      "busName": "Kurikkal",
+      "category": "Limited Stop Bus (Red-Whiteline)",
+      "startPoint": "Aluva Stand",
+      "destPoint": "Angamaly Stand",
+      "routeName": "Aluva Stand - Angamaly Stand",
+      "stops": [],
+      "seatingCapacity": 48,
+      "driverName": "Unassigned",
+      "driverPhone": "",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "",
+      "conductorName": "Anfal",
+      "companyName": "Fathima Riyas Transit",
+      "todayCollection": 0,
+      "ticketsCount": 0,
+      "isActive": true,
+      "status": "RUNNING_NOW",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-1041",
+      "permitNumber": "KL/2026/MVD/STAGE/1041",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-700041",
+      "currentStop": "Aluva Stand",
+      "nextStop": "Angamaly Stand",
+      "eta": "Awaiting Admin Approval",
+      "ownerName": "Fathima Riyas",
+      "ownerPhone": "9447054321",
+      "ownerEmail": "fathima.owner@gmail.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "shamil@enroute.com",
+      "isTripActive": true,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 10.9882,
+      "currentLongitude": 76.4589,
+      "conductorLocationString": "Mannarkad Stand (Conductor Device GPS)",
+      "customFareChart": {
+        "aluva stand->angamaly stand": 10,
+        "angamaly stand->aluva stand": 10
+      },
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
+    },
+    {
+      "id": "BUS-1794128144656",
+      "ownerId": "OWNER-2",
+      "regNumber": "KL88AQ1234",
+      "busName": "KKB",
+      "category": "Ordinary Bus (Blue-Whiteline)",
+      "startPoint": "Aluva Stand",
+      "destPoint": "Angamaly Stand",
+      "routeName": "Aluva Stand - Angamaly Stand",
+      "stops": [],
+      "seatingCapacity": 48,
+      "driverName": "Unassigned",
+      "driverPhone": "",
+      "cleanerName": "Unassigned",
+      "cleanerPhone": "",
+      "conductorName": "sulu",
+      "companyName": "Fathima Riyas Transit",
+      "todayCollection": 0,
+      "ticketsCount": 0,
+      "isActive": true,
+      "status": "RUNNING_NOW",
+      "isApprovedByAdmin": true,
+      "verificationStatus": "ADMIN_APPROVED",
+      "chassisNumber": "MB1-420-KL-CHASSIS-1139",
+      "permitNumber": "KL/2026/MVD/STAGE/1139",
+      "fitnessValidity": "28-Dec-2027",
+      "insurancePolicyNumber": "NIC-KL-COM-700139",
+      "currentStop": "Aluva Stand",
+      "nextStop": "Angamaly Stand",
+      "eta": "Awaiting Admin Approval",
+      "ownerName": "Fathima Riyas",
+      "ownerPhone": "9447054321",
+      "ownerEmail": "fathima.owner@gmail.com",
+      "conductorPhone": "+91 98470 11001",
+      "conductorEmail": "shamil@enroute.com",
+      "isTripActive": true,
+      "isLiveGpsActive": true,
+      "currentStageIndex": 0,
+      "currentLatitude": 10.9882,
+      "currentLongitude": 76.4589,
+      "conductorLocationString": "Mannarkad Stand (Conductor Device GPS)",
+      "customFareChart": {
+        "aluva stand->angamaly stand": 10,
+        "angamaly stand->aluva stand": 10
+      },
+      "upiId": "",
+      "payeeName": "",
+      "isUpiEnabled": false
     }
   ],
   "tickets": [

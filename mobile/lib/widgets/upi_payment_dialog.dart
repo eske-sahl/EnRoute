@@ -4,12 +4,16 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../theme/app_theme.dart';
 
 class UpiPaymentDialog extends StatelessWidget {
-  static const String defaultVpa = 'kvksalu-2@okaxis';
-  static const String defaultPayeeName = 'ESKE_';
+  static const String defaultPlatformVpa = 'enroute.kerala@upi';
+  static const String defaultPlatformPayee = 'EnRoute Kerala';
+
+  // Fallback constants
+  static const String defaultVpa = defaultPlatformVpa;
+  static const String defaultPayeeName = defaultPlatformPayee;
 
   // For backwards compatibility with static access
-  static String get upiId => defaultVpa;
-  static String get payeeName => defaultPayeeName;
+  static String get upiId => defaultPlatformVpa;
+  static String get payeeName => defaultPlatformPayee;
 
   final double amount;
   final String vpa;

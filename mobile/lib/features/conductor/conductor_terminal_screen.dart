@@ -165,11 +165,11 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
     final bus = FleetState.instance.getBusByReg('KL 10 AZ 4589') ?? FleetState.instance.buses.first;
 
     if (_paymentMode == 'UPI') {
-      if (!bus.isUpiEnabled || bus.upiId.trim().isEmpty) {
+      if (!bus.hasValidUpi) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('UPI payment is disabled for ${bus.busName}. Please ask the owner to enable it in Bus Details or use Cash.'),
-            backgroundColor: Colors.brown,
+            content: Text('Cannot show QR: No UPI ID assigned by the owner of ${bus.busName}. Please ask the owner to assign it in Bus Details.'),
+            backgroundColor: Colors.red.shade800,
           ),
         );
         return;
@@ -430,7 +430,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
                     // Payment Method Pill Selector
                     Builder(builder: (context) {
                       final bus = FleetState.instance.getBusByReg('KL 10 AZ 4589') ?? FleetState.instance.buses.first;
-                      final isUpiReady = bus.isUpiEnabled && bus.upiId.trim().isNotEmpty;
+                      final isUpiReady = bus.hasValidUpi;
 
                       return Row(
                         children: [
@@ -441,7 +441,7 @@ class _ConductorTerminalScreenState extends State<ConductorTerminalScreen>
                             'UPI',
                             Icons.qr_code_scanner,
                             enabled: isUpiReady,
-                            disabledReason: 'UPI payments are disabled for ${bus.busName}. The bus owner must enable & configure UPI in Bus Details.',
+                            disabledReason: 'No UPI scanner assigned for ${bus.busName}. The bus owner must assign their UPI ID in Owner Portal > Bus Details.',
                           ),
                         ],
                       );

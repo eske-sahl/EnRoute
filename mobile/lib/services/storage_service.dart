@@ -53,6 +53,20 @@ class StorageService {
     }
   }
 
+  // Generic Bool Get/Set
+  bool? getBool(String key) {
+    return _prefs?.getBool(key);
+  }
+
+  Future<void> setBool(String key, bool value) async {
+    try {
+      _prefs ??= await SharedPreferences.getInstance();
+      await _prefs?.setBool(key, value);
+    } catch (e) {
+      debugPrint('StorageService setBool error: $e');
+    }
+  }
+
   // First Launch & Splash Screen State
   bool hasSeenSplash() {
     return _prefs?.getBool(keyHasSeenSplash) ?? false;

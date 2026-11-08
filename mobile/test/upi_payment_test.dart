@@ -6,15 +6,17 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 void main() {
   group('EnRoute Dynamic UPI Payment QR Suite', () {
-    test('1. UPI constants match user account specifications', () {
-      expect(UpiPaymentDialog.upiId, 'kvksalu-2@okaxis');
-      expect(UpiPaymentDialog.payeeName, 'ESKE_');
+    test('1. Platform UPI constants match specifications', () {
+      expect(UpiPaymentDialog.upiId, 'enroute.kerala@upi');
+      expect(UpiPaymentDialog.payeeName, 'EnRoute Kerala');
     });
 
     test('2. NPCI deep link URI format is correctly generated', () {
       final uri = UpiPaymentDialog.buildUpiUri(
         amount: 25.50,
         note: 'EnRoute Bus Ticket KL 10 AZ 4589',
+        vpa: 'kvksalu-2@okaxis',
+        name: 'ESKE_',
       );
 
       expect(uri, contains('upi://pay?'));
@@ -37,6 +39,8 @@ void main() {
                   UpiPaymentDialog.show(
                     context: context,
                     amount: 50.0,
+                    vpa: 'kvksalu-2@okaxis',
+                    payeeName: 'ESKE_',
                     title: 'UPI Dynamic Spot QR',
                     subtitle: 'Payee: ESKE_ (Sana Line)',
                     transactionNote: 'EnRoute Ticket',
@@ -73,7 +77,23 @@ void main() {
       expect(find.byType(UpiPaymentDialog), findsNothing);
     });
 
-    test('4. BusModel supports owner-assigned UPI details and serialization', () {
+    test('4. BusModel starts with empty unassigned UPI by default, hasValidUpi is false', () {
+      final freshBus = BusModel(
+        id: 'TEST-NEW-BUS',
+        regNumber: 'KL 10 GG 1234',
+        busName: 'Fresh Bus',
+        category: 'Limited Stop Bus (Red-Whiteline)',
+        routeName: 'Route A',
+        stops: [],
+      );
+
+      expect(freshBus.upiId, isEmpty);
+      expect(freshBus.payeeName, isEmpty);
+      expect(freshBus.isUpiEnabled, isFalse);
+      expect(freshBus.hasValidUpi, isFalse);
+    });
+
+    test('5. BusModel supports owner-assigned UPI details and serialization', () {
       final bus = BusModel(
         id: 'TEST-BUS-1',
         regNumber: 'KL 10 AZ 9999',
@@ -89,6 +109,7 @@ void main() {
       expect(bus.upiId, 'custom.owner@okhdfcbank');
       expect(bus.payeeName, 'Custom Motors');
       expect(bus.isUpiEnabled, isTrue);
+      expect(bus.hasValidUpi, isTrue);
 
       final json = bus.toJson();
       expect(json['upiId'], 'custom.owner@okhdfcbank');
@@ -99,26 +120,35 @@ void main() {
       expect(revived.upiId, 'custom.owner@okhdfcbank');
       expect(revived.payeeName, 'Custom Motors');
       expect(revived.isUpiEnabled, isTrue);
+      expect(revived.hasValidUpi, isTrue);
     });
 
-    test('5. FleetState updates bus UPI details configured by owner', () {
+    test('6. FleetState updates bus UPI details configured by owner', () {
       final state = FleetState.instance;
       final bus = state.buses.first;
 
+      // Ensure fresh state starts empty/unassigned
+      bus.upiId = '';
+      bus.payeeName = '';
+      bus.isUpiEnabled = false;
+      expect(bus.hasValidUpi, isFalse);
+
+      // Owner assigns UPI details
       state.updateBusUpiDetails(
         regNumber: bus.regNumber,
-        upiId: 'kvksalu-2@okaxis',
-        payeeName: 'ESKE_ Motors',
+        upiId: 'sahl.bus@okaxis',
+        payeeName: 'Sana Lines',
         isUpiEnabled: true,
       );
 
       final updated = state.getBusByReg(bus.regNumber);
-      expect(updated?.upiId, 'kvksalu-2@okaxis');
-      expect(updated?.payeeName, 'ESKE_ Motors');
+      expect(updated?.upiId, 'sahl.bus@okaxis');
+      expect(updated?.payeeName, 'Sana Lines');
       expect(updated?.isUpiEnabled, isTrue);
+      expect(updated?.hasValidUpi, isTrue);
     });
 
-    test('6. Dynamic UPI URI generation reflects customized owner VPA and Payee', () {
+    test('7. Dynamic UPI URI generation reflects customized owner VPA and Payee', () {
       final customUri = UpiPaymentDialog.buildUpiUri(
         amount: 32.0,
         note: 'EnRoute Spot Ticket KL 10 CE 1204',

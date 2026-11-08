@@ -412,7 +412,46 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
   }
 
   void _showUpiQrModal(double fare, VoidCallback onPaymentConfirmed) {
-    final vpa = _bus.upiId.trim().isNotEmpty ? _bus.upiId.trim() : UpiPaymentDialog.defaultVpa;
+    if (!_bus.hasValidUpi) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          title: const Row(
+            children: [
+              Icon(Icons.qr_code_2_rounded, color: Colors.orange, size: 26),
+              SizedBox(width: 10),
+              Text('No UPI Scanner Assigned', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The bus owner has not assigned a bank UPI ID or scanner for ${_bus.busName} (${_bus.regNumber}).',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Conductors cannot show a QR code until the owner configures their business banking details in the Owner Portal (Bus Details > Business Banking & Direct UPI).\n\nPlease collect fare via Cash or Smart Wallet.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK, Use Cash / Wallet'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final vpa = _bus.upiId.trim();
     final payee = _bus.payeeName.trim().isNotEmpty ? _bus.payeeName.trim() : _bus.busName;
 
     UpiPaymentDialog.show(
@@ -676,6 +715,12 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
 
   @override
   Widget build(BuildContext context) {
+    // Keep bus reference reactive to owner UPI configuration changes
+    final currentBus = FleetState.instance.getBusByReg(widget.conductor.assignedBusReg);
+    if (currentBus != null) {
+      _bus = currentBus;
+    }
+
     final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
     final assignedFare = _currentAssignedFare;
     final stageFare = _calculateStageFare();
@@ -1538,8 +1583,8 @@ class _ConductorDashboardTabState extends State<ConductorDashboardTab>
                         'UPI QR',
                         'UPI',
                         Icons.qr_code_2,
-                        enabled: _bus.isUpiEnabled && _bus.upiId.trim().isNotEmpty,
-                        disabledReason: 'UPI payments are disabled for ${_bus.busName}. The bus owner must configure & enable UPI in Bus Details.',
+                        enabled: _bus.hasValidUpi,
+                        disabledReason: 'No UPI scanner assigned for ${_bus.busName}. The bus owner must assign their business UPI ID in: Owner Portal ➔ Bus Details ➔ Assign UPI ID.',
                       ),
                     ],
                   ),
